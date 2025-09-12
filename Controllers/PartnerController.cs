@@ -761,29 +761,31 @@ public async Task<IActionResult> Success()
             }
             
             // Load Rooms với đầy đủ thông tin
-            viewModel.Rooms = await _db.Rooms
+            var rooms = await _db.Rooms
                 .Include(r => r.Beds)
                 .Where(r => r.PropertyId == propertyId)
-                .Select(r => new RoomItemVm
+                .ToListAsync();
+
+            viewModel.Rooms = rooms.Select(r => new RoomItemVm
+            {
+                Id = r.Id,
+                Name = r.Name,
+                RoomType = r.RoomType,
+                Size = r.Size,
+                SizeUnit = r.SizeUnit,
+                Quantity = r.Quantity,
+                MaxGuests = r.CapacityAdults + r.CapacityChildren,
+                CapacityAdults = r.CapacityAdults,
+                CapacityChildren = r.CapacityChildren,
+                AllowChildren = r.AllowChildren,
+                AllowExtraBed = r.AllowExtraBed,
+                Beds = r.Beds.SelectMany(b => b.GetAllBedItems()).Select(b => new BedItemVm
                 {
-                    Id = r.Id,
-                    Name = r.Name,
-                    RoomType = r.RoomType,
-                    Size = r.Size,
-                    SizeUnit = r.SizeUnit,
-                    Quantity = r.Quantity,
-                    MaxGuests = r.CapacityAdults + r.CapacityChildren,
-                    CapacityAdults = r.CapacityAdults,
-                    CapacityChildren = r.CapacityChildren,
-                    AllowChildren = r.AllowChildren,
-                    AllowExtraBed = r.AllowExtraBed,
-                    Beds = r.Beds.SelectMany(b => b.GetAllBedItems()).Select(b => new BedItemVm
-                    {
-                        Type = b.Type,
-                        Count = b.Count,
-                        BedroomIndex = b.BedroomIndex
-                    }).ToList()
-                }).ToListAsync();
+                    Type = b.Type,
+                    Count = b.Count,
+                    BedroomIndex = b.BedroomIndex
+                }).ToList()
+            }).ToList();
 
             // Load PricePackage nếu có
             var pricePackage = await _db.PricePackages
