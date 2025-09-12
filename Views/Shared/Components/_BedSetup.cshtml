@@ -1,0 +1,113 @@
+@model HotelBooking.ViewModels.Rooms.RoomCreateViewModel
+
+<section id="sec-bed" class="tera-card mb-3">
+    <div class="section-head">
+        <h3 class="tera-title">Cài đặt giường ngủ</h3>
+        <p class="tera-desc">Nêu rõ số lượng giường có trong phòng này. Bạn có thể thay đổi cài đặt này sau trong TERA.</p>
+    </div>
+
+    <!-- Radio chọn số lượng phòng ngủ -->
+    <div class="mb-3">
+        <label class="form-label form-label-lg d-block mb-2">Số lượng phòng ngủ</label>
+        <div class="d-flex gap-4 align-items-center">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="IsSingleBedroom" value="true"
+                    @(Model.IsSingleBedroom ? "checked" : "")>
+                <label class="form-check-label">Phòng ngủ đơn</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="IsSingleBedroom" value="false"
+                    @(!Model.IsSingleBedroom ? "checked" : "")>
+                <label class="form-check-label">Nhiều phòng ngủ</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Single bedroom: giống ảnh (1 block nền xám + nút Thêm loại giường) -->
+    <div id="singleBedroomBox" class="bed-box rounded-3 p-3 mb-3">
+        <div class="row g-3 align-items-center single-rows" id="singleBeds">
+            @* Server-side render existing beds when IsSingleBedroom = true *@
+            @if (Model.IsSingleBedroom && Model.Beds != null && Model.Beds.Count > 0)
+            {
+                var idx = 0;
+                foreach (var bed in Model.Beds)
+                {
+                    <div class="row g-3 align-items-center bed-row mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label mb-1">Loại giường</label>
+                            <select name="Beds[@idx].Type" class="form-select form-select-sm">
+                                @foreach (var t in Model.BedTypes)
+                                {
+                                    <option selected="@(string.Equals(t, bed.Type, StringComparison.OrdinalIgnoreCase) ? "selected" : null)">@t</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label mb-1">Số lượng giường</label>
+                            <input name="Beds[@idx].Count" type="number" min="1" value="@bed.Count" class="form-control form-control-sm" placeholder="Nhập số">
+                        </div>
+                    </div>
+                    idx++;
+                }
+            }
+        </div>
+        <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="btnAddSingleBed">+ Thêm loại giường</button>
+    </div>
+
+    <!-- Multi bedroom: mỗi "phòng ngủ" là 1 box, có nút Thêm loại giường khác, dưới cùng là nút full width -->
+    <div id="multiBedroomBox" class="d-none">
+        <div id="bedroomsContainer">
+            @* Server-side render existing beds when IsSingleBedroom = false *@
+            @if (!Model.IsSingleBedroom && Model.Beds != null && Model.Beds.Count > 0)
+            {
+                var grouped = Model.Beds
+                    .GroupBy(b => b.BedroomIndex)
+                    .OrderBy(g => g.Key)
+                    .ToList();
+
+                var bedroomSeq = 0; // sequential index as JS expects
+                foreach (var g in grouped)
+                {
+                    <div class="bed-box rounded-3 p-3 mb-3 bedroom" data-index="@bedroomSeq">
+                        <div class="position-relative">
+                            
+                            <div class="mb-2 fw-semibold"><i class="bi bi-plus-square-dotted me-2"></i>@(bedroomSeq + 1) phòng ngủ</div>
+                            <div class="bed-rows">
+                                @{
+                                    var j = 0;
+                                }
+                                @{
+                                    var bedIndex = 0;
+                                }
+                                @foreach (var bed in g)
+                                {
+                                    <div class="row g-3 align-items-center bed-row mb-2">
+                                        <div class="col-md-5">
+                                            <label class="form-label mb-1">Loại giường</label>
+                                            <select name="Bedrooms[@bedroomSeq].Beds[@j].Type" class="form-select form-select-sm">
+                                                @foreach (var t in Model.BedTypes)
+                                                {
+                                                    <option selected="@(string.Equals(t, bed.Type, StringComparison.OrdinalIgnoreCase) ? "selected" : null)">@t</option>
+                                                }
+                                            </select>
+                                            <input type="hidden" name="Bedrooms[@bedroomSeq].Beds[@j].BedroomIndex" value="@bedroomSeq">
+                                        </div>
+                                        <div class="col-md-5">
+                                            <label class="form-label mb-1">Số lượng giường</label>
+                                            <input name="Bedrooms[@bedroomSeq].Beds[@j].Count" type="number" min="1" value="@bed.Count" class="form-control form-control-sm" placeholder="Nhập số">
+                                        </div>
+                                        
+                                    </div>
+                                    j++;
+                                }
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm mt-2 js-add-bed">+ Thêm loại giường khác</button>
+                        </div>
+                    </div>
+                    bedroomSeq++;
+                }
+            }
+        </div>
+        <button type="button" id="btnAddBedroom" class="btn btn-outline-primary btn-sm w-100 mt-2">+ Thêm loại phòng ngủ khác</button>
+    </div>
+</section>

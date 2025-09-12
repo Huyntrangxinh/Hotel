@@ -1,0 +1,80 @@
+@model HotelBooking.ViewModels.Rooms.RoomCreateViewModel
+
+<section id="sec-amenities" class="tera-card mb-3">
+    <div class="section-head">
+        <h3 class="tera-title">Tiện nghi phòng</h3>
+        <p class="tera-desc">Chọn tiện nghi có trong loại phòng này.</p>
+        <small class="text-muted">Vui lòng chọn <strong>ít nhất 1</strong> tiện nghi.</small>
+        <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" id="amenitiesSelectAll" />
+            <label class="form-check-label" for="amenitiesSelectAll">Chọn tất cả tiện nghi</label>
+        </div>
+    </div>
+    <div class="amenities-container">
+        @foreach (var grp in Model.AmenityGroups)
+        {
+            <div class="amenity-group mb-3">
+                <div class="group-title mb-2">
+                    <i class="bi bi-building me-2"></i>@grp.Key
+                </div>
+                <div class="amenity-list">
+                    @foreach (var a in grp.Value)
+                    {
+                        var id = $"amen_{a.Replace(" ", "_")}";
+                        <div class="amenity-item">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="@id" name="SelectedAmenities" value="@a"
+                                    @(Model.SelectedAmenities.Contains(a) ? "checked" : null) />
+                                <label class="form-check-label" for="@id">@a</label>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        <div class="alert alert-light small border mt-3">
+            <i class="bi bi-info-circle me-2"></i>Không phải tiện nghi nào cũng được liệt kê ở đây. Bạn có thể thêm
+            nhiều tiện nghi khác sau trong TERA.
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const section = document.getElementById('sec-amenities');
+            if (!section) return;
+            const selectAll = section.querySelector('#amenitiesSelectAll');
+            const itemSelector = 'input.form-check-input[name="SelectedAmenities"]';
+            const getItems = () => Array.from(section.querySelectorAll(itemSelector));
+
+            function updateSelectAllState() {
+                const items = getItems();
+                if (items.length === 0) {
+                    selectAll.checked = false;
+                    selectAll.indeterminate = false;
+                    return;
+                }
+                const checkedCount = items.filter(i => i.checked).length;
+                selectAll.checked = checkedCount === items.length;
+                selectAll.indeterminate = checkedCount > 0 && checkedCount < items.length;
+            }
+
+            selectAll?.addEventListener('change', () => {
+                const items = getItems();
+                items.forEach(i => { i.checked = selectAll.checked; });
+                // sau khi set, trạng thái indeterminate cần clear
+                selectAll.indeterminate = false;
+            });
+
+            section.addEventListener('change', (e) => {
+                const target = e.target;
+                if (!(target instanceof HTMLInputElement)) return;
+                if (target.matches(itemSelector)) {
+                    updateSelectAllState();
+                }
+            });
+
+            // Khởi tạo trạng thái ban đầu
+            updateSelectAllState();
+        })();
+    </script>
+</section>

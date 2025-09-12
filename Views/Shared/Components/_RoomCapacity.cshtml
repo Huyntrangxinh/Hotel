@@ -1,0 +1,64 @@
+@model HotelBooking.ViewModels.Rooms.RoomCreateViewModel
+
+<section id="sec-capacity" class="tera-card mb-3">
+    <div class="section-head">
+        <h3 class="tera-title">Cài đặt công suất phòng</h3>
+        <p class="tera-desc">Xác định số lượng khách tối đa có thể lưu trú trong phòng này. Bạn có thể thay đổi cài đặt này sau trong TERA.</p>
+    </div>
+
+    <!-- Sức chứa người lớn tối đa -->
+    <div class="row g-3 align-items-start mb-3">
+        <div class="col-md-3">
+            <label class="form-label form-label-lg mb-1">Sức chứa người lớn tối đa</label>
+        </div>
+        <div class="col-md-9">
+            <input asp-for="CapacityAdults" type="number" min="1" class="form-control form-control-sm"
+                placeholder="Nhập số" />
+            <span class="text-danger small" asp-validation-for="CapacityAdults"></span>
+        </div>
+    </div>
+
+    <!-- Sức chứa trẻ em -->
+    <div class="row g-3 align-items-start mb-3">
+        <div class="col-md-3">
+            <label class="form-label form-label-lg mb-1">Sức chứa trẻ em</label>
+            <div class="form-hint">Nếu cho phép, sức chứa trẻ em tối đa sẽ được đặt thành một.</div>
+        </div>
+        <div class="col-md-9">
+            <div class="d-flex gap-4 align-items-center">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="AllowChildren" value="true"
+                        id="allowChildren" @(Model.AllowChildren ? "checked" : "") />
+                    <label class="form-check-label" for="allowChildren">Cho phép</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="AllowChildren" value="false"
+                        id="disallowChildren" @(!Model.AllowChildren ? "checked" : "") />
+                    <label class="form-check-label" for="disallowChildren">Không cho phép</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Giường phụ -->
+    <div class="row g-3 align-items-start">
+        <div class="col-md-3">
+            <label class="form-label form-label-lg mb-1">Giường phụ</label>
+            <div class="form-hint">Nếu cho phép, giường phụ tối đa sẽ được đặt thành một.</div>
+        </div>
+        <div class="col-md-9">
+            <div class="d-flex gap-4 align-items-center">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="AllowExtraBed" value="true"
+                        id="allowExtraBed" @(Model.AllowExtraBed ? "checked" : "") />
+                    <label class="form-check-label" for="allowExtraBed">Cho phép</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="AllowExtraBed" value="false"
+                        id="disallowExtraBed" @(!Model.AllowExtraBed ? "checked" : "") />
+                    <label class="form-check-label" for="disallowExtraBed">Không cho phép</label>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

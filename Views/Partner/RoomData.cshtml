@@ -1,0 +1,69 @@
+@model HotelBooking.ViewModels.Rooms.RoomCreateViewModel
+@{
+    ViewData["Title"] = "Dữ liệu phòng";
+}
+<div class="container-xl ui-compact room-wizard" style="max-width:1100px;">
+    <div class="d-flex align-items-start justify-content-between mb-3">
+        <a href="@Url.Action("PropertyData", "Partner", new { propertyId = Model.PropertyId, tab = "rooms" })"
+            class="btn btn-link px-0 text-decoration-none mt-2">&larr; Quay lại</a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-3 mb-3">
+            @await Html.PartialAsync("~/Views/Shared/Components/_RoomStepNavigation.cshtml", Model)
+        </div>
+
+        <div class="col-lg-9">
+            <form asp-action="RoomData" method="post" enctype="multipart/form-data" id="roomForm">
+                <input type="hidden" asp-for="PropertyId" />
+                <input type="hidden" asp-for="RoomId" />
+                <input type="hidden" id="DeletedPhotoIds" name="DeletedPhotoIds" value="[]" />
+
+                <!-- Thông tin phòng -->
+                @await Html.PartialAsync("~/Views/Shared/Components/_RoomInformation.cshtml", Model)
+
+                <!-- Chi tiết phòng -->
+                @await Html.PartialAsync("~/Views/Shared/Components/_RoomDetails.cshtml", Model)
+
+                <!-- Cài đặt giường ngủ -->
+                @await Html.PartialAsync("~/Views/Shared/Components/_BedSetup.cshtml", Model)
+
+                <!-- Tiện nghi phòng -->
+                @await Html.PartialAsync("~/Views/Shared/Components/_RoomAmenities.cshtml", Model)
+
+                <!-- Cài đặt công suất phòng -->
+                @await Html.PartialAsync("~/Views/Shared/Components/_RoomCapacity.cshtml", Model)
+
+                <!-- Mức bảo hộ -->
+                @await Html.PartialAsync("~/Views/Shared/Components/_SecurityDeposit.cshtml", Model)
+
+                <!-- Ảnh phòng -->
+                @await Html.PartialAsync("~/Views/Shared/Components/_RoomPhotos.cshtml", Model)
+
+                <div class="action-bar d-flex justify-content-end align-items-center no-bg">
+                    <button type="submit" class="btn btn-primary px-4 py-2"
+                        style="font-size:16px; background-color: #FF5E20; border-color: #FF5E20;">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <!-- Truyền dữ liệu từ Model sang JavaScript -->
+    <script>
+        window.bedTypes = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BedTypes));
+        window.savedPhotoUrls = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SavedPhotoUrls ?? new List<string>()));
+        window.savedPhotoCategories = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PhotoCategories ?? new List<string>()));
+        window.savedPhotoData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SavedPhotoData ?? new List<object>()));
+        window.savedBeds = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Beds ?? new List<HotelBooking.ViewModels.Rooms.BedItem>()));
+    </script>
+
+    <!-- Import file JavaScript riêng -->
+    <script src="~/js/room-data.js"></script>
+}
+
+<!-- Import CSS trực tiếp -->
+<link rel="stylesheet" href="~/css/room-data.css" />
