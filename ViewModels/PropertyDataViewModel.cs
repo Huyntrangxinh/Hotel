@@ -151,6 +151,6 @@ public class RoomItemVm
 public class BedItemVm
 {
     public string Type { get; set; } = string.Empty;
-    public int Count { get; set; }
+    public decimal Count { get; set; }
     public int BedroomIndex { get; set; } = 0;
 }

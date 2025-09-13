@@ -70,14 +70,10 @@
                 {
                     <div class="bed-box rounded-3 p-3 mb-3 bedroom" data-index="@bedroomSeq">
                         <div class="position-relative">
-                            
                             <div class="mb-2 fw-semibold"><i class="bi bi-plus-square-dotted me-2"></i>@(bedroomSeq + 1) phòng ngủ</div>
                             <div class="bed-rows">
                                 @{
                                     var j = 0;
-                                }
-                                @{
-                                    var bedIndex = 0;
                                 }
                                 @foreach (var bed in g)
                                 {
@@ -96,7 +92,6 @@
                                             <label class="form-label mb-1">Số lượng giường</label>
                                             <input name="Bedrooms[@bedroomSeq].Beds[@j].Count" type="number" min="1" value="@bed.Count" class="form-control form-control-sm" placeholder="Nhập số">
                                         </div>
-                                        
                                     </div>
                                     j++;
                                 }

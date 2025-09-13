@@ -59,6 +59,7 @@
         window.savedPhotoCategories = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PhotoCategories ?? new List<string>()));
         window.savedPhotoData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SavedPhotoData ?? new List<object>()));
         window.savedBeds = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Beds ?? new List<HotelBooking.ViewModels.Rooms.BedItem>()));
+        window.savedBedrooms = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Bedrooms ?? new List<HotelBooking.ViewModels.Rooms.BedroomItem>()));
     </script>
 
     <!-- Import file JavaScript riêng -->

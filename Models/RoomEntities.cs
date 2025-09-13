@@ -40,7 +40,7 @@ namespace HotelBooking.Models
         public int Id { get; set; }
         public int RoomId { get; set; }
         public List<string> Types { get; set; } = new(); // Danh sách các loại giường
-        public List<int> Counts { get; set; } = new(); // Danh sách số lượng tương ứng với từng loại giường
+        public List<decimal> Counts { get; set; } = new(); // Danh sách số lượng tương ứng với từng loại giường
         public int BedroomIndex { get; set; } = 0; // 0-based index để phân biệt phòng ngủ
 
         // Helper properties để tương thích với code cũ
@@ -58,7 +58,7 @@ namespace HotelBooking.Models
         }
 
         [NotMapped]
-        public int Count 
+        public decimal Count 
         { 
             get => Counts.FirstOrDefault();
             set 
@@ -87,7 +87,7 @@ namespace HotelBooking.Models
         }
 
         // Helper method để thêm bed item
-        public void AddBedItem(string type, int count)
+        public void AddBedItem(string type, decimal count)
         {
             Types.Add(type);
             Counts.Add(count);
@@ -98,7 +98,7 @@ namespace HotelBooking.Models
     public class BedItemData
     {
         public string Type { get; set; } = string.Empty;
-        public int Count { get; set; }
+        public decimal Count { get; set; }
         public int BedroomIndex { get; set; } = 0;
     }
 

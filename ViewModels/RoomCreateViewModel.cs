@@ -69,7 +69,7 @@ namespace HotelBooking.ViewModels.Rooms
         };
     }
 
-    public class BedItem { [Required] public string Type { get; set; } = string.Empty; [Range(1, int.MaxValue)] public int Count { get; set; } public int BedroomIndex { get; set; } = 0; }
+    public class BedItem { [Required] public string Type { get; set; } = string.Empty; [Range(0.1, double.MaxValue)] public decimal Count { get; set; } public int BedroomIndex { get; set; } = 0; }
     public class BedroomItem { public List<BedItem> Beds { get; set; } = new(); }
 }
 

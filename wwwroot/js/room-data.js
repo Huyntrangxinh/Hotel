@@ -220,15 +220,18 @@
       const firstPhoto = photos[0];
       uploadContent.innerHTML = `
         <div class="additional-photo-item" data-photo-id="${firstPhoto.id}">
-          <img src="${firstPhoto.preview}" alt="${category === "bedroom" ? "Bedroom" : "Bathroom"
-        }" />
+          <img src="${firstPhoto.preview}" alt="${
+        category === "bedroom" ? "Bedroom" : "Bathroom"
+      }" />
           <div class="additional-photo-overlay">
-            <button type="button" class="btn btn-preview btn-sm" onclick="previewRoomPhoto('${firstPhoto.preview
-        }')">
+            <button type="button" class="btn btn-preview btn-sm" onclick="previewRoomPhoto('${
+              firstPhoto.preview
+            }')">
               <i class="bi bi-eye me-1"></i>Xem
             </button>
-            <button type="button" class="btn btn-delete btn-sm" onclick="deleteRoomPhoto('${firstPhoto.preview
-        }')">
+            <button type="button" class="btn btn-delete btn-sm" onclick="deleteRoomPhoto('${
+              firstPhoto.preview
+            }')">
               <i class="bi bi-trash me-1"></i>Xóa
             </button>
           </div>
@@ -359,7 +362,6 @@
   // ====== CÀI ĐẶT GIƯỜNG NGỦ ======
   (function bedSetup() {
     const bedTypes = window.bedTypes || [];
-    const savedBeds = window.savedBeds || [];
     const singleBox = document.getElementById("singleBedroomBox");
     const multiBox = document.getElementById("multiBedroomBox");
     const singleRows = document.getElementById("singleBeds");
@@ -386,20 +388,23 @@
           <label class="form-label mb-1">Loại giường</label>
           <select name="Beds[${idx}].Type" class="form-select form-select-sm">
             ${bedTypes
-          .map(
-            (b) => `<option ${b === type ? "selected" : ""}>${b}</option>`
-          )
-          .join("")}
+              .map(
+                (b) => `<option ${b === type ? "selected" : ""}>${b}</option>`
+              )
+              .join("")}
           </select>
         </div>
         <div class="col-md-6">
           <label class="form-label mb-1">Số lượng giường</label>
-          <input name="Beds[${idx}].Count" type="number" min="1" value="${count || ''}" class="form-control form-control-sm" placeholder="Nhập số">
+          <input name="Beds[${idx}].Count" type="number" min="1" value="${
+        count || ""
+      }" class="form-control form-control-sm" placeholder="Nhập số" data-js-created="true">
         </div>`;
       singleRows.appendChild(row);
     }
     function ensureSingle() {
-      if (!singleRows.querySelector(".bed-row") && savedBeds.length === 0) addSingleBedRow();
+      if (!singleRows.querySelector(".bed-row") && savedBeds.length === 0)
+        addSingleBedRow();
     }
     btnAddSingleBed?.addEventListener("click", () => addSingleBedRow());
 
@@ -416,19 +421,23 @@
           <label class="form-label mb-1">Loại giường</label>
           <select name="Bedrooms[${i}].Beds[${j}].Type" class="form-select form-select-sm">
             ${bedTypes
-          .map(
-            (b) => `<option ${b === type ? "selected" : ""}>${b}</option>`
-          )
-          .join("")}
+              .map(
+                (b) => `<option ${b === type ? "selected" : ""}>${b}</option>`
+              )
+              .join("")}
           </select>
           <input type="hidden" name="Bedrooms[${i}].Beds[${j}].BedroomIndex" value="${i}">
         </div>
         <div class="col-md-5">
           <label class="form-label mb-1">Số lượng giường</label>
-          <input name="Bedrooms[${i}].Beds[${j}].Count" type="number" min="1" value="${count || ''}" class="form-control form-control-sm" placeholder="Nhập số">
+          <input name="Bedrooms[${i}].Beds[${j}].Count" type="number" min="1" value="${
+        count || ""
+      }" class="form-control form-control-sm" placeholder="Nhập số" data-js-created="true">
         </div>
         <div class="col-auto">
-          <button type="button" class="btn btn-danger btn-sm js-remove-bed-row" style="background-color: #dc3545 !important; border-color: #dc3545 !important; color: white !important; ${j < 1 ? 'display:none;' : ''}">
+          <button type="button" class="btn btn-danger btn-sm js-remove-bed-row" style="background-color: #dc3545 !important; border-color: #dc3545 !important; color: white !important; ${
+            j < 1 ? "display:none;" : ""
+          }">
             <i class="bi bi-trash3-fill"></i>
           </button>
         </div>`;
@@ -443,19 +452,27 @@
 
       card.innerHTML = `
         <div class="position-relative">
-          <div class="mb-2 fw-semibold"><i class="bi bi-plus-square-dotted me-2"></i>${index + 1
-        } phòng ngủ</div>
+          <div class="mb-2 fw-semibold"><i class="bi bi-plus-square-dotted me-2"></i>phòng ngủ ${
+            index + 1
+          }</div>
           <div class="bed-rows"></div>
           <button type="button" class="btn btn-outline-primary btn-sm mt-2 js-add-bed">+ Thêm loại giường khác</button>
         </div>`;
       bedroomsContainer.appendChild(card);
-      addBedRowToBedroom(card);
+      // KHÔNG tự động tạo bed row mặc định - để loadSavedBeds() xử lý
     }
     btnAddBedroom?.addEventListener("click", () => {
       // Đếm chính xác số phòng ngủ hiện có
       const currentCount =
         bedroomsContainer.querySelectorAll(".bedroom").length;
       createBedroom(currentCount);
+      // Tạo 1 bed row mặc định cho bedroom mới
+      const newBedroom = bedroomsContainer.querySelector(
+        `.bedroom[data-index="${currentCount}"]`
+      );
+      if (newBedroom) {
+        addBedRowToBedroom(newBedroom);
+      }
     });
     // Gắn lắng nghe cấp tài liệu để hỗ trợ cả phần tử render server-side
     document.addEventListener("click", (e) => {
@@ -470,10 +487,22 @@
         return;
       }
 
-      // Không hỗ trợ xóa giường/phòng ngủ nữa
-    });
+      // Xóa bed row
+      const removeBedBtn = target.closest(".js-remove-bed-row");
+      if (removeBedBtn) {
+        e.preventDefault();
+        const row = removeBedBtn.closest(".bed-row");
+        const bedroom = row.closest(".bedroom");
 
-    // Bỏ toàn bộ handler xóa
+        // Chỉ cho phép xóa nếu còn nhiều hơn 1 bed row
+        const bedRows = bedroom.querySelectorAll(".bed-row");
+        if (bedRows.length > 1) {
+          row.remove();
+          reindexBedRows(bedroom);
+        }
+        return;
+      }
+    });
 
     // Function để reindex các loại giường trong một phòng ngủ
     function reindexBedRows(bedroomCard) {
@@ -484,6 +513,7 @@
         // Cập nhật name attribute cho select và input
         const select = row.querySelector('select[name^="Bedrooms["]');
         const input = row.querySelector('input[name^="Bedrooms["]');
+        const removeBtn = row.querySelector(".js-remove-bed-row");
 
         if (select) {
           select.name = `Bedrooms[${bedroomIndex}].Beds[${newBedIndex}].Type`;
@@ -492,8 +522,14 @@
           input.name = `Bedrooms[${bedroomIndex}].Beds[${newBedIndex}].Count`;
         }
 
-        // Ẩn/hiện nút xóa dựa trên index mới (từ loại giường thứ 2 trở đi)
-        // Không còn render nút xóa
+        // Ẩn/hiện nút xóa: chỉ hiện khi có nhiều hơn 1 bed row
+        if (removeBtn) {
+          if (bedRows.length > 1) {
+            removeBtn.style.display = "block";
+          } else {
+            removeBtn.style.display = "none";
+          }
+        }
       });
     }
 
@@ -504,7 +540,7 @@
       setDisabled(multiBox, true);
       ensureSingle();
       // Ẩn nút "Thêm loại giường" khi chọn phòng ngủ đơn
-      btnAddSingleBed.style.display = 'none';
+      btnAddSingleBed.style.display = "none";
     }
     function showMulti() {
       singleBox.classList.add("d-none");
@@ -512,9 +548,12 @@
       setDisabled(singleBox, true);
       setDisabled(multiBox, false);
       // Hiện lại nút "Thêm loại giường" khi chọn nhiều phòng ngủ
-      btnAddSingleBed.style.display = 'block';
+      btnAddSingleBed.style.display = "block";
       // Chỉ tạo 2 phòng ngủ mặc định nếu chưa có và chưa có saved data
-      if (!bedroomsContainer.querySelector(".bedroom") && savedBeds.length === 0) {
+      if (
+        !bedroomsContainer.querySelector(".bedroom") &&
+        savedBeds.length === 0
+      ) {
         createBedroom(0);
         createBedroom(1);
       }
@@ -531,93 +570,94 @@
     // Load saved bed data
     function loadSavedBeds() {
       console.log("=== LOADING SAVED BEDS ===");
-      console.log("savedBeds:", savedBeds);
-      console.log("savedBeds length:", savedBeds.length);
-      console.log("savedBeds details:", JSON.stringify(savedBeds, null, 2));
 
-      // Clear existing rows
-      singleRows.innerHTML = '';
-      bedroomsContainer.innerHTML = '';
+      // Kiểm tra xem đã có server-rendered fields chưa
+      const existingSingleRows = singleRows.querySelectorAll(".bed-row");
+      const existingBedrooms = bedroomsContainer.querySelectorAll(".bedroom");
 
-      // Check if single or multi bedroom mode
-      const isSingle = document.querySelector('input[name="IsSingleBedroom"][value="true"]').checked;
-
-      if (savedBeds.length === 0) {
-        console.log("No saved beds found - creating default form");
-        // Tạo form mặc định khi chưa có data
-        if (isSingle) {
-          addSingleBedRow(); // Tạo 1 row mặc định
-        } else {
-          createBedroom(0); // Tạo 2 phòng ngủ mặc định
-          createBedroom(1);
-        }
+      if (existingSingleRows.length > 0 || existingBedrooms.length > 0) {
+        console.log("🚫 Server-rendered fields detected - skipping load");
         return;
       }
 
+      // Clear form
+      singleRows.innerHTML = "";
+      bedroomsContainer.innerHTML = "";
+
+      const isSingle = document.querySelector(
+        'input[name="IsSingleBedroom"][value="true"]'
+      ).checked;
+
       if (isSingle) {
-        // Single bedroom mode - load all beds into single section
-        savedBeds.forEach((bed, index) => {
-          console.log(`Loading bed ${index} (single):`, bed);
-          addSingleBedRow(bed.Type, bed.Count);
-        });
-      } else {
-        // Multi bedroom mode - group beds by BedroomIndex
-        const bedsByBedroom = {};
-        savedBeds.forEach((bed, index) => {
-          console.log(`Loading bed ${index} (multi):`, bed);
-          const bedroomIndex = bed.BedroomIndex || 0;
-          if (!bedsByBedroom[bedroomIndex]) {
-            bedsByBedroom[bedroomIndex] = [];
-          }
-          bedsByBedroom[bedroomIndex].push(bed);
-        });
+        // Single bedroom: load từ savedBeds
+        const savedBeds = window.savedBeds || [];
+        console.log("Single bedroom - savedBeds:", savedBeds);
 
-        // Create bedrooms and add beds
-        Object.keys(bedsByBedroom).sort((a, b) => parseInt(a) - parseInt(b)).forEach((bedroomIndex, arrayIndex) => {
-          const bedroomBeds = bedsByBedroom[bedroomIndex];
-          console.log(`Creating bedroom ${bedroomIndex} with beds:`, bedroomBeds);
-
-          // Create bedroom with sequential index (0, 1, 2...)
-          createBedroom(arrayIndex);
-          const bedroom = bedroomsContainer.querySelector(`.bedroom[data-index="${arrayIndex}"]`);
-
-          // Add beds to bedroom
-          bedroomBeds.forEach(bed => {
-            addBedRowToBedroom(bedroom, bed.Type, bed.Count);
+        if (savedBeds.length > 0) {
+          // Có data: render dựa trên data
+          savedBeds.forEach((bed, index) => {
+            console.log(`Loading bed ${index}:`, bed);
+            addSingleBedRow(bed.Type, bed.Count);
           });
-        });
+        } else {
+          // Không có data: tạo 1 row mặc định
+          console.log("No saved beds - creating default row");
+          addSingleBedRow();
+        }
+      } else {
+        // Multi bedroom: load từ savedBedrooms
+        const savedBedrooms = window.savedBedrooms || [];
+        console.log("Multi bedroom - savedBedrooms:", savedBedrooms);
 
-        // Cập nhật hiển thị nút xóa cho các phòng ngủ đã load
-        [...bedroomsContainer.querySelectorAll(".bedroom")].forEach((bedroom, newIndex) => {
-          const deleteBtn = bedroom.querySelector(".js-remove-bedroom");
-          if (deleteBtn) {
-            if (newIndex >= 2) {
-              deleteBtn.style.display = "block";
+        if (savedBedrooms.length > 0) {
+          // Có data: render dựa trên data
+          savedBedrooms.forEach((bedroom, bedroomIndex) => {
+            console.log(
+              `Creating bedroom ${bedroomIndex} with beds:`,
+              bedroom.Beds
+            );
+
+            // Create bedroom
+            createBedroom(bedroomIndex);
+            const bedroomElement = bedroomsContainer.querySelector(
+              `.bedroom[data-index="${bedroomIndex}"]`
+            );
+
+            // Add beds to bedroom
+            if (bedroom.Beds && bedroom.Beds.length > 0) {
+              bedroom.Beds.forEach((bed) => {
+                addBedRowToBedroom(bedroomElement, bed.Type, bed.Count);
+              });
             } else {
-              deleteBtn.style.display = "none";
+              // Nếu bedroom không có beds, tạo 1 bed row mặc định
+              addBedRowToBedroom(bedroomElement);
             }
-          }
-          // Reindex các loại giường trong phòng ngủ này
-          reindexBedRows(bedroom);
-        });
+          });
+        } else {
+          // Không có data: tạo 2 phòng ngủ mặc định
+          console.log("No saved bedrooms - creating default 2 bedrooms");
+          createBedroom(0);
+          createBedroom(1);
+        }
       }
     }
 
+    // Load saved data first
+    loadSavedBeds();
+
+    // Then setup UI based on loaded data
     const startSingle = document.querySelector(
       'input[name="IsSingleBedroom"][value="true"]'
     ).checked;
     startSingle ? showSingle() : showMulti();
 
-    // Load saved data after UI is set up
-    loadSavedBeds();
-
     // Force style cho nút xóa phòng ngủ
     function forceDeleteButtonStyle() {
-      const deleteButtons = document.querySelectorAll('.js-remove-bedroom');
-      deleteButtons.forEach(btn => {
-        btn.style.backgroundColor = '#dc3545';
-        btn.style.borderColor = '#dc3545';
-        btn.style.color = 'white';
+      const deleteButtons = document.querySelectorAll(".js-remove-bedroom");
+      deleteButtons.forEach((btn) => {
+        btn.style.backgroundColor = "#dc3545";
+        btn.style.borderColor = "#dc3545";
+        btn.style.color = "white";
       });
     }
 
@@ -659,28 +699,32 @@
   }
 
   // Bảo đảm init sau khi DOM sẵn sàng
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initSecurityDeposit);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initSecurityDeposit);
   } else {
     initSecurityDeposit();
   }
 
   // ===== XỬ LÝ CHỌN TẤT CẢ TIỆN NGHI =====
   function initSelectAllAmenities() {
-    const root = document.getElementById('amenitiesRoot');
-    const selectAllCheckbox = document.getElementById('amenitiesMaster');
+    const root = document.getElementById("amenitiesRoot");
+    const selectAllCheckbox = document.getElementById("amenitiesMaster");
     if (!root || !selectAllCheckbox) return;
     let isBulkUpdating = false;
 
-    const getBoxes = () => root.querySelectorAll('input.amenity-checkbox');
+    const getBoxes = () => root.querySelectorAll("input.amenity-checkbox");
 
     // Cập nhật trạng thái nút "Chọn tất cả" dựa trên các checkbox tiện nghi
     function updateSelectAllState() {
       const boxes = getBoxes();
-      const checkedCount = root.querySelectorAll('input.amenity-checkbox:checked').length;
+      const checkedCount = root.querySelectorAll(
+        "input.amenity-checkbox:checked"
+      ).length;
       const totalCount = boxes.length;
 
-      console.log(`UpdateSelectAllState: ${checkedCount}/${totalCount} checked`);
+      console.log(
+        `UpdateSelectAllState: ${checkedCount}/${totalCount} checked`
+      );
 
       if (!selectAllCheckbox) return;
       if (checkedCount === 0) {
@@ -703,10 +747,10 @@
 
     function setAllAmenities(checked) {
       isBulkUpdating = true;
-      getBoxes().forEach(cb => {
+      getBoxes().forEach((cb) => {
         if (cb.checked !== checked) {
           cb.checked = checked;
-          cb.dispatchEvent(new Event('change', { bubbles: true }));
+          cb.dispatchEvent(new Event("change", { bubbles: true }));
         }
       });
       isBulkUpdating = false;
@@ -722,19 +766,21 @@
     });
 
     // Xử lý khi click từng checkbox tiện nghi (event delegation)
-    root.addEventListener('change', (e) => {
+    root.addEventListener("change", (e) => {
       if (!(e.target instanceof Element)) return;
       if (isBulkUpdating) return;
-      if (e.target.matches('input.amenity-checkbox')) updateSelectAllState();
+      if (e.target.matches("input.amenity-checkbox")) updateSelectAllState();
     });
 
     // Cho phép click cả vào vùng tiêu đề để toggle
-    document.getElementById('amenitiesMasterContainer')?.addEventListener('click', (e) => {
-      if (!(e.target instanceof Element)) return;
-      if (e.target.id === 'amenitiesMaster') return; // đã xử lý ở trên
-      selectAllCheckbox.checked = !selectAllCheckbox.checked;
-      setAllAmenities(selectAllCheckbox.checked);
-    });
+    document
+      .getElementById("amenitiesMasterContainer")
+      ?.addEventListener("click", (e) => {
+        if (!(e.target instanceof Element)) return;
+        if (e.target.id === "amenitiesMaster") return; // đã xử lý ở trên
+        selectAllCheckbox.checked = !selectAllCheckbox.checked;
+        setAllAmenities(selectAllCheckbox.checked);
+      });
 
     // Khởi tạo trạng thái ban đầu sau khi DOM sẵn sàng và có selected từ server
     updateSelectAllState();
@@ -742,8 +788,8 @@
   }
 
   // Khởi tạo khi DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initSelectAllAmenities);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initSelectAllAmenities);
   } else {
     initSelectAllAmenities();
   }
@@ -787,75 +833,64 @@
     // Export function để có thể sử dụng từ bên ngoài
     window.updateDeletedPhotoIdsField = updateDeletedPhotoIdsField;
 
-    // ===== TẠM THỜI CHẶN SUBMIT ĐỂ DEBUG =====
+    // ===== FORM SUBMIT HANDLER =====
     form.addEventListener("submit", (e) => {
+      // TẠM THỜI CHẶN SUBMIT ĐỂ DEBUG
+      e.preventDefault();
+
+      console.log("=== BẮT ĐẦU FORM SUBMIT ===");
+
+      // Kiểm tra IsSingleBedroom
+      const isSingleBedroom = document.querySelector(
+        'input[name="IsSingleBedroom"][value="true"]'
+      ).checked;
+      console.log("IsSingleBedroom:", isSingleBedroom);
+
+      // Log dữ liệu bedrooms trước khi xử lý
+      if (isSingleBedroom) {
+        console.log("=== SINGLE BEDROOM DATA (TRƯỚC) ===");
+        const bedRows = document.querySelectorAll("#singleBeds .bed-row");
+        bedRows.forEach((row, index) => {
+          const typeSelect = row.querySelector('select[name^="Beds["]');
+          const countInput = row.querySelector('input[name^="Beds["]');
+          console.log(
+            `Bed ${index}: Type="${typeSelect?.value}", Count="${countInput?.value}"`
+          );
+        });
+      } else {
+        console.log("=== MULTI BEDROOM DATA (TRƯỚC) ===");
+        const bedrooms = document.querySelectorAll(
+          "#bedroomsContainer .bedroom"
+        );
+        bedrooms.forEach((bedroom, bedroomIndex) => {
+          console.log(`Bedroom ${bedroomIndex}:`);
+          const bedRows = bedroom.querySelectorAll(".bed-row");
+          bedRows.forEach((row, bedIndex) => {
+            const typeSelect = row.querySelector('select[name^="Bedrooms["]');
+            const countInput = row.querySelector('input[name^="Bedrooms["]');
+            console.log(
+              `  Bed ${bedIndex}: Type="${typeSelect?.value}", Count="${countInput?.value}"`
+            );
+          });
+        });
+      }
+
+      // Xóa hidden inputs trước khi submit
+      const hiddenCountInputs = document.querySelectorAll(
+        'input[type="hidden"][name*="Count"]'
+      );
+      hiddenCountInputs.forEach((input) => {
+        input.remove();
+      });
+
       // Cập nhật DeletedPhotoIds field
       updateDeletedPhotoIdsField();
 
-      // ===== LOG CHI TIẾT ĐỂ DEBUG =====
-      console.log("=== DEBUG FORM TRƯỚC KHI SUBMIT ===");
-      console.log("DeletedPhotoIds:", deletedPhotoIds);
-      console.log("Total photos in roomPhotos array:", roomPhotos.length);
-
-      // ===== KIỂM TRA INPUT FILES =====
-      console.log("=== KIỂM TRA INPUT FILES ===");
-
+      // Copy files từ roomPhotos array vào input files
       const bedroomInput = document.getElementById("bedroomPhotos");
       const bathroomInput = document.getElementById("bathroomPhotos");
       const additionalInput = document.getElementById("additionalPhotos");
-      const moreAdditionalInput = document.getElementById(
-        "moreAdditionalPhotos"
-      );
 
-      console.log("BedroomPhotos input:", bedroomInput);
-      console.log("BathroomPhotos input:", bathroomInput);
-      console.log("AdditionalPhotos input:", additionalInput);
-      console.log("MoreAdditionalPhotos input:", moreAdditionalInput);
-
-      // ===== KIỂM TRA FILES TRONG INPUT =====
-      if (bedroomInput) {
-        console.log("BedroomPhotos files:", bedroomInput.files);
-        console.log(
-          "BedroomPhotos files.length:",
-          bedroomInput.files?.length || 0
-        );
-        console.log("BedroomPhotos files[0]:", bedroomInput.files?.[0]);
-      }
-
-      if (bathroomInput) {
-        console.log("BathroomPhotos files:", bathroomInput.files);
-        console.log(
-          "BathroomPhotos files.length:",
-          bathroomInput.files?.length || 0
-        );
-        console.log("BathroomPhotos files[0]:", bathroomInput.files?.[0]);
-      }
-
-      if (additionalInput) {
-        console.log("AdditionalPhotos files:", additionalInput.files);
-        console.log(
-          "AdditionalPhotos files.length:",
-          additionalInput.files?.length || 0
-        );
-        console.log("AdditionalPhotos files[0]:", additionalInput.files?.[0]);
-      }
-
-      if (moreAdditionalInput) {
-        console.log("MoreAdditionalPhotos files:", moreAdditionalInput.files);
-        console.log(
-          "MoreAdditionalPhotos files.length:",
-          moreAdditionalInput.files?.length || 0
-        );
-        console.log(
-          "MoreAdditionalPhotos files[0]:",
-          moreAdditionalInput.files?.[0]
-        );
-      }
-
-      // ===== COPY FILES TỪ ROOMPHOTOS VÀO INPUT TRƯỚC KHI SUBMIT =====
-      console.log("=== COPY FILES VÀO INPUT ===");
-
-      // Copy files từ roomPhotos array vào input files
       const bedroomPhotos = roomPhotos.filter(
         (p) => p.category === "bedroom" && p.file
       );
@@ -866,64 +901,58 @@
         (p) => p.category === "additional" && p.file
       );
 
-      console.log("Files từ roomPhotos array:");
-      console.log("- Bedroom photos:", bedroomPhotos.length);
-      console.log("- Bathroom photos:", bathroomPhotos.length);
-      console.log("- Additional photos:", additionalPhotos.length);
-
       // Tạo DataTransfer để copy files vào input
       if (bedroomPhotos.length > 0 && bedroomInput) {
         const dt = new DataTransfer();
         bedroomPhotos.forEach((photo) => dt.items.add(photo.file));
         bedroomInput.files = dt.files;
-        console.log(
-          "✅ Đã copy",
-          dt.files.length,
-          "files vào BedroomPhotos input"
-        );
       }
 
       if (bathroomPhotos.length > 0 && bathroomInput) {
         const dt = new DataTransfer();
         bathroomPhotos.forEach((photo) => dt.items.add(photo.file));
         bathroomInput.files = dt.files;
-        console.log(
-          "✅ Đã copy",
-          dt.files.length,
-          "files vào BathroomPhotos input"
-        );
       }
 
       if (additionalPhotos.length > 0 && additionalInput) {
         const dt = new DataTransfer();
         additionalPhotos.forEach((photo) => dt.items.add(photo.file));
         additionalInput.files = dt.files;
-        console.log(
-          "✅ Đã copy",
-          dt.files.length,
-          "files vào AdditionalPhotos input"
-        );
       }
 
-      // ===== KIỂM TRA FORM DATA SAU KHI COPY =====
-      console.log("=== KIỂM TRA FORM DATA SAU KHI COPY ===");
-      const formData = new FormData(form);
-      console.log("FormData entries:");
-      for (let [key, value] of formData.entries()) {
-        if (value instanceof File) {
+      // Log dữ liệu bedrooms sau khi xử lý
+      if (isSingleBedroom) {
+        console.log("=== SINGLE BEDROOM DATA (SAU) ===");
+        const bedRows = document.querySelectorAll("#singleBeds .bed-row");
+        bedRows.forEach((row, index) => {
+          const typeSelect = row.querySelector('select[name^="Beds["]');
+          const countInput = row.querySelector('input[name^="Beds["]');
           console.log(
-            `  ${key}: File - ${value.name}, ${value.size} bytes, ${value.type}`
+            `Bed ${index}: Type="${typeSelect?.value}", Count="${countInput?.value}"`
           );
-        } else {
-          console.log(`  ${key}: ${value}`);
-        }
+        });
+      } else {
+        console.log("=== MULTI BEDROOM DATA (SAU) ===");
+        const bedrooms = document.querySelectorAll(
+          "#bedroomsContainer .bedroom"
+        );
+        bedrooms.forEach((bedroom, bedroomIndex) => {
+          console.log(`Bedroom ${bedroomIndex}:`);
+          const bedRows = bedroom.querySelectorAll(".bed-row");
+          bedRows.forEach((row, bedIndex) => {
+            const typeSelect = row.querySelector('select[name^="Bedrooms["]');
+            const countInput = row.querySelector('input[name^="Bedrooms["]');
+            console.log(
+              `  Bed ${bedIndex}: Type="${typeSelect?.value}", Count="${countInput?.value}"`
+            );
+          });
+        });
       }
 
-      console.log("✅ HOÀN THÀNH XỬ LÝ - FORM SẼ SUBMIT");
-      console.log("=== KẾT THÚC DEBUG - FORM SUBMIT ===");
+      console.log("=== KẾT THÚC FORM SUBMIT ===");
 
-      // Cho phép form submit bình thường
-      // Không cần làm gì thêm - form sẽ submit tự động
+      // Để submit thực sự, bỏ comment dòng dưới:
+      form.submit();
     });
   })();
 })();

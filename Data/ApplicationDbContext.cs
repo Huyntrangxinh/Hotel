@@ -24,6 +24,37 @@ namespace HotelBooking.Data
         public DbSet<RoomPhoto> RoomPhotos => Set<RoomPhoto>();
         public DbSet<PricePackage> PricePackages => Set<PricePackage>();
 
+        // Helper methods for robust JSON deserialization
+        private static List<string> DeserializeStringList(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json) || json.Trim() == "")
+                return new List<string>();
+            
+            try
+            {
+                return System.Text.Json.JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>();
+            }
+            catch
+            {
+                return new List<string>();
+            }
+        }
+
+        private static List<decimal> DeserializeDecimalList(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json) || json.Trim() == "")
+                return new List<decimal>();
+            
+            try
+            {
+                return System.Text.Json.JsonSerializer.Deserialize<List<decimal>>(json) ?? new List<decimal>();
+            }
+            catch
+            {
+                return new List<decimal>();
+            }
+        }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -53,12 +84,12 @@ namespace HotelBooking.Data
                    .HasForeignKey(b => b.RoomId)
                    .OnDelete(DeleteBehavior.Cascade);
 
-            // Configure JSON serialization for RoomBed Lists
+            // Configure JSON serialization for RoomBed Lists with robust error handling
             builder.Entity<RoomBed>()
                    .Property(e => e.Types)
                    .HasConversion(
                        v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
-                       v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>()
+                       v => DeserializeStringList(v)
                    )
                    .Metadata.SetValueComparer(new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<List<string>>(
                        (c1, c2) => c1!.SequenceEqual(c2!),
@@ -69,9 +100,9 @@ namespace HotelBooking.Data
                    .Property(e => e.Counts)
                    .HasConversion(
                        v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
-                       v => System.Text.Json.JsonSerializer.Deserialize<List<int>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<int>()
+                       v => DeserializeDecimalList(v)
                    )
-                   .Metadata.SetValueComparer(new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<List<int>>(
+                   .Metadata.SetValueComparer(new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<List<decimal>>(
                        (c1, c2) => c1!.SequenceEqual(c2!),
                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                        c => c.ToList()));

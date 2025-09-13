@@ -852,20 +852,24 @@ public async Task<IActionResult> Success()
                 AllowChildren = room.AllowChildren,
                 AllowExtraBed = room.AllowExtraBed,
                 SecurityDeposit = room.SecurityDeposit,
-                Beds = room.Beds.SelectMany(b => b.GetAllBedItems()).Select(b => new ViewModels.Rooms.BedItem { Type = b.Type, Count = b.Count, BedroomIndex = b.BedroomIndex }).ToList(),
-                // Tạo Bedrooms data từ Beds, nhóm theo BedroomIndex
-                Bedrooms = room.Beds
-                    .GroupBy(b => b.BedroomIndex)
-                    .OrderBy(g => g.Key)
-                    .Select(g => new ViewModels.Rooms.BedroomItem 
-                    { 
-                        Beds = g.SelectMany(b => b.GetAllBedItems()).Select(b => new ViewModels.Rooms.BedItem 
+                // Tạo dữ liệu giường ngủ dựa trên loại phòng
+                Beds = room.IsSingleBedroom 
+                    ? room.Beds.SelectMany(b => b.GetAllBedItems()).Select(b => new ViewModels.Rooms.BedItem { Type = b.Type, Count = b.Count, BedroomIndex = 0 }).ToList()
+                    : new List<ViewModels.Rooms.BedItem>(),
+                Bedrooms = room.IsSingleBedroom 
+                    ? new List<ViewModels.Rooms.BedroomItem>()
+                    : room.Beds
+                        .GroupBy(b => b.BedroomIndex)
+                        .OrderBy(g => g.Key)
+                        .Select(g => new ViewModels.Rooms.BedroomItem 
                         { 
-                            Type = b.Type, 
-                            Count = b.Count,
-                            BedroomIndex = b.BedroomIndex
-                        }).ToList() 
-                    }).ToList(),
+                            Beds = g.SelectMany(b => b.GetAllBedItems()).Select(b => new ViewModels.Rooms.BedItem 
+                            { 
+                                Type = b.Type, 
+                                Count = b.Count,
+                                BedroomIndex = b.BedroomIndex
+                            }).ToList() 
+                        }).ToList(),
                 SelectedAmenities = room.Amenities.Select(a => a.Name).ToList(),
                 SavedPhotoUrls = room.Photos.OrderBy(p => p.SortOrder).Select(p => p.Url).ToList(),
                 PhotoCategories = room.Photos.OrderBy(p => p.SortOrder).Select(p => p.Category).ToList(),
@@ -1127,7 +1131,6 @@ public async Task<IActionResult> Success()
         public async Task<IActionResult> RoomData(ViewModels.Rooms.RoomCreateViewModel m)
         {
             Console.WriteLine("=== BẮT ĐẦU XỬ LÝ ROOMDATA POST ===");
-            Console.WriteLine($"data: {m}");
             Console.WriteLine($"PropertyId: {m.PropertyId}");
             Console.WriteLine($"RoomId: {m.RoomId}");
             Console.WriteLine($"RoomType: {m.RoomType}");
@@ -1137,6 +1140,37 @@ public async Task<IActionResult> Success()
             Console.WriteLine($"CapacityAdults: {m.CapacityAdults}");
             Console.WriteLine($"CapacityChildren: {m.CapacityChildren}");
             Console.WriteLine($"SecurityDeposit: {m.SecurityDeposit}");
+            Console.WriteLine($"IsSingleBedroom: {m.IsSingleBedroom}");
+            
+            // LOG FORM DATA CHI TIẾT
+            Console.WriteLine("=== FORM DATA CHI TIẾT ===");
+            Console.WriteLine($"Beds count: {m.Beds?.Count ?? 0}");
+            if (m.Beds != null && m.Beds.Any())
+            {
+                for (int i = 0; i < m.Beds.Count; i++)
+                {
+                    var bed = m.Beds[i];
+                    Console.WriteLine($"  Beds[{i}]: Type='{bed.Type}', Count={bed.Count}, BedroomIndex={bed.BedroomIndex}");
+                }
+            }
+            
+            Console.WriteLine($"Bedrooms count: {m.Bedrooms?.Count ?? 0}");
+            if (m.Bedrooms != null && m.Bedrooms.Any())
+            {
+                for (int i = 0; i < m.Bedrooms.Count; i++)
+                {
+                    var bedroom = m.Bedrooms[i];
+                    Console.WriteLine($"  Bedrooms[{i}]: Beds count = {bedroom.Beds?.Count ?? 0}");
+                    if (bedroom.Beds != null && bedroom.Beds.Any())
+                    {
+                        for (int j = 0; j < bedroom.Beds.Count; j++)
+                        {
+                            var bed = bedroom.Beds[j];
+                            Console.WriteLine($"    Bedrooms[{i}].Beds[{j}]: Type='{bed.Type}', Count={bed.Count}, BedroomIndex={bed.BedroomIndex}");
+                        }
+                    }
+                }
+            }
             
             // if (!ModelState.IsValid) 
             // {
@@ -1244,32 +1278,38 @@ public async Task<IActionResult> Success()
             
             if (m.IsSingleBedroom)
             {
-                // Single bedroom: sử dụng m.Beds
+                // Single bedroom: LUÔN sử dụng BedroomIndex = 0
+                Console.WriteLine("=== XỬ LÝ SINGLE BEDROOM ===");
                 foreach (var b in m.Beds ?? new())
                 {
                     if (b.Count > 0 && !string.IsNullOrWhiteSpace(b.Type))
                     {
-                        var newBed = new RoomBed { BedroomIndex = b.BedroomIndex };
+                        // FIX: Single bedroom luôn có BedroomIndex = 0
+                        var newBed = new RoomBed { BedroomIndex = 0 };
                         newBed.AddBedItem(b.Type, b.Count);
                         room.Beds.Add(newBed);
-                        Console.WriteLine($"Đã thêm giường (single): {b.Type} x{b.Count}");
+                        Console.WriteLine($"Đã thêm giường (single): {b.Type} x{b.Count} - BedroomIndex: 0 (forced)");
                     }
                 }
             }
             else
             {
-                // Multi bedroom: sử dụng m.Bedrooms
+                // Multi bedroom: sử dụng m.Bedrooms với BedroomIndex từ vòng lặp
+                Console.WriteLine("=== XỬ LÝ MULTI BEDROOM ===");
                 for (int bedroomIndex = 0; bedroomIndex < (m.Bedrooms?.Count ?? 0); bedroomIndex++)
                 {
                     var bedroom = m.Bedrooms[bedroomIndex];
+                    Console.WriteLine($"Xử lý phòng ngủ {bedroomIndex + 1} (BedroomIndex: {bedroomIndex})");
+                    
                     foreach (var b in bedroom.Beds ?? new())
                     {
                         if (b.Count > 0 && !string.IsNullOrWhiteSpace(b.Type))
                         {
+                            // FIX: Sử dụng bedroomIndex từ vòng lặp, không phải từ form
                             var newBed = new RoomBed { BedroomIndex = bedroomIndex };
                             newBed.AddBedItem(b.Type, b.Count);
                             room.Beds.Add(newBed);
-                            Console.WriteLine($"Đã thêm giường (multi): {b.Type} x{b.Count} - Phòng ngủ {bedroomIndex + 1}");
+                            Console.WriteLine($"Đã thêm giường (multi): {b.Type} x{b.Count} - Phòng ngủ {bedroomIndex + 1} (BedroomIndex: {bedroomIndex})");
                         }
                     }
                 }
@@ -1434,13 +1474,59 @@ public async Task<IActionResult> Success()
                 Console.WriteLine("⚠️ KHÔNG CÓ FILE NÀO ĐỂ XỬ LÝ!");
             }
 
-            Console.WriteLine("=== HOÀN THÀNH XỬ LÝ - LƯU DATABASE ===");
+            Console.WriteLine("=== HOÀN THÀNH XỬ LÝ - CHUẨN BỊ LƯU DATABASE ===");
             Console.WriteLine($"Số lượng ảnh cuối cùng: {room.Photos.Count}");
             Console.WriteLine($"Số lượng giường cuối cùng: {room.Beds.Count}");
             Console.WriteLine($"Số lượng tiện nghi cuối cùng: {room.Amenities.Count}");
             
+            // LOG CHI TIẾT TRƯỚC KHI LƯU DATABASE
+            Console.WriteLine("=== LOG CHI TIẾT TRƯỚC KHI LƯU DATABASE ===");
+            Console.WriteLine($"Room Info:");
+            Console.WriteLine($"  - ID: {room.Id} (0 = new)");
+            Console.WriteLine($"  - PropertyId: {room.PropertyId}");
+            Console.WriteLine($"  - Name: {room.Name}");
+            Console.WriteLine($"  - RoomType: {room.RoomType}");
+            Console.WriteLine($"  - IsSingleBedroom: {room.IsSingleBedroom}");
+            Console.WriteLine($"  - Quantity: {room.Quantity}");
+            Console.WriteLine($"  - CapacityAdults: {room.CapacityAdults}");
+            Console.WriteLine($"  - CapacityChildren: {room.CapacityChildren}");
+            Console.WriteLine($"  - SecurityDeposit: {room.SecurityDeposit}");
+            
+            Console.WriteLine($"RoomBeds Details ({room.Beds.Count} beds):");
+            for (int i = 0; i < room.Beds.Count; i++)
+            {
+                var bed = room.Beds[i];
+                Console.WriteLine($"  Bed {i + 1}:");
+                Console.WriteLine($"    - ID: {bed.Id} (0 = new)");
+                Console.WriteLine($"    - RoomId: {bed.RoomId}");
+                Console.WriteLine($"    - BedroomIndex: {bed.BedroomIndex}");
+                Console.WriteLine($"    - Types: [{string.Join(", ", bed.Types)}]");
+                Console.WriteLine($"    - Counts: [{string.Join(", ", bed.Counts)}]");
+                Console.WriteLine($"    - BedItems: {bed.GetAllBedItems().Count} items");
+                foreach (var bedItem in bed.GetAllBedItems())
+                {
+                    Console.WriteLine($"      * {bedItem.Type} x{bedItem.Count} (BedroomIndex: {bedItem.BedroomIndex})");
+                }
+            }
+            
+            Console.WriteLine($"RoomAmenities Details ({room.Amenities.Count} amenities):");
+            for (int i = 0; i < room.Amenities.Count; i++)
+            {
+                var amenity = room.Amenities[i];
+                Console.WriteLine($"  Amenity {i + 1}: {amenity.Name} (ID: {amenity.Id})");
+            }
+            
+            Console.WriteLine($"RoomPhotos Details ({room.Photos.Count} photos):");
+            for (int i = 0; i < room.Photos.Count; i++)
+            {
+                var photo = room.Photos[i];
+                Console.WriteLine($"  Photo {i + 1}: {photo.Url} (Category: {photo.Category}, SortOrder: {photo.SortOrder})");
+            }
+            
+            Console.WriteLine("=== BẮT ĐẦU LƯU DATABASE ===");
             await _db.SaveChangesAsync();
-            Console.WriteLine("Đã lưu thành công vào database");
+            Console.WriteLine("✅ Đã lưu thành công vào database");
+            Console.WriteLine($"Room ID sau khi lưu: {room.Id}");
             Console.WriteLine("=== KẾT THÚC ROOMDATA POST ===");
 
             return RedirectToAction(nameof(PropertyData), new { propertyId = m.PropertyId, tab = "rooms" });
