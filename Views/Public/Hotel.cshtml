@@ -1664,7 +1664,6 @@
                                 <div class="price-info">
                                     @if(amount.HasValue)
                                     {
-                                        <div class="special-label">Ưu đãi phút chót!</div>
                                         <div class="old-price">@string.Format("{0:N0} VND", amount.Value * 1.25m)</div>
                                         <div class="current-price">@string.Format("{0:N0} VND", amount.Value)</div>
                                                                         }
@@ -1930,9 +1929,15 @@
         @for (int i = 0; i < Model.Rooms.Count; i++)
             {
                 var rm = Model.Rooms[i];
+                // Lấy giá phòng để truyền vào JS
+                decimal? amount = null; decimal a = default;
+                if (Model.RoomPrices != null && Model.RoomPrices.TryGetValue(rm.Id, out a)) { amount = a; }
+                var priceJs = amount.HasValue ? ((long)amount.Value).ToString(System.Globalization.CultureInfo.InvariantCulture) : "null";
+
                 <text>{id:@rm.Id, name: @Html.Raw("\"" + (rm.Name ?? "") + "\""),
                     size: @(rm.Size ?? 0), unit: @Html.Raw("\"" + (rm.SizeUnit ?? "m²") + "\""),
                     adults: @rm.CapacityAdults, children: @rm.CapacityChildren,
+                    price: @Html.Raw(priceJs),
                     amenities: [@Html.Raw(string.Join(",", (rm.Amenities ?? new List<HotelBooking.Models.RoomAmenity>()).Select(a => "\"" + a.Name.Replace("\"", "\\\"") + "\"")))],
                     photos: [@Html.Raw(string.Join(",", (rm.Photos ?? new List<HotelBooking.Models.RoomPhoto>()).Select(p => "\"" + p.Url.Replace("\"", "\\\"") + "\"")))] }
                     @(i < Model.Rooms.Count - 1 ? "," : "")</text>
@@ -1950,6 +1955,24 @@
                     <div>• Kích thước: ${r.size || ''} ${r.unit || ''}</div>
                     <div>• Sức chứa: ${r.adults + r.children} khách (👤 ${r.adults} · 🧒 ${r.children})</div>
                 `;
+                // Cập nhật giá trong modal
+                (function(){
+                    const priceEl = document.getElementById('rdmPrice');
+                    if (priceEl) {
+                        if (r.price !== null && r.price !== undefined) {
+                            const priceNum = Number(r.price);
+                            const oldPrice = Math.round(priceNum * 1.25).toLocaleString('vi-VN');
+                            const currentPrice = priceNum.toLocaleString('vi-VN');
+                            priceEl.innerHTML = `
+                                <div class="old-price" style="font-size:0.95rem;text-decoration:line-through;color:#6b7280;">${oldPrice} VND</div>
+                                <div class="current-price" style="font-size:1.5rem;font-weight:800;color:#d32f2f;">${currentPrice} VND</div>
+                                <div class="price-note" style="font-size:0.85rem;color:#6b7280;">Bao gồm thuế và phí</div>
+                            `;
+                        } else {
+                            priceEl.innerHTML = '<div class="current-price">Giá đang cập nhật</div>';
+                        }
+                    }
+                })();
                 const slides = document.getElementById('rdmSlides');
                 slides.innerHTML = '';
                 const thumbs = document.getElementById('rdmThumbs');
