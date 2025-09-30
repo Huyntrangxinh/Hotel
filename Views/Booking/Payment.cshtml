@@ -1,0 +1,55 @@
+@{
+    ViewData["Title"] = "Thanh toán";
+    var bookingId = ViewBag.BookingId?.ToString();
+    DateTime? ci = ViewBag.CheckIn;
+    DateTime? co = ViewBag.CheckOut;
+    int nights = ViewBag.TotalNights ?? 1;
+    decimal total = ViewBag.TotalPrice ?? 0m;
+}
+
+<div class="container my-4">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card p-3">
+                <h5 class="mb-3">Bạn muốn thanh toán thế nào?</h5>
+                <div class="list-group">
+                    <a class="list-group-item list-group-item-action active" href="#">VietQR</a>
+                    <a class="list-group-item list-group-item-action" href="#">Ngân hàng di động</a>
+                    <a class="list-group-item list-group-item-action" href="#">Tại cửa hàng</a>
+                    <a class="list-group-item list-group-item-action" href="#">Thẻ thanh toán</a>
+                </div>
+                <div class="mt-3 text-end">
+                    <a class="btn btn-success" asp-action="Success" asp-route-bookingId="@bookingId">Thanh toán & xác
+                        nhận</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card p-3">
+                <div class="small text-muted mb-2">Tóm tắt khách sạn</div>
+                <div class="fw-semibold">@ViewBag.PropertyName</div>
+                <div class="mb-2">@ViewBag.RoomName</div>
+                <div class="small">Nhận phòng: @ci?.ToString("ddd, dd 'tháng' MM yyyy", new
+                                        System.Globalization.CultureInfo("vi-VN"))</div>
+                <div class="small mb-2">Trả phòng: @co?.ToString("ddd, dd 'tháng' MM yyyy", new
+                                        System.Globalization.CultureInfo("vi-VN"))</div>
+                <div class="small mb-2">@nights đêm • @ViewBag.Guests khách • @ViewBag.RoomChildrenCapacity trẻ em</div>
+                <div class="small mb-1">(1x) @ViewBag.RoomName</div>
+                <div class="small mb-1">@((ViewBag.BedSummary ?? "2 giường đơn hoặc 1 giường đôi"))</div>
+                <div class="small mb-2">@((ViewBag.BreakfastIncluded == true) ? "Gồm bữa sáng" : "Không bao gồm bữa sáng")</div>
+                <hr />
+                <div class="d-flex justify-content-between">
+                    <div class="fw-semibold">Tổng giá</div>
+                    <div class="fw-bold text-danger">@string.Format("{0:N0} VND", total)</div>
+                </div>
+                <hr />
+                <div class="small text-muted">Tên khách</div>
+                <div class="mb-2">@ViewBag.GuestName</div>
+                <div class="small text-muted">Chi tiết người liên lạc</div>
+                <div>@ViewBag.ContactFullName</div>
+                <div class="small">@ViewBag.ContactPhone</div>
+                <div class="small mb-2">@ViewBag.ContactEmail</div>
+            </div>
+        </div>
+    </div>
+</div>

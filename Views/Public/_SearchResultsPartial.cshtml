@@ -60,7 +60,9 @@
                 <div class="price">VND @String.Format("{0:N0}", Model.MinPriceByProperty.ContainsKey(p.Id) ?
                                     Model.MinPriceByProperty[p.Id] : 0)</div>
             <div class="price-includes">+VND 469.000 thuế và phí</div>
-            <a class="book-btn" href="@Url.Action("Hotel", "Public", new { id = p.Id })">Xem chỗ trống</a>
+            <a class="book-btn"
+                href="@Url.Action("Hotel", "Public", new { id = p.Id, checkin = Model.Checkin?.ToString("yyyy-MM-dd"), checkout = Model.Checkout?.ToString("yyyy-MM-dd"), adults = ViewBag.SearchAdults, children = ViewBag.SearchChildren, rooms = ViewBag.SearchRooms })">Xem
+                chỗ trống</a>
         </div>
     </div>
 </div>

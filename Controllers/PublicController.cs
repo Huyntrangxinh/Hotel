@@ -23,7 +23,7 @@ namespace HotelBooking.Controllers
 
         // Public hotel page
         [HttpGet]
-        public async Task<IActionResult> Hotel(int id)
+        public async Task<IActionResult> Hotel(int id, DateTime? checkin, DateTime? checkout, int? adults, int? children, int? rooms)
         {
             // Set dropdown visibility for layout
             if (User?.Identity?.IsAuthenticated == true)
@@ -41,7 +41,7 @@ namespace HotelBooking.Controllers
             var pd = await _db.PropertyData.FirstOrDefaultAsync(x => x.PropertyId == id);
             var pricePackage = await _db.PricePackages.FirstOrDefaultAsync(x => x.PropertyId == id);
 
-            var rooms = await _db.Rooms
+            var roomsList = await _db.Rooms
                 .Include(r => r.Photos)
                 .Include(r => r.Amenities)
                 .Where(r => r.PropertyId == id)
@@ -52,7 +52,7 @@ namespace HotelBooking.Controllers
                 .ToDictionaryAsync(rp => rp.RoomId, rp => rp.Amount);
 
             // Get all room photos for gallery
-            var allRoomPhotos = rooms
+            var allRoomPhotos = roomsList
                 .SelectMany(r => r.Photos)
                 .OrderBy(p => p.SortOrder)
                 .Select(p => p.Url)
@@ -63,13 +63,20 @@ namespace HotelBooking.Controllers
                 Property = property,
                 PropertyData = pd,
                 PricePackage = pricePackage,
-                Rooms = rooms,
+                Rooms = roomsList,
                 RoomPrices = roomPrices,
                 PhotoUrls = (pd?.PhotoPaths ?? "")
                     .Split('|', System.StringSplitOptions.RemoveEmptyEntries)
                     .ToList(),
                 RoomPhotoUrls = allRoomPhotos
             };
+
+            // Pass search parameters to view
+            ViewBag.Checkin = checkin;
+            ViewBag.Checkout = checkout;
+            ViewBag.Adults = adults;
+            ViewBag.Children = children;
+            ViewBag.Rooms = rooms;
 
             return View(vm);
         }

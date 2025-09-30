@@ -25,22 +25,18 @@ namespace HotelBooking.Controllers
         [HttpGet]
         public async Task<IActionResult> Book(int propertyId, int roomId, DateTime? checkIn, DateTime? checkOut, int? guests)
         {
-            var property = await _db.Properties
-                .FirstOrDefaultAsync(p => p.Id == propertyId);
-            
+            var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == propertyId);
             if (property == null) return NotFound();
 
             var room = await _db.Rooms
                 .Include(r => r.Photos)
                 .Include(r => r.Amenities)
                 .FirstOrDefaultAsync(r => r.Id == roomId && r.PropertyId == propertyId);
-            
             if (room == null) return NotFound();
 
             var roomPrice = await _db.RoomPrices
                 .FirstOrDefaultAsync(rp => rp.RoomId == roomId && rp.PropertyId == propertyId);
 
-            // Normalize dates: if missing, default to tomorrow +1 day
             var ci = checkIn ?? DateTime.Today.AddDays(1);
             var co = checkOut ?? ci.AddDays(1);
             var nights = Math.Max(1, (co - ci).Days);
@@ -72,17 +68,21 @@ namespace HotelBooking.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Book(BookingViewModel model)
         {
-            if (!ModelState.IsValid)
+            bool essentialsOk =
+                model.PropertyId > 0 &&
+                model.RoomId > 0 &&
+                model.CheckIn != default &&
+                model.CheckOut != default &&
+                !string.IsNullOrWhiteSpace(model.FullName) &&
+                !string.IsNullOrWhiteSpace(model.Email);
+
+            if (!ModelState.IsValid && !essentialsOk)
             {
-                // Reload data for the view
-                var property = await _db.Properties
-                    .FirstOrDefaultAsync(p => p.Id == model.PropertyId);
-                
+                var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == model.PropertyId);
                 var room = await _db.Rooms
                     .Include(r => r.Photos)
                     .Include(r => r.Amenities)
                     .FirstOrDefaultAsync(r => r.Id == model.RoomId && r.PropertyId == model.PropertyId);
-                
                 var roomPrice = await _db.RoomPrices
                     .FirstOrDefaultAsync(rp => rp.RoomId == model.RoomId && rp.PropertyId == model.PropertyId);
 
@@ -94,13 +94,11 @@ namespace HotelBooking.Controllers
                 model.CapacityChildren = room?.CapacityChildren ?? 0;
                 model.RoomPhotos = room?.Photos?.Select(p => p.Url).ToList() ?? new List<string>();
                 model.RoomAmenities = room?.Amenities?.Select(a => a.Name).ToList() ?? new List<string>();
-                model.TotalNights = model.CheckOut.Subtract(model.CheckIn).Days;
+                model.TotalNights = Math.Max(1, (model.CheckOut - model.CheckIn).Days);
                 model.TotalPrice = model.PricePerNight * model.TotalNights;
-
                 return View(model);
             }
 
-            // Save booking to database
             var user = await _userManager.GetUserAsync(User);
             var booking = new Booking
             {
@@ -128,8 +126,7 @@ namespace HotelBooking.Controllers
             _db.Bookings.Add(booking);
             await _db.SaveChangesAsync();
 
-            TempData["Success"] = "Đặt phòng thành công! Chúng tôi sẽ liên hệ với bạn để xác nhận.";
-            return RedirectToAction("Success", new { bookingId = booking.Id });
+            return RedirectToAction("Payment", new { bookingId = booking.Id });
         }
 
         [HttpGet]
@@ -138,5 +135,49 @@ namespace HotelBooking.Controllers
             ViewBag.BookingId = bookingId;
             return View();
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Payment(string bookingId)
+        {
+            if (!int.TryParse(bookingId, out var idInt)) return RedirectToAction("Index", "Home");
+            var booking = await _db.Bookings.FirstOrDefaultAsync(b => b.Id == idInt);
+            if (booking == null) return RedirectToAction("Index", "Home");
+
+            var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == booking.PropertyId);
+            var room = await _db.Rooms.FirstOrDefaultAsync(r => r.Id == booking.RoomId);
+            var pricePackage = await _db.PricePackages.FirstOrDefaultAsync(pp => pp.PropertyId == booking.PropertyId);
+
+            ViewBag.BookingId = booking.Id;
+            ViewBag.PropertyName = property?.Name ?? "Khách sạn";
+            ViewBag.RoomName = room?.Name ?? "Phòng";
+            ViewBag.CheckIn = booking.CheckIn;
+            ViewBag.CheckOut = booking.CheckOut;
+            ViewBag.TotalNights = booking.TotalNights;
+            ViewBag.Guests = booking.Guests;
+            ViewBag.TotalPrice = booking.TotalPrice;
+
+            // Contact details
+            ViewBag.ContactFullName = booking.FullName;
+            ViewBag.ContactPhone = booking.PhoneNumber;
+            ViewBag.ContactEmail = booking.Email;
+            ViewBag.GuestName = booking.GuestName;
+
+            // Room details extras
+            ViewBag.RoomChildrenCapacity = room?.CapacityChildren ?? 0;
+            ViewBag.BedSummary = "";
+            if (room != null)
+            {
+                var beds = await _db.RoomBeds.Where(b => b.RoomId == room.Id).ToListAsync();
+                if (beds.Any())
+                {
+                    ViewBag.BedSummary = string.Join(" hoặc ", beds.Select(b => $"{(int)b.Count} {b.Type}"));
+                }
+            }
+            ViewBag.BreakfastIncluded = pricePackage?.BreakfastIncluded ?? false;
+            ViewBag.CancellationPolicyDisplayName = pricePackage?.CancellationPolicyDisplayName ?? "";
+            return View();
+        }
     }
 }
+
+
