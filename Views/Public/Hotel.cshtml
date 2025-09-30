@@ -1972,6 +1972,13 @@
                             priceEl.innerHTML = '<div class="current-price">Giá đang cập nhật</div>';
                         }
                     }
+                    const bookBtn = document.getElementById('rdmBookBtn');
+                    if (bookBtn) {
+                        bookBtn.onclick = function(){
+                            const url = `/Booking/Book?propertyId=${encodeURIComponent(@Model.Property.Id)}&roomId=${encodeURIComponent(id)}`;
+                            window.location.href = url;
+                        };
+                    }
                 })();
                 const slides = document.getElementById('rdmSlides');
                 slides.innerHTML = '';
@@ -1996,6 +2003,17 @@
             }
             document.querySelectorAll('.room-detail-link').forEach(a => {
                 a.addEventListener('click', function (ev) { ev.preventDefault(); openRoom(parseInt(this.getAttribute('data-room-id'))); });
+            });
+            // Click chọn phòng ở card -> điều hướng sang trang Book
+            document.querySelectorAll('.btn-choose').forEach(btn => {
+                btn.addEventListener('click', function (ev) {
+                    ev.preventDefault();
+                    const id = parseInt(this.getAttribute('data-room-id'));
+                    if (!isNaN(id)) {
+                        const url = `/Booking/Book?propertyId=${encodeURIComponent(@Model.Property.Id)}&roomId=${encodeURIComponent(id)}`;
+                        window.location.href = url;
+                    }
+                });
             });
         })();
     </script>
