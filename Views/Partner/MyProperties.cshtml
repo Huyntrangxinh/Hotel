@@ -4,116 +4,203 @@
     ViewData["Title"] = "Cơ sở lưu trú của bạn";
 }
 
-<div class="container py-2">
+@section Head {
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .header-section {
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 1rem;
+        }
+
+        .property-list-item {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .property-list-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .property-image {
+            background-color: #e9ecef;
+            min-width: 200px;
+            max-width: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .property-image i {
+            font-size: 4rem;
+            color: #adb5bd;
+        }
+
+        .property-status-badge {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+        }
+
+        .property-content {
+            padding: 1rem 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .property-name {
+            font-weight: 600;
+            color: #212529;
+            font-size: 1.1rem;
+        }
+
+        .property-info {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .property-actions {
+            min-width: 180px;
+            text-align: right;
+        }
+
+        .empty-state {
+            background-color: white;
+            border-radius: 12px;
+            padding: 4rem;
+        }
+    </style>
+}
+
+<div class="container py-4">
     <!-- Header Section -->
-    <div class="d-flex justify-content-between align-items-center mb-2">
+    <div class="header-section d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h4 mb-0 fw-bold text-dark">Cơ sở lưu trú của bạn</h1>
-            <p class="text-muted mb-0 small">Quản lý tất cả cơ sở lưu trú của bạn tại đây</p>
+            <h1 class="h3 mb-0 fw-bold text-dark">Cơ sở lưu trú của bạn</h1>
+            <p class="text-muted mb-0">Quản lý tất cả cơ sở lưu trú của bạn tại đây</p>
         </div>
-        <div class="d-flex gap-1">
-            <a asp-action="RegisterNewProperty" class="btn btn-primary btn-sm">
-                <i class="bi bi-plus-circle me-1"></i>Đăng ký mới
+        <div>
+            <a asp-action="RegisterNewProperty" class="btn btn-primary">
+                <i class="bi bi-plus-circle-fill me-1"></i>Đăng ký cơ sở mới
             </a>
         </div>
     </div>
 
     @if (!Model.Any())
     {
-        <div class="text-center py-5">
-            <i class="bi bi-building display-1 text-muted"></i>
-            <h3 class="mt-3 text-muted">Chưa có cơ sở lưu trú nào</h3>
-            <p class="text-muted">Bắt đầu đăng ký cơ sở lưu trú đầu tiên của bạn</p>
-            <a asp-action="RegisterNewProperty" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-2"></i>Đăng ký cơ sở lưu trú
+        <div class="text-center empty-state">
+            <i class="bi bi-buildings display-1 text-muted"></i>
+            <h3 class="mt-3 text-dark fw-light">Chưa có cơ sở lưu trú nào được tạo</h3>
+            <p class="text-muted">Hãy bắt đầu bằng cách đăng ký cơ sở lưu trú đầu tiên của bạn.</p>
+            <a asp-action="RegisterNewProperty" class="btn btn-primary mt-3">
+                <i class="bi bi-plus-circle me-2"></i>Đăng ký ngay
             </a>
         </div>
     }
     else
     {
-        <!-- Properties Grid -->
-        <div class="row g-2">
+        <!-- Properties List -->
+        <div class="d-flex flex-column gap-3">
             @foreach (var property in Model)
             {
-                <div class="col-lg-4 col-md-6">
-                    <div class="property-card h-100 d-flex flex-column">
-                        <div class="property-card-header">
-                            <div class="property-status-badge">
-                                @switch (property.Status)
-                                {
-                                    case PropertyStatus.Draft:
-                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">
-                                            <i class="bi bi-pencil me-1"></i>Bản nháp
-                                        </span>
-                                        break;
-                                    case PropertyStatus.Submitted:
-                                        <span class="badge bg-info bg-opacity-10 text-info border border-info">
-                                            <i class="bi bi-send me-1"></i>Đã gửi
-                                        </span>
-                                        break;
-                                    case PropertyStatus.UnderReview:
-                                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">
-                                            <i class="bi bi-clock me-1"></i>Đang xem xét
-                                        </span>
-                                        break;
-                                    case PropertyStatus.Approved:
-                                        <span class="badge bg-success bg-opacity-10 text-success border border-success">
-                                            <i class="bi bi-check-circle me-1"></i>Đã phê duyệt
-                                        </span>
-                                        break;
-                                    case PropertyStatus.Rejected:
-                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">
-                                            <i class="bi bi-x-circle me-1"></i>Bị từ chối
-                                        </span>
-                                        break;
-                                }
-                            </div>
+                <div class="property-list-item">
+                    <div class="property-image">
+                        @{
+                            var thumbUrl = (ViewBag.PropertyThumbs as System.Collections.Generic.Dictionary<int,
+                            string>)?.GetValueOrDefault(property.Id);
+                        }
+                        @if (!string.IsNullOrWhiteSpace(thumbUrl))
+                        {
+                            <img src="@thumbUrl" alt="thumb" style="width:100%;height:100%;object-fit:cover;" />
+                        }
+                        else
+                        {
+                            <i class="bi bi-image-alt"></i>
+                        }
+                        <div class="property-status-badge">
+                            @switch (property.Status)
+                            {
+                                case PropertyStatus.Draft:
+                                    <span class="badge bg-secondary">Bản nháp</span>
+                                    break;
+                                case PropertyStatus.Submitted:
+                                    <span class="badge bg-info">Đã gửi</span>
+                                    break;
+                                case PropertyStatus.UnderReview:
+                                    <span class="badge bg-warning text-dark">Đang xem xét</span>
+                                    break;
+                                case PropertyStatus.Approved:
+                                    <span class="badge bg-success">Đã phê duyệt</span>
+                                    break;
+                                case PropertyStatus.Rejected:
+                                    <span class="badge bg-danger">Bị từ chối</span>
+                                    break;
+                            }
                         </div>
+                    </div>
 
-                        <div class="property-card-body flex-grow-1">
-                            <h6 class="property-name mb-1">@property.Name</h6>
-
-                            <div class="property-info mb-2">
+                    <div class="property-content">
+                        <div>
+                            <h2 class="property-name mb-1">@property.Name</h2>
+                            <div class="property-info">
                                 <div class="info-item">
-                                    <i class="bi bi-geo-alt text-muted me-1"></i>
-                                    @if (!string.IsNullOrEmpty(property.AddressLine))
-                                    {
-                                        <span class="text-dark small">@property.AddressLine</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted small">Chưa có địa chỉ</span>
-                                    }
+                                    <i class="bi bi-geo-alt"></i>
+                                    <span>@(string.IsNullOrEmpty(property.AddressLine) ? "Chưa có địa chỉ" :
+                                                                        property.AddressLine)</span>
                                 </div>
-                                @if (!string.IsNullOrEmpty(property.City))
-                                {
-                                    <div class="info-item">
-                                        <i class="bi bi-building text-muted me-1"></i>
-                                        <span class="text-dark small">@property.City</span>
-                                    </div>
-                                }
                                 <div class="info-item">
-                                    <i class="bi bi-calendar3 text-muted me-1"></i>
-                                    <span class="text-muted small">Tạo ngày: @property.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                    <i class="bi bi-calendar-event"></i>
+                                    <span>Tạo ngày: @property.CreatedAt.ToString("dd/MM/yyyy")</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="property-card-footer mt-auto">
-                            @if (property.Status == PropertyStatus.Draft)
-                            {
-                                <a asp-action="PropertyDetail" asp-route-id="@property.Id"
-                                    class="btn btn-outline-primary btn-sm w-100">
-                                    <i class="bi bi-pencil me-1"></i>Tiếp tục đăng ký
-                                </a>
-                            }
-                            else
-                            {
-                                <a asp-action="PropertyDetail" asp-route-id="@property.Id"
-                                    class="btn btn-outline-secondary btn-sm w-100">
-                                    <i class="bi bi-eye me-1"></i>Xem & Chỉnh sửa
-                                </a>
-                            }
+                        <div class="property-actions">
+                            <div class="d-flex gap-2 justify-content-end">
+                                @if (property.Status == PropertyStatus.Draft)
+                                {
+                                    <a asp-action="PropertyDetail" asp-route-id="@property.Id" class="btn btn-primary">
+                                        <i class="bi bi-pencil-fill me-1"></i>Tiếp tục
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a asp-action="PropertyDetail" asp-route-id="@property.Id" class="btn btn-outline-secondary">
+                                        <i class="bi bi-eye-fill me-1"></i>Xem
+                                    </a>
+                                }
+                                @if (property.Status == PropertyStatus.Approved)
+                                {
+                                    <a asp-action="Onboarding" asp-route-propertyId="@property.Id" class="btn btn-outline-primary">
+                                        <i class="bi bi-gear me-1"></i>Chỉnh sửa
+                                    </a>
+                                }
+                                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
+                                    data-bs-target="#deleteConfirmModal" data-property-id="@property.Id"
+                                    data-property-name="@property.Name">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -122,115 +209,45 @@
     }
 </div>
 
-<style>
-    .property-card {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
-        border: 1px solid rgba(0, 0, 0, 0.05);
-        transition: all 0.3s ease;
-        overflow: hidden;
-        min-height: 200px;
-    }
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Xác nhận xóa cơ sở lưu trú</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa vĩnh viễn cơ sở lưu trú <strong id="propertyNameInModal"></strong> không?
+                    Hành động này không thể được hoàn tác.</p>
+            </div>
+            <div class="modal-footer">
+                <form asp-action="DeleteProperty" method="post" id="deleteForm">
+                    <input type="hidden" id="propertyIdToDelete" name="id" value="" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">Xóa vĩnh viễn</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-    .property-card:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-    }
+@section Scripts {
+    <script>
+        const deleteModal = document.getElementById('deleteConfirmModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
 
-    .property-card-header {
-        padding: 0.5rem 0.75rem 0;
-    }
+                const propertyId = button.getAttribute('data-property-id');
+                const propertyName = button.getAttribute('data-property-name');
 
-    .property-card-body {
-        padding: 0 0.75rem;
-        flex: 1;
-    }
+                const hiddenInput = deleteModal.querySelector('#propertyIdToDelete');
+                hiddenInput.value = propertyId;
 
-    .property-card-footer {
-        padding: 0.5rem 0.75rem;
-        border-top: 1px solid rgba(0, 0, 0, 0.05);
-        background: rgba(0, 0, 0, 0.02);
-    }
-
-    .property-name {
-        font-weight: 600;
-        color: #2c3e50;
-        line-height: 1.2;
-        font-size: 0.9rem;
-    }
-
-    .property-info {
-        display: flex;
-        flex-direction: column;
-        gap: 0.15rem;
-    }
-
-    .info-item {
-        display: flex;
-        align-items: center;
-        font-size: 0.7rem;
-    }
-
-    .info-item i {
-        font-size: 0.7rem;
-        width: 12px;
-    }
-
-    .badge {
-        font-size: 0.6rem;
-        font-weight: 500;
-        padding: 0.2rem 0.4rem;
-        border-radius: 10px;
-    }
-
-    .badge i {
-        font-size: 0.6rem;
-    }
-
-    .btn {
-        border-radius: 4px;
-        font-weight: 500;
-        transition: all 0.2s ease;
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.75rem;
-    }
-
-    .btn i {
-        font-size: 0.7rem;
-    }
-
-    @@media (max-width: 768px) {
-        .property-card {
-            min-height: 180px;
+                const propertyNameElement = deleteModal.querySelector('#propertyNameInModal');
+                propertyNameElement.textContent = propertyName;
+            });
         }
-
-        .property-card-header {
-            padding: 0.4rem 0.6rem 0;
-        }
-
-        .property-card-body {
-            padding: 0 0.6rem;
-        }
-
-        .property-card-footer {
-            padding: 0.4rem 0.6rem;
-        }
-
-        .property-name {
-            font-size: 0.85rem;
-        }
-
-        .info-item {
-            font-size: 0.65rem;
-        }
-
-        .btn {
-            height: 26px;
-            font-size: 0.7rem;
-        }
-    }
-</style>
+    </script>
+}

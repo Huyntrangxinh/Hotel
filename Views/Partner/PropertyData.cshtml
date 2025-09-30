@@ -612,20 +612,26 @@
                         <div class="col-lg-8">
                             @if (Model.PricePackage != null)
                             {
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="flex-grow-1">
-                                        <div class="mb-2">
-                                            <span class="text-success fw-semibold">✓ Đã tạo Gói giá</span>
-                                        </div>
-                                        <div class="small text-muted">
-                                            <div><strong>Chính sách hủy:</strong> @Model.PricePackage.CancellationPolicyDisplayName</div>
-                                            <div><strong>Bữa sáng:</strong> @Model.PricePackage.BreakfastDisplayName</div>
-                                            <div><strong>Tạo lúc:</strong> @Model.PricePackage.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
-                                        </div>
+                                var policyDesc = Model.PricePackage.CancellationPolicy switch
+                                {
+                                    "refund_1" => "Khách có thể được hoàn tiền cho đến 1 ngày trước ngày làm thủ tục nhận phòng (trước 14:00). Sau thời điểm đó, phí hủy phòng áp dụng là giá 1 đêm trong tổng số đêm lưu trú. Khách không đến sẽ bị tính phí 100% số tiền đặt phòng.",
+                                    "refund_3" => "Khách có thể được hoàn tiền cho đến 3 ngày trước ngày làm thủ tục nhận phòng (trước 14:00). Sau thời điểm đó, phí hủy phòng áp dụng là giá 1 đêm trong tổng số đêm lưu trú. Khách không đến sẽ bị tính phí 100% số tiền đặt phòng.",
+                                    "refund_7" => "Khách có thể được hoàn tiền cho đến 7 ngày trước ngày làm thủ tục nhận phòng (trước 14:00). Sau thời điểm đó, phí hủy phòng áp dụng là giá 1 đêm trong tổng số đêm lưu trú. Khách không đến sẽ bị tính phí 100% số tiền đặt phòng.",
+                                    _ => "Nếu khách hủy đặt phòng bất kỳ lúc nào, họ sẽ bị tính phí 100% số tiền đặt phòng. Nếu họ chưa từng đến nhận phòng (Vắng mặt), họ sẽ bị tính phí 100% số tiền đặt phòng."
+                                };
+                                var breakfastText = ($"{Model.PricePackage.BreakfastDisplayName} bữa sáng");
+
+                                <div class="price-summary-wrapper d-flex flex-column gap-3">
+                                    <div class="summary-card rounded-3 p-3">
+                                        <div class="fw-bold mb-2">@Model.PricePackage.CancellationPolicyDisplayName</div>
+                                        <div class="text-muted">@policyDesc</div>
                                     </div>
-                                    <div class="ms-3">
-                                        <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createPricePackageModal">
-                                            <i class="bi bi-pencil me-1"></i> Chỉnh sửa
+                                    <div class="summary-card rounded-3 p-3">
+                                        <div class="fw-bold">@breakfastText</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <button class="btn btn-link text-decoration-none" data-bs-toggle="modal" data-bs-target="#createPricePackageModal">
+                                            <i class="bi bi-pencil me-2"></i>Thay đổi Gói giá
                                         </button>
                                     </div>
                                 </div>
@@ -643,6 +649,150 @@
                                     </div>
                                 </div>
                             }
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    @{ var priceMap = ViewBag.RoomPriceMap as Dictionary<int, decimal> ?? new Dictionary<int, decimal>(); }
+
+                    <div class="row g-4 align-items-start mb-2">
+                        <div class="col-lg-4">
+                            <h5 class="mb-2 fw-bold d-flex align-items-center">
+                                <i class="bi bi-currency-exchange me-2" style="font-size: 1.25rem; color: #66B2FF;"></i>
+                                Giá phòng
+                            </h5>
+                            <small class="text-muted d-block" style="font-size: .95rem;">Các mức giá bạn đặt sẽ là giá sau thuế và hoa hồng. Bạn có thể đặt các mức giá khác nhau cho các ngày khác nhau trong TERA sau.</small>
+                        </div>
+                        <div class="col-lg-8">
+                            <div class="d-flex justify-content-end mb-2">
+                                <a class="btn btn-outline-primary btn-sm" href="@Url.Action("Calendar", "Partner", new { propertyId = Model.PropertyId })">
+                                    <i class="bi bi-calendar3 me-1"></i> Lịch giá & phòng trống
+                                </a>
+                            </div>
+                            <form asp-action="SaveRoomPrices" method="post" class="d-flex flex-column gap-3">
+                                <input type="hidden" name="propertyId" value="@Model.PropertyId" />
+                        @foreach (var r in Model.Rooms)
+                        {
+                            var current = priceMap.ContainsKey(r.Id) ? priceMap[r.Id] : 0m;
+                            <div class="card room-card shadow-sm border-0" style="background-color: #F7F8FB;">
+                                <div class="card-body py-3">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <!-- Header với tên phòng -->
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <span class="badge bg-light text-dark border">@r.RoomType</span>
+                                                <span class="text-muted small">@r.Size@r.SizeUnit</span>
+                                            </div>
+                                            <h6 class="fw-bold mb-2 text-dark">@r.Name</h6>
+
+                                            <!-- Cài đặt giường ngủ -->
+                                            <div class="room-config mb-2">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <i class="bi bi-bed text-primary me-2"></i>
+                                                    <span class="fw-medium">Cài đặt giường ngủ</span>
+                                                </div>
+                                                <div class="ms-4">
+                                                    @if (r.Beds != null && r.Beds.Any())
+                                                    {
+                                                        var bedrooms = r.Beds.GroupBy(b => b.BedroomIndex).OrderBy(g => g.Key);
+                                                        var bedStrings = new List<string>();
+                                                        foreach (var bedroom in bedrooms)
+                                                        {
+                                                            foreach (var bed in bedroom)
+                                                            {
+                                                                bedStrings.Add($"{bed.Count} {bed.Type}");
+                                                            }
+                                                        }
+                                                        <span class="text-dark">@string.Join("; ", bedStrings)</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted small">Chưa cấu hình</span>
+                                                    }
+                                                </div>
+                                            </div>
+
+                                            <!-- Các cấu hình khác -->
+                                            <div class="room-config">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <i class="bi bi-list-ul text-primary me-2"></i>
+                                                    <span class="fw-medium">Các cấu hình khác</span>
+                                                </div>
+                                                <div class="ms-4">
+                                                    <div class="mb-1">
+                                                        <small class="text-muted">Max. @r.CapacityAdults adult occupancy</small>
+                                                    </div>
+                                                    <div class="d-flex align-items-center mb-1">
+                                                        @if (r.AllowChildren)
+                                                        {
+                                                            <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                                            <small>Child allowed</small>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="bi bi-x-circle-fill text-danger me-1"></i>
+                                                            <small>Child not allowed</small>
+                                                        }
+                                                    </div>
+                                                    <div class="d-flex align-items-center">
+                                                        @if (r.AllowExtraBed)
+                                                        {
+                                                            <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                                            <small>Extra bed provided</small>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="bi bi-x-circle-fill text-danger me-1"></i>
+                                                            <small>Extra bed not provided</small>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="mb-2">
+                                                <div class="text-muted mb-1">Mức bảo hộ: <strong>VND @String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:N0}", r.SecurityDeposit ?? 0)</strong></div>
+                                                <label class="form-label mb-1 fw-semibold">Giá phòng</label>
+                                                <div class="input-group input-group-sm" style="max-width: 260px;" data-min="@(r.SecurityDeposit ?? 0)">
+                                                    <span class="input-group-text">VND</span>
+                                                    <input type="text" class="form-control price-input" inputmode="numeric" autocomplete="off" placeholder="0" data-room-id="@r.Id" value="@String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:N0}", current)" />
+                                                    <input type="hidden" name="prices[@r.Id]" value="@current" />
+                                                </div>
+                                                <div class="invalid-feedback d-block mt-1" style="display:none;">Phải cao hơn giá trị bảo vệ giá</div>
+                                            </div>
+                                            <div class="summary-card rounded-3 p-3">
+                                                <div class="fw-bold mb-1">@Model.PricePackage?.CancellationPolicyDisplayName</div>
+                                                @if (Model.PricePackage != null)
+                                                {
+                                                    var localDesc = Model.PricePackage.CancellationPolicy switch
+                                                    {
+                                                        "refund_1" => "Khách có thể được hoàn tiền cho đến 1 ngày trước ngày làm thủ tục nhận phòng (trước 14:00).",
+                                                        "refund_3" => "Khách có thể được hoàn tiền cho đến 3 ngày trước ngày làm thủ tục nhận phòng (trước 14:00).",
+                                                        "refund_7" => "Khách có thể được hoàn tiền cho đến 7 ngày trước ngày làm thủ tục nhận phòng (trước 14:00).",
+                                                        _ => "Không thể hoàn tiền"
+                                                    };
+                                                    <div class="text-muted">@localDesc</div>
+                                                    <div class="text-muted mt-2">@(Model.PricePackage.BreakfastIncluded ? "Breakfast included" : "Breakfast not included")</div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="text-muted">Chưa thiết lập gói giá</div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                                <div class="text-end">
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        Lưu giá phòng
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -716,6 +866,30 @@
     @section Scripts {
         <partial name="_ValidationScriptsPartial" />
         <script>
+            // Format price inputs to vi-VN grouping and sync hidden numeric values
+            document.addEventListener('input', function (e) {
+                const el = e.target;
+                if (el.classList && el.classList.contains('price-input')) {
+                    const raw = el.value.replace(/[^0-9]/g, '');
+                    const number = raw === '' ? 0 : parseInt(raw, 10);
+                    el.value = number.toLocaleString('vi-VN');
+                    const group = el.closest('.input-group');
+                    if (group) {
+                        const hidden = group.querySelector('input[type="hidden"]');
+                        if (hidden) hidden.value = number;
+                        // validate against min (mức bảo hộ)
+                        const min = parseInt(group.getAttribute('data-min') || '0', 10);
+                        const feedback = group.parentElement.querySelector('.invalid-feedback');
+                        if (number < min) {
+                            group.classList.add('is-invalid');
+                            if (feedback) feedback.style.display = 'block';
+                        } else {
+                            group.classList.remove('is-invalid');
+                            if (feedback) feedback.style.display = 'none';
+                        }
+                    }
+                }
+            });
             function deleteRoom(roomId, roomName) {
                 if (confirm(`Bạn có chắc muốn xóa phòng "${roomName}"?`)) {
                     // Tạo form để submit DELETE request
@@ -769,6 +943,7 @@
                 let photos = []; // [{id?, url?, file?, preview, category}]
                 let currentPreviewIndex = 0;
                 let deletedUrls = [];
+                const LOCAL_KEY = `pd_photos_@Model.PropertyId`;
 
                 // ========== Helpers ==========
                 const VN_CAT = {
@@ -899,24 +1074,56 @@
                     [...form.querySelectorAll('input[name^="PropertyPhotos"]')].forEach(i => i.remove());
                     let manifest = [];
                     let newIndex = 0;
+                    
+                    // Debug: Log photos array
+                    console.log('=== DEBUG REBUILD HIDDEN INPUTS ===');
+                    console.log('Photos array:', photos);
+                    
+                    // Collect all new files first
+                    const newFiles = photos.filter(p => p.file).map(p => p.file);
+                    console.log(`Found ${newFiles.length} new files to upload`);
+                    
+                    if (newFiles.length > 0) {
+                        // Create a single input with all files
+                        const inp = document.createElement('input');
+                        inp.type = 'file';
+                        inp.name = `PropertyPhotos`;
+                        inp.style.display = 'none';
+                        inp.multiple = true;
+                        
+                        // Create a new FileList with all files
+                        const fileList = new DataTransfer();
+                        newFiles.forEach(file => {
+                            fileList.items.add(file);
+                            console.log(`Adding file to DataTransfer: ${file.name}`);
+                        });
+                        inp.files = fileList.files;
+                        
+                        console.log(`Input created with ${inp.files.length} files`);
+                        form.appendChild(inp);
+                    }
+                    
+                    // Build manifest
                     photos.forEach((p, order) => {
                         if (p.file) {
-                            const inp = document.createElement('input');
-                            inp.type = 'file';
-                            inp.name = `PropertyPhotos[${newIndex}]`;
-                            inp.style.display = 'none';
-                            const dt = new DataTransfer();
-                            dt.items.add(p.file);
-                            inp.files = dt.files;
-                            form.appendChild(inp);
                             manifest.push({ newIndex: newIndex, category: p.category, order: order });
                             newIndex++;
                         } else if (p.preview) {
+                            console.log(`Adding existing photo to manifest: ${p.preview}`);
                             manifest.push({ url: p.preview, category: p.category, order: order });
                         }
                     });
+                    
+                    console.log('Final manifest:', manifest);
+                    console.log('Total new files:', newIndex);
+                    
                     document.getElementById('photoManifest').value = JSON.stringify(manifest);
                     document.getElementById('deletedPhotoUrls').value = JSON.stringify(deletedUrls);
+                    // Also cache to localStorage so quay lại/đổi tab không mất
+                    try {
+                        const cache = photos.map(p => ({ preview: p.preview, category: p.category }));
+                        localStorage.setItem(LOCAL_KEY, JSON.stringify(cache));
+                    } catch { /* ignore quota errors */ }
                 }
 
                 function renderGrid() {
@@ -974,7 +1181,13 @@
                 }
 
                 function addFiles(fileList) {
-                    [...fileList].forEach(file => {
+                    console.log('=== DEBUG ADD FILES ===');
+                    console.log('FileList:', fileList);
+                    console.log('FileList length:', fileList.length);
+                    
+                    [...fileList].forEach((file, index) => {
+                        console.log(`Processing file ${index}:`, file.name, file.type, file.size);
+                        
                         if (!file.type.startsWith('image/')) {
                             showError('File phải là ảnh');
                             return;
@@ -987,7 +1200,9 @@
                                 reader.onload = e => {
                                     // First photo gets 'exterior' category, others get 'others'
                                     const category = photos.length === 0 ? 'exterior' : 'others';
+                                    console.log(`Adding photo with category: ${category}`);
                                     photos.push({ file, preview: e.target.result, category });
+                                    console.log('Photos array after adding:', photos);
                                     renderGrid();
                                 };
                                 reader.readAsDataURL(file);
@@ -1123,6 +1338,14 @@
                         } else if (cats.length > 0) {
                             photos = cats.map((c, i) => ({ file: null, preview: '', category: c }));
                             renderGrid();
+                        } else {
+                            // Load from localStorage draft cache if available
+                            const cached = localStorage.getItem(LOCAL_KEY);
+                            if (cached) {
+                                const arr = JSON.parse(cached);
+                                photos = (arr || []).map((x, i) => ({ file: null, preview: x.preview, category: x.category || (i === 0 ? 'exterior' : 'others') }));
+                                renderGrid();
+                            }
                         }
                     } catch (e) { console.error('Error loading saved photos', e); }
                 }
@@ -1131,6 +1354,62 @@
                 setMainEmptyUI(true);
                 renderGrid();
                 loadSavedPhotos();
+
+                // Override form submit to handle files properly
+                const formEl = document.querySelector('form');
+                if (formEl) {
+                    formEl.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        
+                        console.log('=== FORM SUBMIT OVERRIDE ===');
+                        
+                        // Create FormData manually
+                        const formData = new FormData();
+                        
+                        // Add all form fields except files
+                        const formElements = formEl.querySelectorAll('input:not([type="file"]), select, textarea');
+                        formElements.forEach(el => {
+                            if (el.name && el.value) {
+                                formData.append(el.name, el.value);
+                                console.log(`Added field: ${el.name} = ${el.value}`);
+                            }
+                        });
+                        
+                        // Add files manually
+                        const newFiles = photos.filter(p => p.file).map(p => p.file);
+                        console.log(`Adding ${newFiles.length} files to FormData`);
+                        newFiles.forEach((file, index) => {
+                            formData.append('PropertyPhotos', file);
+                            console.log(`Added file ${index}: ${file.name}`);
+                        });
+                        
+                        // Add manifest and other hidden fields
+                        formData.append('PhotoManifestJson', document.getElementById('photoManifest').value);
+                        formData.append('DeletedPhotoUrlsJson', document.getElementById('deletedPhotoUrls').value);
+                        formData.append('PhotoCategoriesJson', document.getElementById('photoCategories').value);
+                        
+                        console.log('FormData created, submitting...');
+                        
+                        // Submit via fetch
+                        fetch(formEl.action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                            }
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                window.location.href = response.url;
+                            } else {
+                                console.error('Submit failed:', response.status);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Submit error:', error);
+                        });
+                    });
+                }
             });
         </script>
     }
@@ -2442,9 +2721,16 @@
         margin-right: 12px;
     }
 
+    /* Stronger bolds for emphasized text */
+    .modal-body strong,
+    .price-package-option .form-check-label,
+    .modal-body .fw-semibold {
+        font-weight: 700 !important;
+    }
+
     .recommendation-box {
-        background-color: #d1edff;
-        border: 1px solid #b3d9ff;
+        background-color: #e6f6ec; /* light green */
+        border: 1px solid #c9ead6;
         border-radius: 6px;
         padding: 12px;
         margin-top: 12px;
@@ -2452,9 +2738,21 @@
     }
 
     .recommendation-box .recommendation-label {
-        font-weight: 600;
-        color: #0d6efd;
+        font-weight: 700;
+        color: #198754; /* bootstrap success green */
         margin-bottom: 4px;
+    }
+
+    /* Price summary wrapper (outside light background) */
+    .price-summary-wrapper {
+        background-color: #F7F8FB;
+        border-radius: 12px;
+        padding: 16px;
+    }
+
+    .price-summary-wrapper .summary-card {
+        background-color: #ffffff;
+        border: 1px solid #e9ecef;
     }
 
     /* Price Package Modal Layout */
@@ -2462,13 +2760,24 @@
         min-height: 400px;
     }
 
+    /* Tighter paddings for compact look */
+    .modal-content .modal-header {
+        padding: 12px 16px;
+    }
+    .modal-content .modal-body {
+        padding: 12px 16px;
+    }
+    .modal-content .modal-footer {
+        padding: 12px 16px;
+    }
+
     .modal-body .col-md-4 {
         border-right: 1px solid #e9ecef;
-        padding-right: 2rem;
+        padding-right: 1rem;
     }
 
     .modal-body .col-md-8 {
-        padding-left: 2rem;
+        padding-left: 1rem;
     }
 
     .modal-body .col-md-4 h5 {
@@ -2479,11 +2788,23 @@
     .modal-body .col-md-4 p {
         line-height: 1.6;
     }
+
+    /* Make modal body scrollable and keep left column sticky */
+    .modal-dialog-scrollable .modal-body {
+        max-height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+
+    .modal-body .sticky-sidebar {
+        position: sticky;
+        top: 0;
+        align-self: flex-start;
+    }
 </style>
 
 <!-- Create Price Package Modal -->
 <div class="modal fade" id="createPricePackageModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" style="max-width: 800px;">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl" style="max-width: 760px;">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title fw-bold">Gói giá</h5>
@@ -2497,7 +2818,7 @@
                 <div class="modal-body">
                     <div class="row">
                         <!-- Left Column - Title and Description -->
-                        <div class="col-md-4">
+                        <div class="col-md-4 sticky-sidebar">
                             <h5 class="fw-bold mb-3">Gói giá</h5>
                             <p class="text-muted small">Chọn Chính sách hủy phòng và bữa sáng để tạo Gói giá khởi điểm của bạn. Bạn có thể thay đổi cài đặt này sau trong TERA.</p>
                         </div>
@@ -2560,14 +2881,14 @@
                                 <p class="text-muted small mb-3">Bữa sáng (nếu bao gồm) sẽ được chuẩn bị theo số lượng khách tối đa.</p>
                                 
                                 <div class="form-check mb-2">
-                                    <input class="form-check-input" type="radio" name="BreakfastIncluded" id="breakfast_included" value="true">
+                                    <input class="form-check-input" type="radio" name="BreakfastIncluded" id="breakfast_included" value="true" @(Model.PricePackage?.BreakfastIncluded == true ? "checked" : null)>
                                     <label class="form-check-label fw-semibold" for="breakfast_included">
                                         Bao gồm
                                     </label>
                                 </div>
                                 
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="BreakfastIncluded" id="breakfast_not_included" value="false" checked>
+                                    <input class="form-check-input" type="radio" name="BreakfastIncluded" id="breakfast_not_included" value="false" @((Model.PricePackage == null || Model.PricePackage.BreakfastIncluded == false) ? "checked" : null)>
                                     <label class="form-check-label fw-semibold" for="breakfast_not_included">
                                         Không bao gồm
                                     </label>

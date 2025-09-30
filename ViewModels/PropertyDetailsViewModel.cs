@@ -28,5 +28,11 @@ namespace HotelBooking.ViewModels
         public string? TaxPayerAddress { get; set; }
         public string? SignatoryName { get; set; }
         public string? SignatoryIdCardPath { get; set; }
+
+        // Preview-like aggregation for Admin review
+        public PropertyData? PropertyData { get; set; }
+        public List<Room> Rooms { get; set; } = new();
+        public PricePackage? PricePackage { get; set; }
+        public Dictionary<int, decimal> RoomPrices { get; set; } = new();
     }
 }

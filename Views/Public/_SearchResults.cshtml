@@ -1,0 +1,67 @@
+@model HotelBooking.ViewModels.PublicSearchResultsViewModel
+
+@foreach (var p in Model.Properties)
+{
+    <div class="hotel-card">
+        <div class="hotel-image"
+            style="background-image: url('@(Model.MainPhotoUrls.TryGetValue(p.Id, out var url) ? url : "/img/recent.jpg")');">
+            <button class="heart-btn">♡</button>
+        </div>
+        <div class="hotel-details">
+            <h2 class="hotel-name">@p.Name
+                @{
+                    int stars = Model.StarRatingByProperty != null &&
+                    Model.StarRatingByProperty.ContainsKey(p.Id) &&
+                    Model.StarRatingByProperty[p.Id].HasValue ?
+                    Model.StarRatingByProperty[p.Id]!.Value : 0;
+                }
+                <span class="hotel-stars">@(new string('★', stars))</span>
+            </h2>
+            <div class="hotel-location">@p.City</div>
+            <div class="distance">@p.AddressLine</div>
+            @{
+                HotelBooking.Models.Room fr;
+                Model.FeaturedRoomByProperty.TryGetValue(p.Id, out fr);
+            }
+            @if (fr != null)
+            {
+                var totalBeds = fr.Beds?.Sum(b => (int)b.Count) ?? 0;
+                <div class="small text-muted"><strong>@fr.Name</strong> • <span class="nowrap">@totalBeds giường</span></div>
+            }
+            @{
+                bool? bf = null;
+                if (Model.BreakfastIncludedByProperty != null &&
+                Model.BreakfastIncludedByProperty.ContainsKey(p.Id))
+                {
+                    bf = Model.BreakfastIncludedByProperty[p.Id];
+                }
+            }
+            @if (bf == true)
+            {
+                <div class="promotion" style="color:#008009">Bao gồm bữa sáng</div>
+            }
+            else
+            {
+                <div class="promotion" style="color:#d91e18">Không bao gồm bữa sáng</div>
+            }
+            <div class="limited-offer">Ưu đãi có giới hạn</div>
+        </div>
+        <div class="hotel-booking-info">
+            <div class="rating-section">
+                <div class="rating-text">
+                    <div class="rating-label">Tuyệt vời</div>
+                    <div class="review-count">1,234 đánh giá</div>
+                    <div class="location-score">Vị trí tuyệt vời</div>
+                </div>
+                <div class="rating-score">8.5</div>
+            </div>
+            <div>
+                <div class="guests-info">1 đêm, 2 người lớn</div>
+                <div class="price">VND @String.Format("{0:N0}", Model.MinPriceByProperty.ContainsKey(p.Id) ?
+                                    Model.MinPriceByProperty[p.Id] : 0)</div>
+            <div class="price-includes">+VND 469.000 thuế và phí</div>
+            <a class="book-btn" href="@Url.Action("Hotel", "Public", new { id = p.Id })">Xem chỗ trống</a>
+        </div>
+    </div>
+</div>
+}

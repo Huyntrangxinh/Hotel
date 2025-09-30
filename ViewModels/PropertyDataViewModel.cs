@@ -145,6 +145,7 @@ public class RoomItemVm
     public int CapacityChildren { get; set; }
     public bool AllowChildren { get; set; }
     public bool AllowExtraBed { get; set; }
+    public decimal? SecurityDeposit { get; set; }
     public List<BedItemVm> Beds { get; set; } = new();
 }
 

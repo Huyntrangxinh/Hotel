@@ -23,6 +23,11 @@ namespace HotelBooking.Data
         public DbSet<RoomAmenity> RoomAmenities => Set<RoomAmenity>();
         public DbSet<RoomPhoto> RoomPhotos => Set<RoomPhoto>();
         public DbSet<PricePackage> PricePackages => Set<PricePackage>();
+        public DbSet<RoomPrice> RoomPrices => Set<RoomPrice>();
+        public DbSet<RoomDailyRate> RoomDailyRates => Set<RoomDailyRate>();
+        public DbSet<Destination> Destinations => Set<Destination>();
+        public DbSet<Discount> Discounts => Set<Discount>();
+        public DbSet<Booking> Bookings => Set<Booking>();
 
         // Helper methods for robust JSON deserialization
         private static List<string> DeserializeStringList(string? json)
@@ -123,6 +128,40 @@ namespace HotelBooking.Data
                    .WithMany()
                    .HasForeignKey(p => p.PropertyId)
                    .OnDelete(DeleteBehavior.Cascade);
+
+            // RoomPrice relations and unique constraint per property-room
+            builder.Entity<RoomPrice>()
+                   .HasOne<Property>()
+                   .WithMany()
+                   .HasForeignKey(rp => rp.PropertyId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<RoomPrice>()
+                   .HasOne<Room>()
+                   .WithMany()
+                   .HasForeignKey(rp => rp.RoomId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<RoomPrice>()
+                   .HasIndex(rp => new { rp.PropertyId, rp.RoomId })
+                   .IsUnique();
+
+            // RoomDailyRate relations and unique constraint per property-room-date
+            builder.Entity<RoomDailyRate>()
+                   .HasOne<Property>()
+                   .WithMany()
+                   .HasForeignKey(r => r.PropertyId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<RoomDailyRate>()
+                   .HasOne<Room>()
+                   .WithMany()
+                   .HasForeignKey(r => r.RoomId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<RoomDailyRate>()
+                   .HasIndex(r => new { r.PropertyId, r.RoomId, r.Date })
+                   .IsUnique();
         }
     }
 }

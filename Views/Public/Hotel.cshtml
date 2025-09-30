@@ -1,0 +1,2767 @@
+@model HotelBooking.ViewModels.PublicHotelViewModel
+@using System.Linq
+@{
+    ViewData["Title"] = Model?.Property?.Name ?? "Khách sạn";
+    Layout = "_Layout";
+}
+
+@section Head {
+    <style>
+        :root {
+            --booking-blue-dark: #003580;
+            --booking-blue-light: #0071c2;
+            --booking-yellow: #febb02;
+            --text-color: #333;
+            --border-color: #e0e0e0;
+            --background-color: #f5f5f5;
+            --rating-green: #008009;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .search-container {
+            background: var(--booking-blue-dark);
+            padding: 10px 0 20px;
+        }
+
+        .search-box {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        .search-form {
+            background: var(--booking-yellow);
+            border-radius: 8px;
+            padding: 4px;
+            display: grid;
+            grid-template-columns: 1fr auto auto 120px;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .search-input-group {
+            background: white;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            border-radius: 4px;
+            height: 48px;
+        }
+
+        .search-input-group i {
+            font-size: 20px;
+            color: #666;
+            margin-right: 8px;
+        }
+
+        .search-input-group input,
+        .search-input-group .date-display,
+        .search-input-group .guests-display {
+            border: none;
+            outline: none;
+            width: 100%;
+            height: 100%;
+            font-size: 14px;
+            background: transparent;
+            color: #333;
+        }
+
+        .date-display,
+        .guests-display {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .search-btn {
+            background: var(--booking-blue-light);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            height: 48px;
+            padding: 0 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .search-btn:hover {
+            background: #005a9b;
+        }
+
+        /* Date Picker */
+        .date-picker-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1050;
+            width: 600px;
+            padding: 20px;
+            margin-top: 4px;
+        }
+
+        .date-picker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 15px;
+        }
+
+        .date-picker-header span {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .date-picker-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+        }
+
+        .date-tab {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .date-tab.active {
+            color: var(--booking-blue-light);
+            border-bottom-color: var(--booking-blue-light);
+        }
+
+        .date-tab:hover {
+            color: var(--booking-blue-light);
+        }
+
+        .tab-content {
+            min-height: 300px;
+        }
+
+        .calendar-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .calendar-month {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-nav {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .calendar-nav:hover {
+            background-color: #f0f0f0;
+        }
+
+        .month-year {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            padding: 8px 4px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background-color: #f0f0f0;
+        }
+
+        .calendar-day.selected {
+            background-color: var(--booking-blue-light);
+            color: white;
+        }
+
+        .calendar-day.in-range {
+            background-color: rgba(0, 113, 194, 0.1);
+        }
+
+        .calendar-day.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .calendar-day.disabled:hover {
+            background: none;
+        }
+
+        .date-picker-footer {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .duration-btn {
+            padding: 8px 16px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .duration-btn:hover {
+            border-color: var(--booking-blue-light);
+            color: var(--booking-blue-light);
+        }
+
+        .duration-btn.active {
+            background: var(--booking-blue-light);
+            color: white;
+            border-color: var(--booking-blue-light);
+        }
+
+        .date-picker-apply {
+            margin-top: 15px;
+            text-align: right;
+        }
+
+        /* Guest Dropdown */
+        #guestDropdown {
+            top: calc(100% + 8px);
+            left: 0;
+            width: 350px;
+            color: #333;
+        }
+        
+        .hover-bg:hover {
+            background-color: #f0f2f5;
+        }
+        
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Destination Dropdown */
+        .destination-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1050;
+            margin-top: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .recent-searches {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .recent-searches h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .recent-search-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .recent-search-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .recent-search-item i {
+            margin-right: 10px;
+            color: #666;
+        }
+
+        .search-suggestions {
+            padding: 15px;
+        }
+
+        .search-suggestions h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .suggestion-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .suggestion-item i {
+            margin-right: 10px;
+            color: #666;
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .search-form {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            
+            .date-picker-dropdown {
+                width: 100%;
+                left: 0;
+                right: 0;
+            }
+            
+            .calendar-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Dropdown chọn khách */
+        #guestDropdown {
+            top: calc(100% + 8px);
+            left: 0;
+            width: 350px;
+            color: #333;
+        }
+
+        .hover-bg:hover {
+            background-color: #f0f2f5;
+        }
+
+        /* Disable button khi ở giá trị minimum */
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Custom Date Picker */
+        .date-picker-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1050;
+            width: 600px;
+            padding: 20px;
+            margin-top: 4px;
+        }
+
+        .date-picker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .date-picker-tabs {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .date-tab {
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            border-bottom: 2px solid transparent;
+        }
+
+        .date-tab.active {
+            color: #006ce4;
+            border-bottom-color: #006ce4;
+        }
+
+        .calendar-container {
+            display: flex;
+            gap: 30px;
+        }
+
+        .calendar-month {
+            flex: 1;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-nav {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+        }
+
+        .calendar-nav:hover {
+            color: #006ce4;
+        }
+
+        .month-year {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            padding: 8px 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .calendar-day {
+            text-align: center;
+            padding: 8px 4px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .calendar-day:hover {
+            background: #f0f2f5;
+        }
+
+        .calendar-day.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .calendar-day.disabled:hover {
+            background: none;
+        }
+
+        .calendar-day.selected {
+            background: #006ce4;
+            color: white;
+        }
+
+        .calendar-day.in-range {
+            background: #e3f2fd;
+            color: #006ce4;
+        }
+
+        .date-picker-footer {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .duration-btn {
+            padding: 8px 16px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .duration-btn:hover {
+            border-color: #006ce4;
+            color: #006ce4;
+        }
+
+        .duration-btn.active {
+            background: #006ce4;
+            color: white;
+            border-color: #006ce4;
+        }
+
+        .date-picker-apply {
+            margin-top: 15px;
+            text-align: right;
+            font-size: 0.95rem;
+        }
+
+        /* Thanh tìm kiếm màu xanh */
+        .hero-search-strip {
+            background-color: var(--booking-blue);
+            padding: 1rem 0;
+        }
+
+        .search-widget {
+            display: flex;
+            border: 2px solid var(--booking-yellow);
+            border-radius: 0.5rem;
+            background-color: white;
+            padding: 0.4rem;
+            gap: 0.4rem;
+        }
+
+        .search-segment {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+        }
+
+        .search-segment input,
+        .search-segment .form-control {
+            border: none;
+            box-shadow: none;
+            font-size: 0.85rem;
+        }
+
+        .search-segment i {
+            color: var(--booking-text-light);
+        }
+
+        .search-button {
+            background-color: var(--booking-blue-light);
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.25rem;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb-bar {
+            font-size: 0.75rem;
+            padding: 0.5rem 0;
+            background-color: white;
+        }
+
+        .breadcrumb-item a {
+            color: var(--booking-blue-light);
+            text-decoration: none;
+        }
+
+        /* Hotel Header */
+        .hotel-header .badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .star-rating .bi-star-fill {
+            color: var(--booking-yellow);
+        }
+
+        .hotel-header h1 {
+            font-weight: 700;
+            color: #1a1a1a;
+            font-size: 1.35rem;
+        }
+
+        .hotel-address {
+            color: var(--booking-blue-light);
+            font-weight: 500;
+        }
+
+        .hotel-address a {
+            color: var(--booking-blue-light);
+            text-decoration: none;
+        }
+
+        /* Navigation tabs */
+        .hotel-nav-tabs {
+            background-color: white;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 1rem;
+        }
+
+        .hotel-nav-tabs .nav-link {
+            color: var(--booking-text-light);
+            font-weight: 500;
+            padding: 1rem;
+            border: none;
+            border-bottom: 3px solid transparent;
+        }
+
+        .hotel-nav-tabs .nav-link.active {
+            color: var(--booking-blue-light);
+            border-bottom-color: var(--booking-blue-light);
+        }
+
+        /* Photo Gallery - New Layout */
+        .photo-gallery {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            height: 450px;
+        }
+
+        .gallery-main {
+            flex: 2;
+        }
+
+        .gallery-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Full Gallery Modal */
+        .full-gallery-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 9999;
+            display: none;
+            overflow-y: auto;
+        }
+
+        .full-gallery-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            color: white;
+        }
+
+        .gallery-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .gallery-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .close-gallery {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .main-gallery-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .gallery-navigation {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .gallery-nav-prev {
+            left: 1rem;
+        }
+
+        .gallery-nav-next {
+            right: 1rem;
+        }
+
+        .gallery-image-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .gallery-category {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .gallery-counter {
+            font-size: 0.875rem;
+            color: #ccc;
+        }
+
+        .gallery-categories {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            padding: 1rem 0;
+        }
+
+        .gallery-category-tab {
+            background: none;
+            border: none;
+            color: #ccc;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+        }
+
+        .gallery-category-tab.active {
+            color: white;
+            border-bottom-color: #006ce4;
+        }
+
+        .gallery-thumbnails {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .gallery-thumbnail {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .gallery-thumbnail.active {
+            border-color: #006ce4;
+        }
+
+        .gallery-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @@media (max-width: 768px) {
+            .full-gallery-container {
+                padding: 1rem;
+            }
+
+            .main-gallery-image {
+                height: 250px;
+            }
+
+            .gallery-thumbnails {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+                gap: 0.5rem;
+            }
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.05);
+        }
+
+
+        .gallery-item.view-all .photo-overlay-permanent {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .overlay-content {
+            font-size: 16px;
+        }
+
+        .overlay-content svg {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 8px;
+        }
+
+        /* Equal height for gallery + sidebar */
+        .equal-row {
+            align-items: stretch;
+        }
+
+        .photo-block-height {
+            height: 520px;
+        }
+
+        @@media (max-width: 992px) {
+            .photo-block-height {
+                height: auto;
+            }
+        }
+
+        .sidebar-equal {
+            height: 520px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .sidebar-equal .sidebar-card {
+            flex: 1 1 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .sidebar-equal .map-card {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .sidebar-equal .map-card .map-placeholder {
+            height: 100%;
+        }
+
+        /* Lightbox gallery modal */
+        .lightbox-modal .modal-dialog {
+            max-width: 1200px;
+        }
+
+        .lightbox-modal .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+        }
+
+        .lightbox-modal .photo-grid img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .hotel-photo-thumb {
+            cursor: pointer;
+        }
+
+        /* Rating và Reviews */
+        .rating-section {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 0.85rem;
+            margin-bottom: 0.85rem;
+        }
+
+        .sidebar-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .score-badge-large {
+            background-color: var(--booking-blue);
+            color: #fff;
+            font-weight: 700;
+            border-radius: 0.5rem;
+            padding: 0.2rem 0.5rem;
+            min-width: 2.4rem;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        .review-quote {
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .avatar-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f59f00;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .small-muted {
+            font-size: 0.85rem;
+            color: var(--booking-text-light);
+        }
+
+        .rating-score {
+            background-color: var(--booking-blue);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+            display: inline-block;
+            min-width: 2rem;
+            text-align: center;
+        }
+
+        .rating-text {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .review-count {
+            color: var(--booking-text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Amenities Icons */
+        .amenities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .amenity-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .amenity-item i {
+            color: var(--booking-blue);
+        }
+
+        /* Room availability table */
+        .availability-table {
+            background-color: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin-top: 2rem;
+        }
+
+        .availability-table th {
+            background-color: var(--booking-blue);
+            color: white;
+            padding: 1rem;
+            font-weight: 600;
+        }
+
+        .availability-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .room-name {
+            font-weight: 600;
+            color: var(--booking-blue);
+        }
+
+        .room-features {
+            font-size: 0.8rem;
+            color: var(--booking-text-light);
+            margin-top: 0.5rem;
+        }
+
+        .price-section {
+            text-align: right;
+        }
+
+        .price-main {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #1a1a1a;
+        }
+
+        .price-tax {
+            font-size: 0.8rem;
+            color: var(--booking-text-light);
+        }
+
+        .btn-book {
+            background-color: var(--booking-blue);
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.25rem;
+            min-width: 120px;
+        }
+
+        .btn-book:hover {
+            background-color: var(--booking-blue-light);
+            color: white;
+        }
+
+        /* Sidebar */
+        .booking-sidebar {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            height: fit-content;
+            position: sticky;
+            top: 2rem;
+        }
+
+        .map-section {
+            margin-top: 1rem;
+        }
+
+        .map-placeholder {
+            background-color: #e9ecef;
+            height: 200px;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--booking-text-light);
+        }
+
+        /* Best deal badges */
+        .deal-badge {
+            background-color: #0f7b0f;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .free-cancellation {
+            color: #0f7b0f;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* User location info */
+        .user-location {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-section {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.2rem;
+            margin-bottom: 0.85rem;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #1a1a1a;
+        }
+
+        /* Search modification bar */
+        .search-modify-bar {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 0.85rem;
+            margin-bottom: 1.2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .search-modify-input {
+            border: 2px solid var(--booking-yellow);
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+        }
+
+        /* Reviews section styles */
+        .review-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .category-btn {
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 0.5rem 1rem;
+            border-radius: 1.5rem;
+            font-size: 0.85rem;
+        }
+
+        .review-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .reviewer-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .country-flag {
+            width: 16px;
+            height: 12px;
+        }
+
+        /* Custom styles for hotel page */
+        .hotel-page {
+            padding-top: 0;
+        }
+
+        /* Search bar styling */
+        .search-bar {
+            background-color: var(--booking-blue);
+            padding: 1rem 0;
+        }
+
+        .search-form {
+            background: #febb02;
+            border-radius: 6px;
+            padding: 0.3rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .search-input-group {
+            background: white;
+            border-radius: 4px;
+            border: 3px solid transparent;
+            transition: border-color 0.2s ease;
+        }
+
+        .search-input-group:focus-within {
+            border-color: #0071c2;
+        }
+
+        .search-input {
+            border: none;
+            padding: 1rem;
+            font-size: 1rem;
+            background: transparent;
+            width: 100%;
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+        .search-btn {
+            background: #0071c2;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 4px;
+            color: white;
+            transition: background 0.2s ease;
+        }
+
+        .search-btn:hover {
+            background: #005494;
+        }
+    </style>
+}
+
+    <section class="search-container">
+        <div class="search-box">
+            <form class="search-form" method="get" action="/Public/Search">
+                <!-- Hidden inputs for guest and room data -->
+                <input type="hidden" id="adultsInput" name="adults" value="2" />
+                <input type="hidden" id="childrenInput" name="children" value="0" />
+                <input type="hidden" id="roomsInput" name="rooms" value="1" />
+
+                <!-- Destination -->
+                <div class="search-input-group position-relative">
+                    <i class="bi bi-search"></i>
+                    <input id="destinationInput" name="destination" placeholder="Bạn muốn đến đâu?" autocomplete="off"
+                        value="@Model.Property.City" />
+                    <div id="destinationDropdown"
+                        class="bg-white border rounded-3 shadow-sm position-absolute w-100 d-none"
+                        style="z-index:1050; max-height:360px; overflow-y:auto; top:100%; left:0; margin-top: 4px;">
+                </div>
+                </div>
+
+                <!-- Date Range -->
+                <div class="search-input-group position-relative">
+                    <i class="bi bi-calendar3"></i>
+                    <div class="date-display" id="dateDisplay">Chọn ngày đến và ngày về</div>
+                    <input name="checkin" type="date" class="form-control d-none" id="checkinInput" />
+                    <input name="checkout" type="date" class="form-control d-none" id="checkoutInput" />
+
+                    <!-- Custom Date Picker Dropdown -->
+                    <div id="datePickerDropdown" class="date-picker-dropdown d-none">
+                        <div class="date-picker-header">
+                            <div>
+                                <span id="selectedDateRange">Chọn ngày đến và ngày về</span>
+                </div>
+                            <div>
+                                <span id="selectedGuests">2 người lớn • 0 trẻ em • 1 phòng</span>
+            </div>
+        </div>
+
+                        <div class="date-picker-tabs">
+                            <button class="date-tab active" data-tab="calendar">Lịch</button>
+                            <button class="date-tab" data-tab="flexible">Ngày linh hoạt</button>
+    </div>
+
+                        <div id="calendarTab" class="tab-content">
+                            <div class="calendar-container">
+                                <div class="calendar-month">
+                                    <div class="calendar-header">
+                                        <button class="calendar-nav" onclick="changeMonth(-1)">&lt;</button>
+                                        <div class="month-year" id="month1">tháng 11 năm 2025</div>
+                                        <button class="calendar-nav" onclick="changeMonth(1)">&gt;</button>
+                                    </div>
+                                    <div class="calendar-grid" id="calendar1">
+                                        <!-- Calendar will be generated by JavaScript -->
+                                    </div>
+                                </div>
+                                <div class="calendar-month">
+                                    <div class="calendar-header">
+                                        <button class="calendar-nav" onclick="changeMonth(1)">&lt;</button>
+                                        <div class="month-year" id="month2">tháng 12 năm 2025</div>
+                                        <button class="calendar-nav" onclick="changeMonth(1)">&gt;</button>
+                                    </div>
+                                    <div class="calendar-grid" id="calendar2">
+                                        <!-- Calendar will be generated by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="flexibleTab" class="tab-content d-none">
+                            <div class="date-picker-footer">
+                                <button class="duration-btn active" data-days="0">Ngày chính xác</button>
+                                <button class="duration-btn" data-days="1">+ 1 ngày</button>
+                                <button class="duration-btn" data-days="2">+ 2 ngày</button>
+                                <button class="duration-btn" data-days="3">+ 3 ngày</button>
+                                <button class="duration-btn" data-days="7">+ 7 ngày</button>
+                            </div>
+                        </div>
+
+                        <!-- Apply button -->
+                        <div class="date-picker-apply" style="margin-top: 15px; text-align: right;">
+                            <button type="button" class="btn btn-primary" onclick="closeDatePicker()"
+                                style="padding: 8px 20px; font-size: 14px;">Áp dụng</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guests & Rooms -->
+                <div class="search-input-group position-relative">
+                    <i class="bi bi-person"></i>
+                    <div class="guests-display" id="guestText">2 người lớn · 0 trẻ em · 1 phòng</div>
+
+                    <!-- Guest Dropdown -->
+                    <div id="guestDropdown" class="bg-white border rounded-3 shadow-sm position-absolute d-none"
+                        style="z-index:1050; padding:16px; top:100%; left:0; margin-top: 4px;">
+                        <div class="d-flex justify-content-between align-items-center py-2">
+                            <div>
+                                <div class="fw-semibold">Người lớn</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle"
+                                    style="width:32px; height:32px;" onclick="updateGuests('adults', -1)">−</button>
+                                <span id="adultsCount" class="fw-semibold">2</span>
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle"
+                                    style="width:32px; height:32px;" onclick="updateGuests('adults', 1)">+</button>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center py-2">
+                            <div>
+                                <div class="fw-semibold">Trẻ em</div>
+                                <div class="small text-muted">0-17 tuổi</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle"
+                                    style="width:32px; height:32px;" onclick="updateGuests('children', -1)">−</button>
+                                <span id="childrenCount" class="fw-semibold">0</span>
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle"
+                                    style="width:32px; height:32px;" onclick="updateGuests('children', 1)">+</button>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center py-2">
+                            <div>
+                                <div class="fw-semibold">Phòng</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle"
+                                    style="width:32px; height:32px;" onclick="updateGuests('rooms', -1)">−</button>
+                                <span id="roomsCount" class="fw-semibold">1</span>
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle"
+                                    style="width:32px; height:32px;" onclick="updateGuests('rooms', 1)">+</button>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-primary w-100 mt-3"
+                            onclick="closeGuestDropdown()">Xong</button>
+                    </div>
+                </div>
+
+                <!-- Search Button -->
+                <button type="submit" class="search-btn">Tìm</button>
+            </form>
+        </div>
+    </section>
+
+    <div class="container py-4">
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb" class="breadcrumb-bar">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">Trang chủ</a></li>
+                <li class="breadcrumb-item"><a href="#">Khách sạn</a></li>
+            <li class="breadcrumb-item"><a href="#">@Model.Property.CountryCode</a></li>
+            <li class="breadcrumb-item"><a href="#">@Model.Property.City</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Property.Name</li>
+            </ol>
+        </nav>
+
+        <!-- Navigation tabs -->
+        <ul class="nav nav-tabs hotel-nav-tabs">
+            <li class="nav-item"><a class="nav-link active" href="#">Tổng quan</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Thông tin & giá</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Tiện nghi</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Quy tắc chung</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">Đánh giá của khách (327)</a></li>
+            <li class="nav-item ms-auto"><a class="nav-link" href="#"><i class="bi bi-heart"></i></a></li>
+            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-share"></i></a></li>
+        </ul>
+
+        <!-- Tiêu đề khách sạn và các nút hành động -->
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <div class="star-rating mb-2">
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <span class="badge bg-warning text-dark ms-2"><i class="bi bi-flag"></i> Travel Proud</span>
+                </div>
+            <h1 class="mb-1">@Model.Property.Name</h1>
+                <div class="hotel-address">
+                <i class="bi bi-geo-alt"></i> @Model.Property.AddressLine, @Model.Property.PostalCode
+                @Model.Property.City, @Model.Property.CountryCode
+                    - <a href="#">Vị trí xuất sắc - hiển thị bản đồ</a>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="text-end me-3">
+                    <div class="mb-1">
+                        <span class="badge bg-info text-white">Chứng Tôi Luôn Khớp Giá!</span>
+                    </div>
+                    <button class="btn btn-primary fw-bold px-4">Đặt ngay</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row equal-row">
+        <div class="col-12">
+            <!-- Photos: New Layout -->
+            <div class="photo-gallery mb-4">
+                <!-- Ảnh chính bên trái -->
+                <div class="gallery-item gallery-main" onclick="openFullGallery()">
+                        <img src="@(Model.PhotoUrls.Count > 0 ? Model.PhotoUrls[0] : "/images/placeholder.jpg")"
+                        alt="Main hotel view" class="hotel-photo-thumb">
+                    </div>
+
+                <!-- 6 ảnh nhỏ bên phải -->
+                <div class="gallery-grid">
+                    @if (Model.PhotoUrls.Count > 6)
+                    {
+                        @* Hiển thị 5 ảnh đầu + 1 ảnh cuối với overlay *@
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            <div class="gallery-item" onclick="openFullGallery()">
+                                <img src="@Model.PhotoUrls[i]" alt="Hotel photo @i" class="hotel-photo-thumb">
+                                </div>
+                            }
+                        @* Ảnh cuối với overlay "Xem tất cả" *@
+                        <div class="gallery-item view-all" onclick="openFullGallery()">
+                            <img src="@Model.PhotoUrls[Model.PhotoUrls.Count - 1]" alt="View all photos"
+                                class="hotel-photo-thumb">
+                            <div class="photo-overlay-permanent">
+                                <div class="overlay-content">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                        <polyline points="21 15 16 10 5 21"></polyline>
+                                    </svg>
+                                    <div>Xem tất cả hình ảnh</div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        @* Hiển thị tất cả ảnh (≤ 6) *@
+                        @for (int i = 1; i < Model.PhotoUrls.Count; i++)
+                        {
+                            <div class="gallery-item" onclick="openFullGallery()">
+                                <img src="@Model.PhotoUrls[i]" alt="Hotel photo @i" class="hotel-photo-thumb">
+                                </div>
+                            }
+                    }
+                    @* Tạo placeholder cho các ô trống nếu cần *@
+                    @if (Model.PhotoUrls.Count <= 6)
+                    {
+                        @for (int i = Model.PhotoUrls.Count; i <= 6; i++)
+                        {
+                            <div class="gallery-item">
+                                <div class="d-flex align-items-center justify-content-center bg-light border rounded h-100">
+                                    <i class="bi bi-image text-muted fs-4"></i>
+                        </div>
+                            </div>
+                        }
+                    }
+                    </div>
+                </div>
+
+                <!-- Amenities -->
+                <div class="amenities-grid mb-4">
+                    <div class="amenity-item">
+                        <i class="bi bi-water"></i>
+                        <span>Nhìn ra núi</span>
+                    </div>
+                    <div class="amenity-item">
+                        <i class="bi bi-tree"></i>
+                        <span>Sân vườn</span>
+                    </div>
+                    <div class="amenity-item">
+                        <i class="bi bi-water"></i>
+                        <span>Hồ bơi</span>
+                    </div>
+                    <div class="amenity-item">
+                        <i class="bi bi-wifi"></i>
+                        <span>WiFi miễn phí</span>
+                    </div>
+                    <div class="amenity-item">
+                        <i class="bi bi-door-open"></i>
+                        <span>Sân hiên</span>
+                    </div>
+                    <div class="amenity-item">
+                        <i class="bi bi-people"></i>
+                        <span>Ban công</span>
+                    </div>
+                    <div class="amenity-item">
+                        <i class="bi bi-p-circle"></i>
+                        <span>Chỗ đỗ xe miễn phí</span>
+                    </div>
+                    <div class="amenity-item">
+                        <i class="bi bi-droplet"></i>
+                        <span>Bồn tắm</span>
+                    </div>
+                    <div class="amenity-item">
+                        <i class="bi bi-snow"></i>
+                        <span>Điều hòa không khí</span>
+                    </div>
+                    <div class="amenity-item">
+                        <i class="bi bi-clock"></i>
+                        <span>Lễ tân 24 giờ</span>
+                    </div>
+                </div>
+
+                <!-- Hotel Description -->
+                <div class="content-section">
+                    <div class="section-title">Tận hưởng dịch vụ đỉnh cao, đẳng cấp thế giới tại Legacy Yen Tu -
+                        MGallery</div>
+                    <p>Nằm ở thành phố Uông Bí, Legacy Yen Tu - MGallery cung cấp chỗ nghỉ 5 sao với vườn, quầy bar và
+                        sân hiên. Nhà hàng, quầy lễ tân 24 giờ, dịch vụ phòng và Wi-Fi miễn phí cũng nằm trong số các
+                        tiện nghi tại khách sạn này.</p>
+
+                    <p>Các phòng nghỉ tại khách sạn có khu vực ghế ngồi. Phòng tắm riêng đi kèm chậu rửa vệ sinh, máy
+                        sấy tóc và đồ vệ sinh cá nhân miễn phí. Phòng cũng có máy điều hòa và ban làm việc.</p>
+
+                    <p>Chỗ nghỉ phục vụ bữa sáng tự chọn hàng ngày.</p>
+
+                    <p>Thành phố Hải Phòng cách Legacy Yen Tu - MGallery 42 km. Sân bay gần nhất là sân bay quốc tế Cát
+                        Bi, cách khách sạn 49 km.</p>
+
+                    <p>Các cặp đôi đặc biệt thích địa điểm này — họ cho điểm 9,4 khi đánh giá chuyến đi hai người.</p>
+
+                    <p style="font-size: 0.8rem; color: var(--booking-text-light);">Các khoảng cách nêu trong mô tả chỗ
+                        nghỉ được tính toán bằng © OpenStreetMap</p>
+
+                    <div class="mt-4">
+                        <div class="section-title">Các tiện nghi được ưa chuộng nhất</div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="amenity-item mb-2">
+                                    <i class="bi bi-water text-info"></i>
+                                    <span>2 hồ bơi</span>
+                                </div>
+                                <div class="amenity-item mb-2">
+                                    <i class="bi bi-tree text-success"></i>
+                                    <span>Xe đưa đón sân bay</span>
+                                </div>
+                                <div class="amenity-item mb-2">
+                                    <i class="bi bi-ban text-danger"></i>
+                                    <span>Phòng không hút thuốc</span>
+                                </div>
+                                <div class="amenity-item mb-2">
+                                    <i class="bi bi-p-circle text-primary"></i>
+                                    <span>Chỗ đỗ xe miễn phí</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="amenity-item mb-2">
+                                    <i class="bi bi-heart-pulse text-danger"></i>
+                                    <span>Trung tâm Spa & chăm sóc sức khỏe</span>
+                                </div>
+                                <div class="amenity-item mb-2">
+                                    <i class="bi bi-wifi text-primary"></i>
+                                    <span>WiFi miễn phí</span>
+                                </div>
+                                <div class="amenity-item mb-2">
+                                    <i class="bi bi-cup-straw text-warning"></i>
+                                    <span>Nhà hàng</span>
+                                </div>
+                                <div class="amenity-item mb-2">
+                                    <i class="bi bi-door-open text-success"></i>
+                                    <span>Dịch vụ phòng</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="amenity-item mb-2">
+                                    <i class="bi bi-cup text-warning"></i>
+                                    <span>Quầy bar</span>
+                                </div>
+                                <div class="amenity-item mb-2">
+                                    <i class="bi bi-leaf text-success"></i>
+                                    <span>Bữa sáng xuất sắc</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Room Availability Section -->
+                <div class="search-modify-bar">
+                    <h5 class="mb-3">Phòng trống</h5>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <div class="search-modify-input">
+                                <i class="bi bi-calendar3"></i>
+                                T5, 11 tháng 12 — CN, 14 tháng 12
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="search-modify-input">
+                                <i class="bi bi-person"></i>
+                                2 người lớn · 0 trẻ em · 1 phòng
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100">Thay đổi tìm kiếm</button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Lọc theo:</strong>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="room-filter">
+                            <label class="form-check-label" for="room-filter">Phòng</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="suite-filter">
+                            <label class="form-check-label" for="suite-filter">Suite</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Room Availability Table -->
+                <table class="table availability-table">
+                    <thead>
+                        <tr>
+                            <th>Loại chỗ nghỉ</th>
+                            <th>Số lượng khách</th>
+                            <th>Giá cho 3 đêm</th>
+                            <th>Các lựa chọn</th>
+                            <th>Chọn phòng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.Rooms)
+                        {
+                            var guests = (r.CapacityAdults + r.CapacityChildren);
+                            decimal? amount = null;
+                            decimal a = default;
+                            if (Model.RoomPrices != null && Model.RoomPrices.TryGetValue(r.Id, out a)) amount = a;
+                            <tr>
+                                <td>
+                                <div class="room-name"><a href="javascript:void(0)"
+                                        class="room-detail-link text-decoration-none" data-room-id="@r.Id">@r.Name</a></div>
+                                    <div class="room-features mt-1">Sức chứa: @guests khách</div>
+                                </td>
+                                <td>
+                                    <i class="bi bi-people"></i>
+                                    <span class="ms-1">@guests</span>
+                                </td>
+                                <td>
+                                    <div class="price-section">
+                                        @if (amount.HasValue)
+                                        {
+                                            <div class="price-main">VND @amount.Value.ToString("N0", new
+                                                                                        System.Globalization.CultureInfo("vi-VN"))</div>
+                                    <div class="price-tax">Giá tham khảo • Có thể cộng thuế và phí</div>
+                                                                        }
+                                        else
+                                        {
+                                            <div class="text-muted">Chưa có giá</div>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="deal-badge">Bao gồm bữa sáng xuất sắc</div>
+                                    <div class="small text-muted">• Thanh toán cho chỗ nghỉ trước khi đến</div>
+                                </td>
+                                <td>
+                                    <select class="form-select mb-2" style="width: 80px;">
+                                        <option>0</option>
+                                        <option>1</option>
+                                        <option>2</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+        </div> <!-- end col-12 -->
+        </div> <!-- end row -->
+
+        <!-- Reviews Section -->
+        <div class="content-section mt-4">
+            <div class="section-title">Đánh giá của khách</div>
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="score-badge-large">8,9</span>
+                    <div>
+                        <div class="fw-bold">Tuyệt vời · 327 đánh giá</div>
+                        <a href="#" class="text-primary text-decoration-none">Đọc tất cả đánh giá</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rating breakdown -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Nhân viên phục vụ</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress" style="width: 100px; height: 8px;">
+                                <div class="progress-bar bg-primary" style="width: 89%"></div>
+                            </div>
+                            <span class="fw-bold">8,9</span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Thoải mái ↑</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress" style="width: 100px; height: 8px;">
+                                <div class="progress-bar bg-success" style="width: 94%"></div>
+                            </div>
+                            <span class="fw-bold">9,4</span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>WiFi miễn phí ↑</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress" style="width: 100px; height: 8px;">
+                                <div class="progress-bar bg-success" style="width: 90%"></div>
+                            </div>
+                            <span class="fw-bold">9,0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tiện nghi ↑</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress" style="width: 100px; height: 8px;">
+                                <div class="progress-bar bg-success" style="width: 92%"></div>
+                            </div>
+                            <span class="fw-bold">9,2</span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Đáng giá tiền</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress" style="width: 100px; height: 8px;">
+                                <div class="progress-bar bg-primary" style="width: 87%"></div>
+                            </div>
+                            <span class="fw-bold">8,7</span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Sạch sẽ ↑</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress" style="width: 100px; height: 8px;">
+                                <div class="progress-bar bg-success" style="width: 92%"></div>
+                            </div>
+                            <span class="fw-bold">9,2</span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Địa điểm</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress" style="width: 100px; height: 8px;">
+                                <div class="progress-bar bg-primary" style="width: 92%"></div>
+                            </div>
+                            <span class="fw-bold">9,2</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review categories -->
+            <div class="mb-3">
+                <strong>Chọn chủ đề để đọc đánh giá:</strong>
+            </div>
+            <div class="review-categories mb-4">
+                <button class="category-btn">+ Bữa sáng</button>
+                <button class="category-btn">+ Bữa tối</button>
+                <button class="category-btn">+ Phòng</button>
+                <button class="category-btn">+ Hồ bơi</button>
+                <button class="category-btn">+ Vị trí</button>
+            </div>
+
+            <!-- Individual reviews -->
+            <div class="mb-3">
+                <strong>Khách lưu trú ở đây thích điều gì?</strong>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="review-item">
+                        <div class="reviewer-info">
+                            <div class="avatar-circle bg-success">J</div>
+                            <div>
+                                <div class="fw-bold">James</div>
+                                <div class="small-muted">🇬🇧 Vương Quốc Anh</div>
+                            </div>
+                        </div>
+                        <p class="small">"Nếu có thể cho nơi này trên 10 điểm thì tôi sẽ làm. Có lẽ đây là một trong
+                            những nơi tuyệt vời nhất mà tôi từng trải nghiệm. Mọi nhân viên ở đây từ nhận phòng đến khu
+                            vực ăn uống hết mình để phục vụ khách hàng theo tiêu chuẩn cao nhất. Không cảnh..."</p>
+                        <a href="#" class="text-primary">Tìm hiểu thêm</a>
+                        <div class="small text-muted mt-2">Được dịch bởi Google - Xem bản gốc</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="review-item">
+                        <div class="reviewer-info">
+                            <div class="avatar-circle bg-warning">H</div>
+                            <div>
+                                <div class="fw-bold">Hanae</div>
+                                <div class="small-muted">🇯🇵 Ý</div>
+                            </div>
+                        </div>
+                        <p class="small">"Bất động sản tuyệt vời, đồ ăn ngon, phòng đẹp và hồ bơi tuyệt vời. Bạn quản lý
+                            cấp cao rất tuyệt vời và chăm sóc bạn chủ đảo. Cũng xin chúc mừng tất cả mọi người ở khu vực
+                            nhà hàng/bữa sáng! Rất mong được quay lại lần nữa."</p>
+                        <a href="#" class="text-primary">Tìm hiểu thêm</a>
+                        <div class="small text-muted mt-2">Được dịch bởi Google - Xem bản gốc</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="review-item">
+                        <div class="reviewer-info">
+                            <div class="avatar-circle bg-primary">M</div>
+                            <div>
+                                <div class="fw-bold">Magdalena</div>
+                                <div class="small-muted">🇬🇧 Vương Quốc Anh</div>
+                            </div>
+                        </div>
+                        <p class="small">"Khách sạn tuyệt vời, leo 10.000 bậc thang để ngắm tượng Phật vàng. Trải nghiệm
+                            khó quên với nội thất đẹp, vài tượng thủ công theo phương pháp truyền thống, phòng tắm lát
+                            đá cẩm thạch và nhà hàng, quầy bar tuyệt đẹp. Phải ở lại trên đường đi đến..."</p>
+                        <a href="#" class="text-primary">Tìm hiểu thêm</a>
+                        <div class="small text-muted mt-2">Được dịch bởi Google - Xem bản gốc</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <button class="btn btn-outline-primary">Đọc tất cả đánh giá</button>
+            </div>
+        </div>
+    </div> <!-- end container -->
+
+    <!-- Room detail modal -->
+    <div class="modal fade" id="roomDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rdmTitle">Chi tiết phòng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-7">
+                            <div id="rdmCarousel" class="carousel slide" data-bs-ride="carousel">
+                                <div class="carousel-inner" id="rdmSlides"></div>
+                                <button class="carousel-control-prev" type="button" data-bs-target="#rdmCarousel"
+                                    data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Previous</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#rdmCarousel"
+                                    data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Next</span>
+                                </button>
+                            </div>
+                            <div class="d-flex gap-2 mt-2" id="rdmThumbs"></div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div id="rdmSpecs" class="mb-3 small"></div>
+                            <div class="fw-semibold mb-2">Tiện nghi</div>
+                            <div id="rdmAmenities" class="small"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const ROOM_DATA = [
+        @for (int i = 0; i < Model.Rooms.Count; i++)
+            {
+                var rm = Model.Rooms[i];
+                <text>{id:@rm.Id, name: @Html.Raw("\"" + (rm.Name ?? "") + "\""),
+                    size: @(rm.Size ?? 0), unit: @Html.Raw("\"" + (rm.SizeUnit ?? "m²") + "\""),
+                    adults: @rm.CapacityAdults, children: @rm.CapacityChildren,
+                    amenities: [@Html.Raw(string.Join(",", (rm.Amenities ?? new List<HotelBooking.Models.RoomAmenity>()).Select(a => "\"" + a.Name.Replace("\"", "\\\"") + "\"")))],
+                    photos: [@Html.Raw(string.Join(",", (rm.Photos ?? new List<HotelBooking.Models.RoomPhoto>()).Select(p => "\"" + p.Url.Replace("\"", "\\\"") + "\"")))] }
+                    @(i < Model.Rooms.Count - 1 ? "," : "")</text>
+        }
+        ];
+
+        (function () {
+            const modalEl = document.getElementById('roomDetailModal');
+            const modal = new bootstrap.Modal(modalEl);
+            function openRoom(id) {
+                const r = ROOM_DATA.find(x => x.id === id);
+                if (!r) { modal.show(); return; }
+                document.getElementById('rdmTitle').textContent = r.name;
+                document.getElementById('rdmSpecs').innerHTML = `
+                    <div>• Kích thước: ${r.size || ''} ${r.unit || ''}</div>
+                    <div>• Sức chứa: ${r.adults + r.children} khách (👤 ${r.adults} · 🧒 ${r.children})</div>
+                `;
+                const slides = document.getElementById('rdmSlides');
+                slides.innerHTML = '';
+                const thumbs = document.getElementById('rdmThumbs');
+                thumbs.innerHTML = '';
+                (r.photos && r.photos.length ? r.photos : ['/images/placeholder.jpg']).forEach((u, idx) => {
+                    const active = idx === 0 ? 'active' : '';
+                    slides.insertAdjacentHTML('beforeend', `<div class="carousel-item ${active}"><img class="d-block w-100" style="height:420px;object-fit:cover" src="${u}"></div>`);
+                    thumbs.insertAdjacentHTML('beforeend', `<img src="${u}" style="width:72px;height:54px;object-fit:cover;border-radius:4px;cursor:pointer" data-idx="${idx}">`);
+                });
+                thumbs.querySelectorAll('img').forEach(img => {
+                    img.addEventListener('click', e => {
+                        const idx = parseInt(e.currentTarget.getAttribute('data-idx'));
+                        bootstrap.Carousel.getOrCreateInstance(document.getElementById('rdmCarousel')).to(idx);
+                    });
+                });
+                const am = document.getElementById('rdmAmenities');
+                am.innerHTML = (r.amenities && r.amenities.length)
+                    ? r.amenities.map(a => `<div>✓ ${a}</div>`).join('')
+                    : '<div class="text-muted">Chưa cập nhật tiện nghi.</div>';
+                modal.show();
+            }
+            document.querySelectorAll('.room-detail-link').forEach(a => {
+                a.addEventListener('click', function (ev) { ev.preventDefault(); openRoom(parseInt(this.getAttribute('data-room-id'))); });
+            });
+        })();
+    </script>
+    <!-- Lightbox Gallery Modal -->
+    <div class="modal fade lightbox-modal" id="photoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Thư viện ảnh</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs mb-3" id="photoTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="tab-overview" data-bs-toggle="tab"
+                                data-bs-target="#panel-overview" type="button" role="tab">Tổng quan</button>
+                        </li>
+                        @foreach (var room in Model.Rooms)
+                        {
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="tab-room-@room.Id" data-bs-toggle="tab"
+                                    data-bs-target="#panel-room-@room.Id" type="button" role="tab">@room.Name</button>
+                            </li>
+                        }
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="panel-overview" role="tabpanel">
+                            <div class="photo-grid">
+                                @foreach (var p in Model.PhotoUrls)
+                                {
+                                    <img src="@p" />
+                                }
+                                @foreach (var r in Model.Rooms)
+                                {
+                                    if (r.Photos != null)
+                                    {
+                                        foreach (var rp in r.Photos)
+                                        {
+                                            <img src="@rp.Url" />
+                                        }
+                                    }
+                                }
+                            </div>
+                        </div>
+                        @foreach (var room in Model.Rooms)
+                        {
+                            <div class="tab-pane fade" id="panel-room-@room.Id" role="tabpanel">
+                                <div class="photo-grid">
+                                    @if (room.Photos != null && room.Photos.Count > 0)
+                                    {
+                                        foreach (var rp in room.Photos)
+                                        {
+                                            <img src="@rp.Url" />
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="text-muted">Chưa có ảnh cho phòng này.</div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const modal = new bootstrap.Modal(document.getElementById('photoModal'));
+
+        // Xử lý click vào overlay "Xem tất cả hình ảnh"
+        document.querySelectorAll('.photo-overlay-permanent').forEach(overlay => {
+            overlay.addEventListener('click', () => modal.show());
+            });
+        })();
+    </script>
+
+<!-- Full Gallery Modal -->
+<div class="full-gallery-overlay" id="fullGallery" style="display: none;">
+    <div class="full-gallery-container">
+        <div class="gallery-header">
+            <h2 class="gallery-title">Hình của khách sạn</h2>
+            <button class="close-gallery" onclick="closeFullGallery()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <div style="position: relative;">
+            <img id="mainGalleryImage" class="main-gallery-image" src="@Model.PhotoUrls[1]" alt="Hotel photo">
+            <button class="gallery-navigation gallery-nav-prev" onclick="previousGalleryImage()">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="gallery-navigation gallery-nav-next" onclick="nextGalleryImage()">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+
+        <div class="gallery-image-info">
+            <div class="gallery-category" id="galleryImageCategory">Bên ngoài / Tòa nhà</div>
+            <div class="gallery-counter" id="galleryImageCounter">2/@(Model.PhotoUrls.Count + Model.RoomPhotoUrls.Count)
+            </div>
+        </div>
+
+        <div class="gallery-categories">
+            <button class="gallery-category-tab active" data-category="all" onclick="filterGalleryByCategory('all')">
+                Tất cả hình ảnh (@(Model.PhotoUrls.Count + Model.RoomPhotoUrls.Count))
+            </button>
+            <button class="gallery-category-tab" data-category="exterior" onclick="filterGalleryByCategory('exterior')">
+                Bên ngoài (3)
+            </button>
+            <button class="gallery-category-tab" data-category="lobby" onclick="filterGalleryByCategory('lobby')">
+                Sảnh chờ (8)
+            </button>
+            <button class="gallery-category-tab" data-category="restaurant"
+                onclick="filterGalleryByCategory('restaurant')">
+                Nhà hàng (19)
+            </button>
+            <button class="gallery-category-tab" data-category="bar" onclick="filterGalleryByCategory('bar')">
+                Quầy bar, cafe và phòng lounge (8)
+            </button>
+            <button class="gallery-category-tab" data-category="pool" onclick="filterGalleryByCategory('pool')">
+                Hồ bơi (4)
+            </button>
+            <button class="gallery-category-tab" data-category="rooms" onclick="filterGalleryByCategory('rooms')">
+                Phòng nghỉ (@Model.RoomPhotoUrls.Count)
+            </button>
+            <button class="gallery-category-tab" data-category="amenities"
+                onclick="filterGalleryByCategory('amenities')">
+                Tiện ích (6)
+            </button>
+        </div>
+
+        <div class="gallery-thumbnails" id="galleryThumbnails">
+            @for (int i = 0; i < Model.PhotoUrls.Count; i++)
+            {
+                <div class="gallery-thumbnail @(i == 1 ? "active" : "")" data-index="@i" onclick="selectGalleryImage(@i)">
+                    <img src="@Model.PhotoUrls[i]" alt="Hotel photo @(i + 1)">
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    // Date picker variables
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+    let selectedCheckin = null;
+    let selectedCheckout = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const checkinInput = document.getElementById('checkinInput');
+        const checkoutInput = document.getElementById('checkoutInput');
+
+        if (checkinInput && checkoutInput && checkinInput.value && checkoutInput.value) {
+            selectedCheckin = new Date(checkinInput.value);
+            selectedCheckout = new Date(checkoutInput.value);
+            currentMonth = selectedCheckin.getMonth();
+            currentYear = selectedCheckin.getFullYear();
+        }
+
+        generateCalendar();
+        updateSelectedDateRange();
+        updateButtonStates();
+
+        // Date picker click events
+        const dateDisplay = document.getElementById('dateDisplay');
+        if (dateDisplay) {
+            dateDisplay.addEventListener('click', () => {
+                document.getElementById('datePickerDropdown').classList.toggle('d-none');
+            });
+        }
+
+        // Guest dropdown click events
+        const guestText = document.getElementById('guestText');
+        if (guestText) {
+            guestText.addEventListener('click', () => {
+                document.getElementById('guestDropdown').classList.toggle('d-none');
+            });
+        }
+
+        // Destination dropdown with recent searches
+        const destinationInput = document.getElementById('destinationInput');
+        if (destinationInput) {
+            destinationInput.addEventListener('focus', () => {
+                showRecentSearches();
+            });
+
+            destinationInput.addEventListener('blur', () => {
+                setTimeout(() => {
+                    const dropdown = document.getElementById('destinationDropdown');
+                    if (dropdown) {
+                        dropdown.classList.add('d-none');
+                    }
+                }, 200);
+            });
+
+            destinationInput.addEventListener('input', (e) => {
+                if (e.target.value.length > 0) {
+                    showSearchSuggestions(e.target.value);
+                } else {
+                    showRecentSearches();
+                }
+            });
+        }
+    });
+
+    // Generate calendar
+    function generateCalendar() {
+        const month1 = new Date(currentYear, currentMonth, 1);
+        const month2 = new Date(currentYear, currentMonth + 1, 1);
+
+        document.getElementById('month1').textContent = `tháng ${month1.getMonth() + 1} năm ${month1.getFullYear()}`;
+        document.getElementById('month2').textContent = `tháng ${month2.getMonth() + 1} năm ${month2.getFullYear()}`;
+
+        generateMonthCalendar('calendar1', month1);
+        generateMonthCalendar('calendar2', month2);
+    }
+
+    // Generate single month calendar
+    function generateMonthCalendar(containerId, date) {
+        const container = document.getElementById(containerId);
+        const year = date.getFullYear();
+        const month = date.getMonth();
+
+        // Day headers
+        const dayHeaders = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+        let html = '';
+
+        dayHeaders.forEach(day => {
+            html += `<div class="calendar-day-header">${day}</div>`;
+        });
+
+        // Get first day of month and number of days
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        // Add empty cells for days before month starts
+        for (let i = 0; i < firstDay; i++) {
+            html += `<div class="calendar-day"></div>`;
+        }
+
+        // Add days of month
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dayDate = new Date(year, month, day);
+            const isToday = isSameDay(dayDate, new Date());
+            const isSelected = (selectedCheckin && isSameDay(dayDate, selectedCheckin)) ||
+                (selectedCheckout && isSameDay(dayDate, selectedCheckout));
+            const isInRange = selectedCheckin && selectedCheckout &&
+                dayDate > selectedCheckin && dayDate < selectedCheckout;
+            const isDisabled = dayDate < new Date();
+
+            let classes = 'calendar-day';
+            if (isSelected) classes += ' selected';
+            if (isInRange) classes += ' in-range';
+            if (isDisabled) classes += ' disabled';
+
+            html += `<div class="${classes}" onclick="selectDate(${day}, ${month}, ${year})">${day}</div>`;
+        }
+
+        container.innerHTML = html;
+    }
+
+    // Select date
+    function selectDate(day, month, year) {
+        const selectedDate = new Date(year, month, day);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (selectedDate < today) return;
+
+        if (!selectedCheckin || (selectedCheckin && selectedCheckout)) {
+            selectedCheckin = selectedDate;
+            selectedCheckout = null;
+        } else if (selectedCheckin && !selectedCheckout) {
+            if (selectedDate > selectedCheckin) {
+                selectedCheckout = selectedDate;
+            } else {
+                selectedCheckout = selectedCheckin;
+                selectedCheckin = selectedDate;
+            }
+        }
+
+        updateSelectedDateRange();
+        generateCalendar();
+    }
+
+    // Change month
+    function changeMonth(direction) {
+        currentMonth += direction;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        } else if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        generateCalendar();
+    }
+
+    // Update selected date range display
+    function updateSelectedDateRange() {
+        const dateDisplay = document.getElementById('dateDisplay');
+        const selectedDateRange = document.getElementById('selectedDateRange');
+        const checkinInput = document.getElementById('checkinInput');
+        const checkoutInput = document.getElementById('checkoutInput');
+
+        if (selectedCheckin && selectedCheckout) {
+            const formatDisplayDate = (date) => {
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]}`;
+            };
+
+            const displayText = `${formatDisplayDate(selectedCheckin)} – ${formatDisplayDate(selectedCheckout)}`;
+            if (dateDisplay) dateDisplay.textContent = displayText;
+            if (selectedDateRange) selectedDateRange.textContent = displayText;
+
+            // Update hidden inputs
+            if (checkinInput) checkinInput.value = formatDate(selectedCheckin);
+            if (checkoutInput) checkoutInput.value = formatDate(selectedCheckout);
+        } else if (selectedCheckin) {
+            const displayText = `Chọn ngày về`;
+            if (dateDisplay) dateDisplay.textContent = displayText;
+            if (selectedDateRange) selectedDateRange.textContent = displayText;
+
+            if (checkinInput) checkinInput.value = formatDate(selectedCheckin);
+            if (checkoutInput) checkoutInput.value = '';
+        } else {
+            const displayText = `Chọn ngày đến và ngày về`;
+            if (dateDisplay) dateDisplay.textContent = displayText;
+            if (selectedDateRange) selectedDateRange.textContent = displayText;
+
+            if (checkinInput) checkinInput.value = '';
+            if (checkoutInput) checkoutInput.value = '';
+        }
+    }
+
+    // Helper functions
+    function isSameDay(date1, date2) {
+        return date1.getDate() === date2.getDate() &&
+            date1.getMonth() === date2.getMonth() &&
+            date1.getFullYear() === date2.getFullYear();
+    }
+
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    // Close date picker
+    function closeDatePicker() {
+        document.getElementById('datePickerDropdown').classList.add('d-none');
+    }
+
+    // Guest management
+    function updateGuests(type, change) {
+        const countElement = document.getElementById(type + 'Count');
+        const hiddenInput = document.getElementById(type + 'Input');
+        let currentCount = parseInt(countElement.textContent);
+
+        // Apply limits
+        if (type === 'adults' && currentCount + change < 1) return;
+        if (type === 'children' && currentCount + change < 0) return;
+        if (type === 'rooms' && currentCount + change < 1) return;
+
+        currentCount += change;
+        countElement.textContent = currentCount;
+        hiddenInput.value = currentCount;
+
+        // Update display text
+        updateGuestText();
+
+        // Update buttons state
+        updateButtonStates();
+    }
+
+    function updateGuestText() {
+        const adults = document.getElementById('adultsCount').textContent;
+        const children = document.getElementById('childrenCount').textContent;
+        const rooms = document.getElementById('roomsCount').textContent;
+
+        const guestText = document.getElementById('guestText');
+        guestText.textContent = `${adults} người lớn · ${children} trẻ em · ${rooms} phòng`;
+
+        // Update selected guests display in date picker
+        const selectedGuests = document.getElementById('selectedGuests');
+        if (selectedGuests) {
+            selectedGuests.textContent = `${adults} người lớn • ${children} trẻ em • ${rooms} phòng`;
+        }
+    }
+
+    function updateButtonStates() {
+        // Update minus buttons
+        const adultsCount = parseInt(document.getElementById('adultsCount').textContent);
+        const childrenCount = parseInt(document.getElementById('childrenCount').textContent);
+        const roomsCount = parseInt(document.getElementById('roomsCount').textContent);
+
+        // Find and update minus buttons
+        const minusButtons = document.querySelectorAll('button[onclick*="updateGuests"]');
+        minusButtons.forEach(btn => {
+            if (btn.textContent === '−') {
+                const onclick = btn.getAttribute('onclick');
+                if (onclick.includes("'adults', -1")) {
+                    btn.disabled = adultsCount <= 1;
+                } else if (onclick.includes("'children', -1")) {
+                    btn.disabled = childrenCount <= 0;
+                } else if (onclick.includes("'rooms', -1")) {
+                    btn.disabled = roomsCount <= 1;
+                }
+            }
+        });
+    }
+
+    function closeGuestDropdown() {
+        document.getElementById('guestDropdown').classList.add('d-none');
+    }
+
+    // Recent searches functionality
+    function getRecentSearches() {
+        const searches = localStorage.getItem('recentSearches');
+        return searches ? JSON.parse(searches) : [];
+    }
+
+    function saveRecentSearch(destination, checkin, checkout, adults, children, rooms) {
+        const searches = getRecentSearches();
+        const newSearch = {
+            destination,
+            checkin,
+            checkout,
+            adults,
+            children,
+            rooms,
+            timestamp: new Date().toISOString()
+        };
+
+        // Remove duplicate if exists
+        const filteredSearches = searches.filter(search =>
+            !(search.destination === destination &&
+                search.checkin === checkin &&
+                search.checkout === checkout)
+        );
+
+        // Add new search to beginning
+        filteredSearches.unshift(newSearch);
+
+        // Keep only last 10 searches
+        const recentSearches = filteredSearches.slice(0, 10);
+
+        localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
+    }
+
+    function showRecentSearches() {
+        const dropdown = document.getElementById('destinationDropdown');
+        const searches = getRecentSearches();
+
+        if (searches.length === 0) {
+            dropdown.innerHTML = '<div class="p-3 text-muted">Chưa có tìm kiếm gần đây</div>';
+        } else {
+            let html = '<div class="p-2 fw-bold border-bottom">Tìm kiếm gần đây của bạn</div>';
+
+            searches.forEach(search => {
+                const checkinDate = search.checkin ? new Date(search.checkin).toLocaleDateString('vi-VN') : '';
+                const checkoutDate = search.checkout ? new Date(search.checkout).toLocaleDateString('vi-VN') : '';
+                const dateRange = checkinDate && checkoutDate ? `${checkinDate} – ${checkoutDate}` : '';
+
+                html += `
+                    <div class="recent-search-item p-2 border-bottom" style="cursor: pointer; display: flex; align-items: center; gap: 8px;" 
+                         onclick="selectRecentSearch('${search.destination}', '${search.checkin}', '${search.checkout}', ${search.adults}, ${search.children}, ${search.rooms})">
+                        <i class="bi bi-arrow-clockwise text-muted"></i>
+                        <div>
+                            <div class="fw-semibold">${search.destination}</div>
+                            ${dateRange ? `<div class="small text-muted">${dateRange}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            dropdown.innerHTML = html;
+        }
+
+        dropdown.classList.remove('d-none');
+    }
+
+    function showSearchSuggestions(query) {
+        const dropdown = document.getElementById('destinationDropdown');
+
+        // Mock suggestions - in real app, this would be an API call
+        const suggestions = [
+            'Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Nha Trang', 'Phú Quốc',
+            'Quảng Ninh', 'Uông Bí', 'Hạ Long', 'Cát Bà', 'Sapa'
+        ].filter(city => city.toLowerCase().includes(query.toLowerCase()));
+
+        if (suggestions.length === 0) {
+            dropdown.innerHTML = '<div class="p-3 text-muted">Không tìm thấy địa điểm nào</div>';
+        } else {
+            let html = '<div class="p-2 fw-bold border-bottom">Gợi ý</div>';
+
+            suggestions.forEach(suggestion => {
+                html += `
+                    <div class="suggestion-item p-2 border-bottom" style="cursor: pointer;" 
+                         onclick="selectSuggestion('${suggestion}')">
+                        <i class="bi bi-geo-alt text-muted"></i>
+                        <span class="ms-2">${suggestion}</span>
+                    </div>
+                `;
+            });
+
+            dropdown.innerHTML = html;
+        }
+
+        dropdown.classList.remove('d-none');
+    }
+
+    function selectRecentSearch(destination, checkin, checkout, adults, children, rooms) {
+        // Update form values
+        document.getElementById('destinationInput').value = destination;
+        document.getElementById('checkinInput').value = checkin;
+        document.getElementById('checkoutInput').value = checkout;
+        document.getElementById('adultsInput').value = adults;
+        document.getElementById('childrenInput').value = children;
+        document.getElementById('roomsInput').value = rooms;
+
+        // Update displays
+        if (checkin && checkout) {
+            selectedCheckin = new Date(checkin);
+            selectedCheckout = new Date(checkout);
+            updateSelectedDateRange();
+        }
+
+        document.getElementById('adultsCount').textContent = adults;
+        document.getElementById('childrenCount').textContent = children;
+        document.getElementById('roomsCount').textContent = rooms;
+        updateGuestText();
+
+        // Hide dropdown
+        document.getElementById('destinationDropdown').classList.add('d-none');
+    }
+
+    function selectSuggestion(suggestion) {
+        document.getElementById('destinationInput').value = suggestion;
+        document.getElementById('destinationDropdown').classList.add('d-none');
+    }
+
+    // Tab switching for date picker
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('date-tab')) {
+            const tab = e.target.dataset.tab;
+            
+            // Update active tab
+            document.querySelectorAll('.date-tab').forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            // Show/hide content
+            document.getElementById('calendarTab').classList.toggle('d-none', tab !== 'calendar');
+            document.getElementById('flexibleTab').classList.toggle('d-none', tab !== 'flexible');
+        }
+    });
+
+    // Flexible date options
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('duration-btn')) {
+            const days = parseInt(e.target.dataset.days);
+            
+            // Update active button
+            document.querySelectorAll('.duration-btn').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            if (days === 0) {
+                // Exact dates - no change needed
+                return;
+            }
+            
+            // Adjust checkout date
+            if (selectedCheckin) {
+                selectedCheckout = new Date(selectedCheckin);
+                selectedCheckout.setDate(selectedCheckout.getDate() + days);
+                updateSelectedDateRange();
+                generateCalendar();
+            }
+        }
+    });
+
+    // Form submission - save search to recent searches
+    document.addEventListener('submit', function(e) {
+        if (e.target.classList.contains('search-form')) {
+            const destination = document.getElementById('destinationInput').value;
+            const checkin = document.getElementById('checkinInput').value;
+            const checkout = document.getElementById('checkoutInput').value;
+            const adults = document.getElementById('adultsInput').value;
+            const children = document.getElementById('childrenInput').value;
+            const rooms = document.getElementById('roomsInput').value;
+            
+            if (destination && checkin && checkout) {
+                saveRecentSearch(destination, checkin, checkout, adults, children, rooms);
+            }
+        }
+    });
+
+    // Make functions global for onclick handlers
+    window.updateGuests = updateGuests;
+    window.closeGuestDropdown = closeGuestDropdown;
+    window.toggleDatePicker = function() {
+        document.getElementById('datePickerDropdown').classList.toggle('d-none');
+    };
+    window.closeDatePicker = closeDatePicker;
+    window.selectDate = selectDate;
+    window.changeMonth = changeMonth;
+
+    // Gallery functionality
+    let currentGalleryImageIndex = 1; // Start with second image
+    let currentGalleryCategory = 'all';
+    const galleryPhotoUrls = @Html.Raw(Json.Serialize(Model.PhotoUrls));
+    const roomPhotoUrls = @Html.Raw(Json.Serialize(Model.RoomPhotoUrls));
+
+    function openFullGallery() {
+        document.getElementById('fullGallery').style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        filterGalleryByCategory(currentGalleryCategory); // Re-apply current category filter
+        updateMainImage();
+        updateThumbnails();
+        updateImageCounter();
+    }
+
+    function closeFullGallery() {
+        document.getElementById('fullGallery').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    function filterGalleryByCategory(category) {
+        currentGalleryCategory = category;
+        document.querySelectorAll('.category-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.category === category);
+        });
+
+        const photoSet = getCurrentPhotoSet();
+        currentGalleryImageIndex = photoSet.length > 1 ? 1 : 0; // Start with second image if available, else first
+
+        updateMainImage();
+        updateThumbnails();
+        updateImageCounter();
+    }
+
+    function getCurrentPhotoSet() {
+        switch (currentGalleryCategory) {
+            case 'all':
+                return [...galleryPhotoUrls, ...roomPhotoUrls];
+            case 'exterior':
+                return galleryPhotoUrls.filter(url => url.includes('exterior')); // Assuming URL contains category info
+            case 'lobby':
+                return galleryPhotoUrls.filter(url => url.includes('lobby'));
+            case 'restaurant':
+                return galleryPhotoUrls.filter(url => url.includes('restaurant'));
+            case 'bar':
+                return galleryPhotoUrls.filter(url => url.includes('bar'));
+            case 'pool':
+                return galleryPhotoUrls.filter(url => url.includes('pool'));
+            case 'room':
+                return roomPhotoUrls;
+            case 'amenity':
+                return galleryPhotoUrls.filter(url => url.includes('amenity'));
+            default:
+                return [...galleryPhotoUrls, ...roomPhotoUrls];
+        }
+    }
+
+    function updateMainImage() {
+        const photoSet = getCurrentPhotoSet();
+        const mainImage = document.getElementById('mainGalleryImage');
+        if (photoSet.length > 0 && mainImage) {
+            mainImage.src = photoSet[currentGalleryImageIndex];
+        } else if (mainImage) {
+            mainImage.src = ''; // Clear image if no photos
+        }
+        const currentCategoryDisplay = document.getElementById('currentCategoryDisplay');
+        if (currentCategoryDisplay) {
+            currentCategoryDisplay.textContent = currentGalleryCategory === 'all' ? 'Tất cả hình ảnh' :
+                                                currentGalleryCategory === 'exterior' ? 'Bên ngoài' :
+                                                currentGalleryCategory === 'lobby' ? 'Sảnh chờ' :
+                                                currentGalleryCategory === 'restaurant' ? 'Nhà hàng' :
+                                                currentGalleryCategory === 'bar' ? 'Quầy bar' :
+                                                currentGalleryCategory === 'pool' ? 'Hồ bơi' :
+                                                currentGalleryCategory === 'room' ? 'Phòng nghỉ' :
+                                                currentGalleryCategory === 'amenity' ? 'Tiện ích' : '';
+        }
+    }
+
+    function updateThumbnails() {
+        const photoSet = getCurrentPhotoSet();
+        const thumbnailsContainer = document.getElementById('galleryThumbnails');
+        if (thumbnailsContainer) {
+            thumbnailsContainer.innerHTML = photoSet.map((url, index) => `
+                <div class="thumbnail-item ${index === currentGalleryImageIndex ? 'active' : ''}" onclick="selectImage(${index})">
+                    <img src="${url}" alt="Thumbnail ${index + 1}">
+                </div>
+            `).join('');
+        }
+    }
+
+    function updateImageCounter() {
+        const photoSet = getCurrentPhotoSet();
+        const counter = document.getElementById('galleryImageCounter');
+        if (counter) {
+            counter.textContent = `${currentGalleryImageIndex + 1}/${photoSet.length}`;
+        }
+    }
+
+    function selectImage(index) {
+        currentGalleryImageIndex = index;
+        updateMainImage();
+        updateThumbnails();
+        updateImageCounter();
+    }
+
+    function previousImage() {
+        const photoSet = getCurrentPhotoSet();
+        currentGalleryImageIndex = (currentGalleryImageIndex > 0) ? currentGalleryImageIndex - 1 : photoSet.length - 1;
+        updateMainImage();
+        updateThumbnails();
+        updateImageCounter();
+    }
+
+    function nextImage() {
+        const photoSet = getCurrentPhotoSet();
+        currentGalleryImageIndex = (currentGalleryImageIndex < photoSet.length - 1) ? currentGalleryImageIndex + 1 : 0;
+        updateMainImage();
+        updateThumbnails();
+        updateImageCounter();
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function (e) {
+        const gallery = document.getElementById('fullGallery');
+        if (gallery && gallery.style.display === 'block') {
+            if (e.key === 'Escape') {
+                closeFullGallery();
+            } else if (e.key === 'ArrowLeft') {
+                previousImage();
+            } else if (e.key === 'ArrowRight') {
+                nextImage();
+            }
+        }
+    });
+
+    // Close on overlay click
+    document.getElementById('fullGallery').addEventListener('click', (e) => {
+        if (e.target.id === 'fullGallery') {
+            closeFullGallery();
+        }
+    });
+
+    // Gallery thumbnail selection
+    function selectGalleryImage(index) {
+        // Remove active class from all thumbnails
+        document.querySelectorAll('.gallery-thumbnail').forEach(thumb => {
+            thumb.classList.remove('active');
+        });
+
+        // Add active class to selected thumbnail
+        const selectedThumbnail = document.querySelector(`[data-index="${index}"]`);
+        if (selectedThumbnail) {
+            selectedThumbnail.classList.add('active');
+        }
+
+        // Update main image
+        const mainImage = document.getElementById('mainImage');
+        if (mainImage && Model.PhotoUrls && Model.PhotoUrls[index]) {
+            mainImage.src = Model.PhotoUrls[index];
+        }
+    }
+</script>

@@ -43,6 +43,14 @@ namespace HotelBooking.Controllers
                     ViewBag.UserHasProperties = true;
                 }
             }
+
+            // Load active discounts to show on homepage
+            var today = DateTime.Today;
+            var discounts = await _db.Discounts
+                .Where(d => d.IsActive && (!d.StartDate.HasValue || d.StartDate <= today) && (!d.EndDate.HasValue || d.EndDate >= today))
+                .OrderByDescending(d => d.Id)
+                .ToListAsync();
+            ViewBag.Discounts = discounts;
             return View();
         }
 

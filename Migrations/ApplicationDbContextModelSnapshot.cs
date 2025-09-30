@@ -87,6 +87,148 @@ namespace HotelBooking.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("HotelBooking.Models.Booking", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CheckIn")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CheckOut")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("ConnectingRoom")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GuestName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Guests")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("HighFloor")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("NonSmokingRoom")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("PricePerNight")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PropertyId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SpecialRequests")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TotalNights")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Bookings");
+                });
+
+            modelBuilder.Entity("HotelBooking.Models.Destination", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(512)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Destinations");
+                });
+
+            modelBuilder.Entity("HotelBooking.Models.Discount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(512)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("DiscountAmount")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("DiscountPercent")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(512)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Discounts");
+                });
+
             modelBuilder.Entity("HotelBooking.Models.Notification", b =>
                 {
                     b.Property<int>("Id")
@@ -586,6 +728,52 @@ namespace HotelBooking.Migrations
                     b.ToTable("RoomBeds");
                 });
 
+            modelBuilder.Entity("HotelBooking.Models.RoomDailyRate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("Allotment")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsClosed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("MaxStayNights")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("MinStayNights")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PropertyId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId");
+
+                    b.HasIndex("PropertyId", "RoomId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("RoomDailyRates");
+                });
+
             modelBuilder.Entity("HotelBooking.Models.RoomPhoto", b =>
                 {
                     b.Property<int>("Id")
@@ -613,6 +801,42 @@ namespace HotelBooking.Migrations
                     b.HasIndex("RoomId");
 
                     b.ToTable("RoomPhotos");
+                });
+
+            modelBuilder.Entity("HotelBooking.Models.RoomPrice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PropertyId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId");
+
+                    b.HasIndex("PropertyId", "RoomId")
+                        .IsUnique();
+
+                    b.ToTable("RoomPrices");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -816,10 +1040,40 @@ namespace HotelBooking.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("HotelBooking.Models.RoomDailyRate", b =>
+                {
+                    b.HasOne("HotelBooking.Models.Property", null)
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HotelBooking.Models.Room", null)
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("HotelBooking.Models.RoomPhoto", b =>
                 {
                     b.HasOne("HotelBooking.Models.Room", null)
                         .WithMany("Photos")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HotelBooking.Models.RoomPrice", b =>
+                {
+                    b.HasOne("HotelBooking.Models.Property", null)
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HotelBooking.Models.Room", null)
+                        .WithMany()
                         .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

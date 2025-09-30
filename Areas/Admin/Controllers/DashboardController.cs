@@ -78,6 +78,18 @@ namespace HotelBooking.Areas.Admin.Controllers
                 SignatoryIdCardPath = property.SignatoryIdCardPath
             };
 
+            // Load preview-like data for admin
+            viewModel.PropertyData = await _db.PropertyData
+                .Include(pd => pd.Property)
+                .FirstOrDefaultAsync(pd => pd.PropertyId == id);
+            viewModel.Rooms = await _db.Rooms
+                .Include(r => r.Beds)
+                .Where(r => r.PropertyId == id)
+                .ToListAsync();
+            viewModel.PricePackage = await _db.PricePackages.FirstOrDefaultAsync(p => p.PropertyId == id);
+            viewModel.RoomPrices = await _db.RoomPrices.Where(rp => rp.PropertyId == id)
+                .ToDictionaryAsync(rp => rp.RoomId, rp => rp.Amount);
+
             return View(viewModel);
         }
 

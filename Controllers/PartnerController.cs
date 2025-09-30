@@ -290,10 +290,27 @@ namespace HotelBooking.Controllers
     entity.PicPhoneCountryCode = vm.PicPhoneCountryCode;
     entity.PicPhoneNumber = vm.PicPhoneNumber.Trim();
     entity.UpdatedAt = DateTime.UtcNow;
+
+    // Nếu cơ sở đã được phê duyệt, chỉ cập nhật thông tin, KHÔNG đổi trạng thái/luồng duyệt
+    if (entity.Status == PropertyStatus.Approved)
+    {
+        entity.IsDraft = false; // Đảm bảo không quay lại bản nháp
+        // KHÔNG thay đổi entity.Status
+    }
             }
 
             await _db.SaveChangesAsync();
-            TempData["success"] = "Đã lưu thông tin cơ sở lưu trú.";
+            TempData["success"] = entity.Status == PropertyStatus.Approved
+                ? "Đã cập nhật thông tin. Không cần duyệt lại."
+                : "Đã lưu thông tin cơ sở lưu trú.";
+
+            // Nếu đã Approved: quay lại trang chi tiết (không vào luồng hợp đồng/thanh toán nữa)
+            if (entity.Status == PropertyStatus.Approved)
+            {
+                return RedirectToAction(nameof(PropertyDetail), new { id = entity.Id });
+            }
+
+            // Chưa Approved: tiếp tục quy trình như cũ
             return RedirectToAction(nameof(Payment), new { propertyId = entity.Id });
         }
 
@@ -542,7 +559,18 @@ public async Task<IActionResult> MyProperties()
     {
         Console.WriteLine($"Property ID: {prop.Id}, Name: {prop.Name}, Status: {prop.Status}, Created: {prop.CreatedAt}");
     }
-        
+    // Load thumbnail ảnh đầu tiên cho mỗi property
+    var propIds = myProperties.Select(p => p.Id).ToList();
+    var thumbs = await _db.PropertyData
+        .Where(pd => propIds.Contains(pd.PropertyId) && pd.PhotoPaths != null && pd.PhotoPaths != "")
+        .Select(pd => new { pd.PropertyId, pd.PhotoPaths })
+        .ToListAsync();
+    var idToThumb = thumbs.ToDictionary(
+        x => x.PropertyId,
+        x => (x.PhotoPaths ?? "").Split('|', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty
+    );
+    ViewBag.PropertyThumbs = idToThumb; // key: propertyId, value: first photo url
+    
     return View(myProperties);
 }
 
@@ -678,6 +706,66 @@ public async Task<IActionResult> Success()
             return View(viewModel);
         }
 
+        // Xóa hoàn toàn một cơ sở lưu trú và toàn bộ dữ liệu liên quan
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteProperty(int id)
+        {
+            var me = await _users.GetUserAsync(User);
+            if (me == null) return RedirectToAction("Login", "Account");
+
+            var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == id && p.UserId == me.Id);
+            if (property == null)
+            {
+                TempData["error"] = "Không tìm thấy cơ sở lưu trú.";
+                return RedirectToAction(nameof(MyProperties));
+            }
+
+            using var txn = await _db.Database.BeginTransactionAsync();
+            try
+            {
+                // Xóa giá theo ngày và giá cơ bản
+                var dailyRates = _db.RoomDailyRates.Where(r => r.PropertyId == id);
+                _db.RoomDailyRates.RemoveRange(dailyRates);
+
+                var basePrices = _db.RoomPrices.Where(r => r.PropertyId == id);
+                _db.RoomPrices.RemoveRange(basePrices);
+
+                // Lấy danh sách phòng thuộc property
+                var roomIds = await _db.Rooms
+                    .Where(r => r.PropertyId == id)
+                    .Select(r => r.Id)
+                    .ToListAsync();
+
+                if (roomIds.Count > 0)
+                {
+                    _db.RoomBeds.RemoveRange(_db.RoomBeds.Where(b => roomIds.Contains(b.RoomId)));
+                    _db.RoomAmenities.RemoveRange(_db.RoomAmenities.Where(a => roomIds.Contains(a.RoomId)));
+                    _db.RoomPhotos.RemoveRange(_db.RoomPhotos.Where(p => roomIds.Contains(p.RoomId)));
+                    _db.Rooms.RemoveRange(_db.Rooms.Where(r => r.PropertyId == id));
+                }
+
+                // Xóa gói giá và dữ liệu property data
+                _db.PricePackages.RemoveRange(_db.PricePackages.Where(pp => pp.PropertyId == id));
+                _db.PropertyData.RemoveRange(_db.PropertyData.Where(pd => pd.PropertyId == id));
+
+                // Cuối cùng xóa property
+                _db.Properties.Remove(property);
+
+                await _db.SaveChangesAsync();
+                await txn.CommitAsync();
+
+                TempData["success"] = "Đã xóa cơ sở lưu trú.";
+            }
+            catch
+            {
+                await txn.RollbackAsync();
+                TempData["error"] = "Xóa thất bại. Vui lòng thử lại.";
+            }
+
+            return RedirectToAction(nameof(MyProperties));
+        }
+
         // Helper method để lấy step hiện tại
         private int GetCurrentStep(PropertyStatus status)
         {
@@ -779,6 +867,7 @@ public async Task<IActionResult> Success()
                 CapacityChildren = r.CapacityChildren,
                 AllowChildren = r.AllowChildren,
                 AllowExtraBed = r.AllowExtraBed,
+                SecurityDeposit = r.SecurityDeposit,
                 Beds = r.Beds.SelectMany(b => b.GetAllBedItems()).Select(b => new BedItemVm
                 {
                     Type = b.Type,
@@ -803,6 +892,13 @@ public async Task<IActionResult> Success()
                     CreatedAt = pricePackage.CreatedAt
                 };
             }
+
+            // Load current room prices
+            var priceMap = await _db.RoomPrices
+                .Where(p => p.PropertyId == propertyId)
+                .ToDictionaryAsync(p => p.RoomId, p => p.Amount);
+
+            ViewBag.RoomPriceMap = priceMap;
 
             return View(viewModel);
         }
@@ -984,6 +1080,20 @@ public async Task<IActionResult> Success()
             {
                 propertyData.PhotoCategoriesJson = viewModel.PhotoCategoriesJson;
             }
+
+            // Debug: Log thông tin về files được upload
+            Console.WriteLine($"=== DEBUG PHOTO UPLOAD ===");
+            Console.WriteLine($"PropertyPhotos count: {viewModel.PropertyPhotos?.Count ?? 0}");
+            if (viewModel.PropertyPhotos != null)
+            {
+                for (int i = 0; i < viewModel.PropertyPhotos.Count; i++)
+                {
+                    var file = viewModel.PropertyPhotos[i];
+                    Console.WriteLine($"  File {i}: {file?.FileName} (Size: {file?.Length} bytes)");
+                }
+            }
+            Console.WriteLine($"PhotoManifestJson: {viewModel.PhotoManifestJson}");
+            Console.WriteLine($"DeletedPhotoUrlsJson: {viewModel.DeletedPhotoUrlsJson}");
 
             // Manifest: xử lý xóa / cập nhật thứ tự + category / thêm ảnh mới
             var existingUrls = string.IsNullOrWhiteSpace(propertyData.PhotoPaths)
@@ -1533,7 +1643,7 @@ public async Task<IActionResult> Success()
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreatePricePackage(int propertyId, string cancellationPolicy, bool breakfastIncluded, string returnTab = "pricing")
+        public async Task<IActionResult> CreatePricePackage(int propertyId, string? cancellationPolicy, bool breakfastIncluded, string returnTab = "pricing")
         {
             try
             {
@@ -1550,27 +1660,35 @@ public async Task<IActionResult> Success()
                     return NotFound();
                 }
 
-                // Kiểm tra xem đã có price package chưa, nếu có thì xóa cái cũ
-                var existingPackage = await _db.PricePackages
-                    .FirstOrDefaultAsync(p => p.PropertyId == propertyId);
-                
+                // Tải gói hiện có (nếu có)
+                var existingPackage = await _db.PricePackages.FirstOrDefaultAsync(p => p.PropertyId == propertyId);
+
+                // Nếu người dùng không chọn chính sách hủy, giữ nguyên giá trị cũ hoặc dùng mặc định
+                var finalCancellationPolicy = string.IsNullOrWhiteSpace(cancellationPolicy)
+                    ? (existingPackage?.CancellationPolicy ?? "refund_1")
+                    : cancellationPolicy;
+
                 if (existingPackage != null)
                 {
-                    Console.WriteLine("Đã có price package cũ, xóa nó đi");
-                    _db.PricePackages.Remove(existingPackage);
+                    Console.WriteLine("Cập nhật price package hiện có");
+                    existingPackage.CancellationPolicy = finalCancellationPolicy;
+                    existingPackage.BreakfastIncluded = breakfastIncluded;
+                    existingPackage.UpdatedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    Console.WriteLine("Tạo price package mới");
+                    var pricePackage = new PricePackage
+                    {
+                        PropertyId = propertyId,
+                        CancellationPolicy = finalCancellationPolicy,
+                        BreakfastIncluded = breakfastIncluded,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    _db.PricePackages.Add(pricePackage);
                 }
 
-                // Tạo price package mới
-                var pricePackage = new PricePackage
-                {
-                    PropertyId = propertyId,
-                    CancellationPolicy = cancellationPolicy,
-                    BreakfastIncluded = breakfastIncluded,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-
-                _db.PricePackages.Add(pricePackage);
                 await _db.SaveChangesAsync();
 
                 Console.WriteLine("Đã lưu price package thành công vào database");
@@ -1583,6 +1701,296 @@ public async Task<IActionResult> Success()
                 Console.WriteLine($"Lỗi khi tạo price package: {ex.Message}");
                 return RedirectToAction(nameof(PropertyData), new { propertyId = propertyId, tab = returnTab });
             }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveRoomPrices(int propertyId, Dictionary<int, decimal> prices)
+        {
+            try
+            {
+                // Validation: Kiểm tra giá phòng phải cao hơn mức bảo hộ
+                var rooms = await _db.Rooms.Where(r => r.PropertyId == propertyId).ToListAsync();
+                var validationErrors = new List<string>();
+
+                foreach (var room in rooms)
+                {
+                    if (prices.TryGetValue(room.Id, out var amount))
+                    {
+                        if (room.SecurityDeposit.HasValue && amount < room.SecurityDeposit.Value)
+                        {
+                            validationErrors.Add($"Phòng '{room.Name}': Giá phải cao hơn mức bảo hộ {room.SecurityDeposit.Value:N0} VND");
+                        }
+                    }
+                }
+
+                if (validationErrors.Any())
+                {
+                    TempData["Error"] = string.Join("; ", validationErrors);
+                    return RedirectToAction("PropertyData", new { propertyId, tab = "pricing" });
+                }
+
+                // Lưu giá phòng
+                foreach (var roomId in rooms.Select(r => r.Id))
+                {
+                    if (!prices.TryGetValue(roomId, out var amount)) continue;
+
+                    var existing = await _db.RoomPrices.FirstOrDefaultAsync(p => p.PropertyId == propertyId && p.RoomId == roomId);
+                    if (existing == null)
+                    {
+                        _db.RoomPrices.Add(new Models.RoomPrice
+                        {
+                            PropertyId = propertyId,
+                            RoomId = roomId,
+                            Amount = amount,
+                            Currency = "VND"
+                        });
+                    }
+                    else
+                    {
+                        existing.Amount = amount;
+                        existing.UpdatedAt = DateTime.UtcNow;
+                    }
+                }
+
+                await _db.SaveChangesAsync();
+                TempData["Success"] = "Đã lưu giá phòng thành công";
+                return RedirectToAction("Preview", new { propertyId });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi khi lưu giá phòng: {ex.Message}";
+                return RedirectToAction("PropertyData", new { propertyId, tab = "pricing" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Preview(int propertyId)
+        {
+            var property = await _db.Properties.FindAsync(propertyId);
+            if (property == null) return NotFound();
+
+            var propertyData = await _db.PropertyData
+                .Include(p => p.Property)
+                .FirstOrDefaultAsync(p => p.PropertyId == propertyId);
+            var rooms = await _db.Rooms
+                .Include(r => r.Beds)
+                .Where(r => r.PropertyId == propertyId)
+                .ToListAsync();
+            var pricePackage = await _db.PricePackages.FirstOrDefaultAsync(p => p.PropertyId == propertyId);
+            var roomPrices = await _db.RoomPrices
+                .Where(p => p.PropertyId == propertyId)
+                .ToDictionaryAsync(p => p.RoomId, p => p.Amount);
+
+            var viewModel = new PreviewViewModel
+            {
+                PropertyId = propertyId,
+                PropertyName = property.Name,
+                PropertyData = propertyData,
+                Rooms = rooms,
+                PricePackage = pricePackage,
+                RoomPrices = roomPrices
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Publish(int propertyId)
+        {
+            try
+            {
+                var meId = _users.GetUserId(User);
+                var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == propertyId && p.UserId == meId);
+                if (property == null) return NotFound();
+
+                // Validate tối thiểu trước khi publish
+                var rooms = await _db.Rooms.Where(r => r.PropertyId == propertyId).ToListAsync();
+                if (!rooms.Any()) { TempData["Error"] = "Hãy tạo ít nhất một phòng trước khi đăng."; return RedirectToAction("Preview", new { propertyId }); }
+
+                var pricePackage = await _db.PricePackages.FirstOrDefaultAsync(p => p.PropertyId == propertyId);
+                if (pricePackage == null) { TempData["Error"] = "Hãy thiết lập Gói giá trước khi đăng."; return RedirectToAction("Preview", new { propertyId }); }
+
+                var anyPrice = await _db.RoomPrices.AnyAsync(p => p.PropertyId == propertyId);
+                if (!anyPrice) { TempData["Error"] = "Hãy thiết lập giá cho phòng trước khi đăng."; return RedirectToAction("Preview", new { propertyId }); }
+
+                // Đăng ngay: đánh dấu đã phê duyệt (mở bán) và không còn draft
+                property.IsDraft = false;
+                property.Status = PropertyStatus.Approved;
+                property.UpdatedAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync();
+
+                TempData["Success"] = "Chỗ nghỉ đã được đăng lên Booking.com và sẵn sàng mở bán!";
+                // Chuyển sang trang hiển thị công khai
+                return RedirectToAction("Hotel", "Public", new { id = propertyId });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi khi đăng tải: {ex.Message}";
+                return RedirectToAction("Preview", new { propertyId });
+            }
+        }
+
+        // HUB: Trung tâm quản lý cơ sở lưu trú (sau khi đăng xong)
+        [HttpGet]
+        public async Task<IActionResult> PropertyHub(int propertyId)
+        {
+            await SetUserHasPropertiesAsync();
+            var meId = _users.GetUserId(User);
+            var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == propertyId && p.UserId == meId);
+            if (property == null) return NotFound();
+
+            ViewBag.Property = property;
+            ViewBag.RoomCount = await _db.Rooms.CountAsync(r => r.PropertyId == propertyId);
+            ViewBag.HasPricePackage = await _db.PricePackages.AnyAsync(p => p.PropertyId == propertyId);
+            ViewBag.HasRoomPrices = await _db.RoomPrices.AnyAsync(p => p.PropertyId == propertyId);
+            return View("PropertyHub");
+        }
+
+        // Shortcut from global nav: tự chọn property gần nhất và chuyển tới Hub
+        [HttpGet]
+        public async Task<IActionResult> GoToHub()
+        {
+            await SetUserHasPropertiesAsync();
+            var meId = _users.GetUserId(User);
+            var property = await _db.Properties
+                .Where(p => p.UserId == meId)
+                .OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt)
+                .FirstOrDefaultAsync();
+            if (property == null) return RedirectToAction("MyProperties");
+            return RedirectToAction("PropertyHub", new { propertyId = property.Id });
+        }
+
+        // Trang quản lý cơ sở lưu trú tổng quan
+        [HttpGet]
+        public async Task<IActionResult> Manage()
+        {
+            await SetUserHasPropertiesAsync();
+            var userId = _users.GetUserId(User);
+            var properties = await _db.Properties.Where(p => p.UserId == userId)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+
+            var stats = new
+            {
+                Total = properties.Count,
+                Draft = properties.Count(p => p.Status == PropertyStatus.Draft),
+                Submitted = properties.Count(p => p.Status == PropertyStatus.Submitted),
+                Approved = properties.Count(p => p.Status == PropertyStatus.Approved)
+            };
+            ViewBag.Stats = stats;
+            return View("Manage", properties);
+        }
+
+        // ========== LỊCH GIÁ & PHÒNG TRỐNG ==========
+        [HttpGet]
+        public async Task<IActionResult> Calendar(int propertyId, int? year = null, int? month = null)
+        {
+            await SetUserHasPropertiesAsync();
+            var meId = _users.GetUserId(User);
+            var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == propertyId && p.UserId == meId);
+            if (property == null) return NotFound();
+
+            var now = DateTime.Today;
+            var y = year ?? now.Year;
+            var m = month ?? now.Month;
+
+            ViewBag.PropertyId = propertyId;
+            ViewBag.Year = y;
+            ViewBag.Month = m;
+            ViewBag.PropertyName = property.Name;
+
+            // Rooms for sidebar/rows
+            var rooms = await _db.Rooms.Where(r => r.PropertyId == propertyId)
+                                        .OrderBy(r => r.Name)
+                                        .ToListAsync();
+            return View("Calendar", rooms);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> FetchMonth(int propertyId, int year, int month)
+        {
+            var meId = _users.GetUserId(User);
+            var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == propertyId && p.UserId == meId);
+            if (property == null) return Unauthorized();
+
+            var start = new DateTime(year, month, 1);
+            var end = start.AddMonths(1);
+
+            var rooms = await _db.Rooms.Where(r => r.PropertyId == propertyId)
+                                        .OrderBy(r => r.Name)
+                                        .Select(r => new { r.Id, r.Name })
+                                        .ToListAsync();
+
+            var rates = await _db.RoomDailyRates
+                .Where(x => x.PropertyId == propertyId && x.Date >= start && x.Date < end)
+                .Select(x => new {
+                    x.RoomId,
+                    Date = x.Date,
+                    x.Price,
+                    x.IsClosed,
+                    x.MinStayNights,
+                    x.MaxStayNights,
+                    x.Allotment
+                })
+                .ToListAsync();
+
+            var basePrices = await _db.RoomPrices
+                .Where(p => p.PropertyId == propertyId)
+                .ToDictionaryAsync(p => p.RoomId, p => p.Amount);
+
+            return Json(new { rooms, rates, basePrices });
+        }
+
+        public class RateUpdateRequest
+        {
+            public int PropertyId { get; set; }
+            public List<RateUpdateItem> Items { get; set; } = new();
+        }
+        public class RateUpdateItem
+        {
+            public int RoomId { get; set; }
+            public DateTime Date { get; set; }
+            public decimal? Price { get; set; }
+            public bool? IsClosed { get; set; }
+            public int? MinStayNights { get; set; }
+            public int? MaxStayNights { get; set; }
+            public int? Allotment { get; set; }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveRates([FromBody] RateUpdateRequest req)
+        {
+            var meId = _users.GetUserId(User);
+            var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == req.PropertyId && p.UserId == meId);
+            if (property == null) return Unauthorized();
+
+            foreach (var it in req.Items)
+            {
+                var date = it.Date.Date;
+                var existing = await _db.RoomDailyRates
+                    .FirstOrDefaultAsync(x => x.PropertyId == req.PropertyId && x.RoomId == it.RoomId && x.Date == date);
+
+                if (existing == null)
+                {
+                    existing = new RoomDailyRate
+                    {
+                        PropertyId = req.PropertyId,
+                        RoomId = it.RoomId,
+                        Date = date
+                    };
+                    _db.RoomDailyRates.Add(existing);
+                }
+
+                existing.Price = it.Price;
+                if (it.IsClosed.HasValue) existing.IsClosed = it.IsClosed.Value;
+                existing.MinStayNights = it.MinStayNights;
+                existing.MaxStayNights = it.MaxStayNights;
+                existing.Allotment = it.Allotment;
+                existing.UpdatedAt = DateTime.UtcNow;
+            }
+
+            await _db.SaveChangesAsync();
+            return Ok(new { success = true });
         }
     }
 }

@@ -12,6 +12,12 @@
 
     <h1 class="mb-4">Các cơ sở đang chờ duyệt</h1>
 
+    <div class="mb-3">
+        <a asp-area="Admin" asp-controller="Discount" asp-action="Index" class="btn btn-primary">Quản lý mã ưu đãi</a>
+    </div>
+
+    
+
     @if (!Model.Any())
     {
         <p class="text-muted">Không có đăng ký mới nào đang chờ duyệt.</p>

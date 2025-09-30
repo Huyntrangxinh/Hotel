@@ -1,0 +1,1706 @@
+@model HotelBooking.ViewModels.PublicSearchResultsViewModel
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@(string.IsNullOrWhiteSpace(Model?.Destination) ? (Model?.Properties.FirstOrDefault()?.City + ": kết quả") :
+                (Model.Destination + ": kết quả")) - Booking.com</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --booking-blue-dark: #003580;
+            --booking-blue-light: #0071c2;
+            --booking-yellow: #febb02;
+            --text-color: #333;
+            --border-color: #e0e0e0;
+            --background-color: #f5f5f5;
+            --rating-green: #008009;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .header {
+            background: var(--booking-blue-dark);
+            color: white;
+            padding-bottom: 10px;
+        }
+
+        .header-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-actions a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .header-actions a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-tabs {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 15px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .nav-tab {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border: 1px solid transparent;
+            border-radius: 99px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .nav-tab.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: white;
+        }
+
+        .nav-tab:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .search-container {
+            background: var(--booking-blue-dark);
+            padding: 10px 0 20px;
+        }
+
+        .search-box {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        .search-form {
+            background: var(--booking-yellow);
+            border-radius: 8px;
+            padding: 4px;
+            display: grid;
+            grid-template-columns: 1fr auto auto 120px;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .search-input-group {
+            background: white;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            border-radius: 4px;
+            height: 48px;
+        }
+
+        .search-input-group i {
+            font-size: 20px;
+            color: #666;
+            margin-right: 8px;
+        }
+
+        .search-input-group input,
+        .search-input-group .date-display,
+        .search-input-group .guests-display {
+            border: none;
+            outline: none;
+            width: 100%;
+            height: 100%;
+            font-size: 14px;
+            background: transparent;
+            color: #333;
+        }
+
+        .date-display,
+        .guests-display {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* Custom Date Picker */
+        .date-picker-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1050;
+            width: 600px;
+            padding: 20px;
+            margin-top: 4px;
+        }
+
+        .date-picker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 15px;
+        }
+
+        .date-picker-header span {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .date-picker-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+        }
+
+        .date-tab {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .date-tab.active {
+            color: var(--booking-blue-light);
+            border-bottom-color: var(--booking-blue-light);
+        }
+
+        .date-tab:hover {
+            color: var(--booking-blue-light);
+        }
+
+        .tab-content {
+            min-height: 300px;
+        }
+
+        .calendar-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .calendar-month {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-nav {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .calendar-nav:hover {
+            background-color: #f0f0f0;
+        }
+
+        .month-year {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            padding: 8px 4px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background-color: #f0f0f0;
+        }
+
+        .calendar-day.selected {
+            background-color: var(--booking-blue-light);
+            color: white;
+        }
+
+        .calendar-day.in-range {
+            background-color: rgba(0, 113, 194, 0.1);
+        }
+
+        .calendar-day.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .calendar-day.disabled:hover {
+            background-color: transparent;
+        }
+
+        .date-picker-footer {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .duration-btn {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .duration-btn:hover {
+            border-color: var(--booking-blue-light);
+        }
+
+        .duration-btn.active {
+            background-color: var(--booking-blue-light);
+            color: white;
+            border-color: var(--booking-blue-light);
+        }
+
+        /* Disable button khi ở giá trị minimum */
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Recent searches dropdown styling */
+        .recent-search-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        #destinationDropdown {
+            max-height: 360px;
+            overflow-y: auto;
+        }
+
+        #destinationDropdown .border-bottom:last-child {
+            border-bottom: none !important;
+        }
+
+        .search-btn {
+            background: var(--booking-blue-light);
+            color: white;
+            border: none;
+            height: 48px;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .search-btn:hover {
+            background: #005a9b;
+        }
+
+        .main-content {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px 15px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .breadcrumb {
+            grid-column: 1 / -1;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .breadcrumb a {
+            color: var(--booking-blue-light);
+            text-decoration: none;
+        }
+
+        .page-title {
+            grid-column: 1 / -1;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .sidebar {
+            background: transparent;
+            height: fit-content;
+        }
+
+        .sidebar-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .filter-section {
+            margin-bottom: 20px;
+        }
+
+        .filter-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .price-slider-container {
+            margin-bottom: 15px;
+        }
+
+        .price-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+            border-radius: 2px;
+        }
+
+        .price-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--booking-blue-light);
+            cursor: pointer;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .checkbox-group label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-item span {
+            color: #666;
+        }
+
+        .results-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sort-bar {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
+            font-size: 14px;
+        }
+
+        .hotel-card {
+            display: grid;
+            grid-template-columns: 240px 1fr auto;
+            gap: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            transition: box-shadow 0.3s;
+        }
+
+        .hotel-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .hotel-image {
+            width: 100%;
+            height: 210px;
+            border-radius: 8px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .heart-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+        }
+
+        .hotel-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hotel-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--booking-blue-light);
+            margin-bottom: 5px;
+        }
+
+        .hotel-stars {
+            color: var(--booking-yellow);
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .hotel-location {
+            color: var(--booking-blue-light);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .distance {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .room-type {
+            font-weight: bold;
+            font-size: 14px;
+            margin-top: auto;
+            margin-bottom: 5px;
+        }
+
+        .promotion {
+            color: var(--rating-green);
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .limited-offer {
+            color: #d91e18;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .hotel-booking-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-align: right;
+        }
+
+        .rating-section {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .rating-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .rating-label {
+            font-weight: bold;
+        }
+
+        .review-count {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .location-score {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .rating-score {
+            background: var(--booking-blue-dark);
+            color: white;
+            padding: 8px;
+            border-radius: 8px 8px 8px 0;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .price {
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .price-includes {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .book-btn {
+            background: var(--booking-blue-light);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .book-btn:hover {
+            background: #005a9b;
+        }
+
+        .map-section {
+            height: 180px;
+            background: #e0e0e0 url('https://placehold.co/600x400/e0e0e0/777?text=Map') center/cover;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .map-toggle {
+            background: white;
+            border: 1px solid #ccc;
+            padding: 8px 16px;
+            border-radius: 99px;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .nowrap {
+            white-space: nowrap;
+        }
+
+        .filter-card {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #ECF8FF;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .08), 0 4px 12px rgba(0, 0, 0, .05);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            background-color: #ECF8FF;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: -16px -16px 8px -16px;
+        }
+
+        .filter-header .chevron {
+            transition: transform 0.3s ease;
+            background-color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3366CC;
+        }
+
+        .filter-header.collapsed .chevron {
+            transform: rotate(-180deg);
+        }
+
+        .filter-content {
+            max-height: 1000px;
+            transition: all 0.5s ease-in-out;
+            overflow: hidden;
+            opacity: 1;
+        }
+
+        .filter-content.collapsed {
+            max-height: 0;
+            margin-top: -8px;
+            opacity: 0;
+        }
+
+        .filter-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-top: 8px;
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .filter-item input {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--booking-blue-light);
+        }
+
+        .mini {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* Loading animation */
+        #search-results-container {
+            position: relative;
+            transition: opacity 0.3s ease;
+        }
+
+        #search-results-container.loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        #search-results-container.loading::after {
+            content: '';
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            margin-left: -20px;
+            border: 4px solid #e0e0e0;
+            border-top-color: var(--booking-blue-light);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            z-index: 10;
+        }
+
+        @@keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <section class="search-container">
+        <div class="search-box">
+            <form class="search-form" method="get" action="/Public/Search">
+                <!-- Hidden inputs for guest and room data -->
+                <input type="hidden" id="adultsInput" name="adults" value="@(ViewBag.SearchAdults ?? 2)" />
+                <input type="hidden" id="childrenInput" name="children" value="@(ViewBag.SearchChildren ?? 0)" />
+                <input type="hidden" id="roomsInput" name="rooms" value="@(ViewBag.SearchRooms ?? 1)" />
+
+                <!-- Destination -->
+                <div class="search-input-group position-relative">
+                    <i class="bi bi-search"></i>
+                    <input id="destinationInput" name="destination" placeholder="Bạn muốn đến đâu?" autocomplete="off"
+                        value="@Model?.Destination" />
+                    <div id="destinationDropdown"
+                        class="bg-white border rounded-3 shadow-sm position-absolute w-100 d-none"
+                        style="z-index:1050; max-height:360px; overflow-y:auto; top:100%; left:0; margin-top: 4px;">
+                    </div>
+                </div>
+
+                <!-- Date Range -->
+                <div class="search-input-group position-relative">
+                    <i class="bi bi-calendar3"></i>
+                    <div class="date-display" id="dateDisplay">@Model?.Checkin?.ToString("ddd, dd MMM") &ndash;
+                        @Model?.Checkout?.ToString("ddd, dd MMM")</div>
+                    <input name="checkin" type="date" class="form-control d-none" id="checkinInput"
+                        value="@(Model?.Checkin?.ToString("yyyy-MM-dd"))" />
+                    <input name="checkout" type="date" class="form-control d-none" id="checkoutInput"
+                        value="@(Model?.Checkout?.ToString("yyyy-MM-dd"))" />
+
+                    <!-- Custom Date Picker Dropdown -->
+                    <div id="datePickerDropdown" class="date-picker-dropdown d-none">
+                        <div class="date-picker-header">
+                            <div>
+                                <span id="selectedDateRange">@Model?.Checkin?.ToString("ddd, dd MMM") &ndash;
+                                    @Model?.Checkout?.ToString("ddd, dd MMM")</span>
+                            </div>
+                            <div>
+                                <span id="selectedGuests">@(ViewBag.SearchAdults ?? 2) người lớn •
+                                    @(ViewBag.SearchChildren ?? 0) trẻ em • @(ViewBag.SearchRooms ?? 1) phòng</span>
+                            </div>
+                        </div>
+
+                        <div class="date-picker-tabs">
+                            <button class="date-tab active" data-tab="calendar">Lịch</button>
+                            <button class="date-tab" data-tab="flexible">Ngày linh hoạt</button>
+                        </div>
+
+                        <div id="calendarTab" class="tab-content">
+                            <div class="calendar-container">
+                                <div class="calendar-month">
+                                    <div class="calendar-header">
+                                        <button class="calendar-nav" onclick="changeMonth(-1)">&lt;</button>
+                                        <div class="month-year" id="month1">tháng 11 năm 2025</div>
+                                        <button class="calendar-nav" onclick="changeMonth(1)">&gt;</button>
+                                    </div>
+                                    <div class="calendar-grid" id="calendar1">
+                                        <!-- Calendar will be generated by JavaScript -->
+                                    </div>
+                                </div>
+                                <div class="calendar-month">
+                                    <div class="calendar-header">
+                                        <button class="calendar-nav" onclick="changeMonth(1)">&lt;</button>
+                                        <div class="month-year" id="month2">tháng 12 năm 2025</div>
+                                        <button class="calendar-nav" onclick="changeMonth(1)">&gt;</button>
+                                    </div>
+                                    <div class="calendar-grid" id="calendar2">
+                                        <!-- Calendar will be generated by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="flexibleTab" class="tab-content d-none">
+                            <div class="date-picker-footer">
+                                <button class="duration-btn active" data-days="0">Ngày chính xác</button>
+                                <button class="duration-btn" data-days="1">+ 1 ngày</button>
+                                <button class="duration-btn" data-days="2">+ 2 ngày</button>
+                                <button class="duration-btn" data-days="3">+ 3 ngày</button>
+                                <button class="duration-btn" data-days="7">+ 7 ngày</button>
+                            </div>
+                        </div>
+
+                        <!-- Apply button -->
+                        <div class="date-picker-apply" style="margin-top: 15px; text-align: right;">
+                            <button type="button" class="btn btn-primary" onclick="closeDatePicker()"
+                                style="padding: 8px 20px; font-size: 14px;">Áp dụng</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guests & Rooms -->
+                <div class="search-input-group position-relative">
+                    <i class="bi bi-person"></i>
+                    <div class="guests-display" id="guestText">@(ViewBag.SearchAdults ?? 2) người lớn ·
+                        @(ViewBag.SearchChildren ?? 0) trẻ em · @(ViewBag.SearchRooms ?? 1) phòng</div>
+
+                    <!-- Guest Dropdown -->
+                    <div id="guestDropdown" class="bg-white border rounded-3 shadow-sm position-absolute d-none"
+                        style="z-index:1050; padding:16px; top:100%; left:0; margin-top: 4px;">
+                        <div class="d-flex justify-content-between align-items-center py-2">
+                            <div>
+                                <div class="fw-semibold">Người lớn</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle"
+                                    style="width:32px; height:32px;" onclick="updateGuests('adults', -1)">−</button>
+                                <span id="adultsCount" class="fw-semibold">@(ViewBag.SearchAdults ?? 2)</span>
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle"
+                                    style="width:32px; height:32px;" onclick="updateGuests('adults', 1)">+</button>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center py-2">
+                            <div>
+                                <div class="fw-semibold">Trẻ em</div>
+                                <div class="small text-muted">0-17 tuổi</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle"
+                                    style="width:32px; height:32px;" onclick="updateGuests('children', -1)">−</button>
+                                <span id="childrenCount" class="fw-semibold">@(ViewBag.SearchChildren ?? 0)</span>
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle"
+                                    style="width:32px; height:32px;" onclick="updateGuests('children', 1)">+</button>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center py-2">
+                            <div>
+                                <div class="fw-semibold">Phòng</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle"
+                                    style="width:32px; height:32px;" onclick="updateGuests('rooms', -1)">−</button>
+                                <span id="roomsCount" class="fw-semibold">@(ViewBag.SearchRooms ?? 1)</span>
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle"
+                                    style="width:32px; height:32px;" onclick="updateGuests('rooms', 1)">+</button>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-primary w-100 mt-3"
+                            onclick="closeGuestDropdown()">Xong</button>
+                    </div>
+                </div>
+
+                <!-- Search Button -->
+                <button type="submit" class="search-btn">Tìm</button>
+            </form>
+        </div>
+    </section>
+
+    <main class="main-content">
+        @{
+            var dest = string.IsNullOrWhiteSpace(Model?.Destination) ? (Model?.Properties.FirstOrDefault()?.City ?? "") :
+            Model.Destination;
+        }
+        <div class="breadcrumb">
+            <a href="/">Trang chủ</a> > <a href="#">Việt Nam</a> > <strong>@dest</strong>
+        </div>
+
+        <h1 class="page-title">@dest: tìm thấy @Model.Properties.Count() chỗ nghỉ</h1>
+
+        <aside class="sidebar">
+            <div class="filter-card map-section">
+                <button class="map-toggle"><i class="bi bi-geo-alt-fill"></i> Hiển thị trên bản đồ</button>
+            </div>
+
+            <div class="filter-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div style="font-weight: 700; font-size: 16px;">Khoảng giá <br><span class="mini">1 phòng, 1
+                            đêm</span></div>
+                    <a href="#"
+                        style="font-size: 14px; text-decoration: none; color: var(--booking-blue-light); font-weight: 500;">Đặt
+                        lại</a>
+                </div>
+                <div style="padding: 10px 0;">
+                    <div style="position: relative; height: 20px; display: flex; align-items: center;">
+                        <div style="width: 100%; height: 3px; background-color: #e0e0e0;"></div>
+                        <div
+                            style="position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); height: 3px; background-color: var(--booking-blue-light);">
+                        </div>
+                        <div
+                            style="position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; background-color: white; border-radius: 50%; border: 1px solid #ccc; box-shadow: 0 1px 3px rgba(0,0,0,0.2); cursor: pointer;">
+                        </div>
+                        <div
+                            style="position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; background-color: white; border-radius: 50%; border: 1px solid #ccc; box-shadow: 0 1px 3px rgba(0,0,0,0.2); cursor: pointer;">
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 8px;">
+                    <input type="text" readonly value="0 VND"
+                        style="width: 100%; border: 1px solid #ccc; border-radius: 8px; padding: 12px; text-align: left; font-size: 14px; background-color: #f5f5f5;">
+                    <input type="text" readonly value="24.000.000 VND"
+                        style="width: 100%; border: 1px solid #ccc; border-radius: 8px; padding: 12px; text-align: left; font-size: 14px; background-color: #f5f5f5;">
+                </div>
+            </div>
+
+
+
+            <div class="filter-card">
+                <div class="filter-header" onclick="toggleFilter(this)">
+                    Khuyến mãi & Giảm giá <i class="bi bi-chevron-up chevron"></i>
+                </div>
+                <div class="filter-content">
+                    <div class="filter-list" id="promoFilterList">
+                        <label class="filter-item"><input type="checkbox" name="filter" value="near_beach"> Gần
+                            biển</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="popular"> Được yêu thích
+                            nhất</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="promotion"> Khuyến mãi
+                            dành cho bạn</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="breakfast"> Có bữa
+                            sáng</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="pool"> Có hồ bơi</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="family"> Phù hợp cho gia
+                            đình</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="couple"> Phù hợp cho cặp
+                            đôi</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="star_4_5"> 4-5 sao giá
+                            tốt</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="comfortable_bed"> Giường
+                            đệm thoải mái</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="clean_room"> Phòng sạch
+                            sẽ</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="good_price"> Giá
+                            tốt</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="convenient_location"> Vị
+                            trí thuận tiện</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="additional_benefits">
+                            Quyền lợi bổ sung</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="mountain_view"> View
+                            núi</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="heater"> Có máy
+                            sưởi</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Các bộ lọc khác giữ nguyên -->
+            <div class="filter-card">
+                <div class="filter-header" onclick="toggleFilter(this)">
+                    Đánh giá sao <i class="bi bi-chevron-up chevron"></i>
+                </div>
+                <div class="filter-content">
+                    <div class="filter-list">
+                        <label class="filter-item"><input type="checkbox" name="filter" value="star_1"> 1 ⭐</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="star_2"> 2 ⭐</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="star_3"> 3 ⭐</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="star_4"> 4 ⭐</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="star_5"> 5 ⭐</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-card">
+                <div class="filter-header" onclick="toggleFilter(this)">
+                    Đánh giá từ khách <i class="bi bi-chevron-up chevron"></i>
+                </div>
+                <div class="filter-content">
+                    <div class="filter-list">
+                        <label class="filter-item"><input type="checkbox" name="filter" value="rating_7"> ✈️ 7+ Thuận
+                            tiện</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="rating_8"> ✈️ 8+ Ấn
+                            tượng</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="rating_9"> ✈️ 9+ Tuyệt
+                            hảo</label>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-card">
+                <div class="filter-header" onclick="toggleFilter(this)">
+                    Loại hình lưu trú <i class="bi bi-chevron-up chevron"></i>
+                </div>
+                <div class="filter-content">
+                    <div class="filter-list">
+                        <label class="filter-item"><input type="checkbox" name="filter" value="type_resort">
+                            Resort</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="type_hotel"> Khách
+                            sạn</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="type_guesthouse"> Nhà
+                            nghỉ</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="type_apartment"> Căn
+                            hộ</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="type_villa">
+                            Villa</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="type_homestay">
+                            Homestay</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="type_hostel">
+                            Hostel</label>
+                        <!-- Ryokan chưa có enum riêng, tạm ánh xạ vào Nhà nghỉ/GuestHouse nếu cần -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Linh hoạt hơn -->
+            <div class="filter-card">
+                <div class="filter-header" onclick="toggleFilter(this)">
+                    Linh hoạt hơn <i class="bi bi-chevron-up chevron"></i>
+                </div>
+                <div class="filter-content">
+                    <div class="filter-list">
+                        <label class="filter-item">
+                            <input type="checkbox" name="filter" value="flexible_free_cancellation">
+                            <span>Miễn phí hủy phòng</span>
+                            <i class="bi bi-file-check text-muted ms-2"></i>
+                        </label>
+                        <label class="filter-item">
+                            <input type="checkbox" name="filter" value="flexible_pay_at_hotel">
+                            <span>Thanh toán tại khách sạn</span>
+                            <i class="bi bi-clock text-muted ms-2"></i>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+
+        <section class="results-area">
+            <div class="sort-bar">
+                Sắp xếp theo: <strong>Lựa chọn hàng đầu của chúng tôi</strong>
+            </div>
+
+            <!-- CHỖ NÀY ĐÃ ĐƯỢC THAY ĐỔI -->
+            <div id="search-results-container">
+                @await Html.PartialAsync("_SearchResultsPartial", Model)
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // --- PHẦN SCRIPT ĐÃ ĐƯỢC TỐI ƯU ---
+
+        // Date functionality
+        // Date picker variables
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let selectedCheckin = null;
+        let selectedCheckout = null;
+
+        // Initialize date picker with current values
+        document.addEventListener('DOMContentLoaded', function () {
+            const checkinInput = document.getElementById('checkinInput');
+            const checkoutInput = document.getElementById('checkoutInput');
+
+            if (checkinInput && checkoutInput && checkinInput.value && checkoutInput.value) {
+                selectedCheckin = new Date(checkinInput.value);
+                selectedCheckout = new Date(checkoutInput.value);
+                currentMonth = selectedCheckin.getMonth();
+                currentYear = selectedCheckin.getFullYear();
+            }
+
+            generateCalendar();
+            updateSelectedDateRange();
+            updateButtonStates();
+
+            // Date picker click events
+            const dateDisplay = document.getElementById('dateDisplay');
+            if (dateDisplay) {
+                dateDisplay.addEventListener('click', () => {
+                    document.getElementById('datePickerDropdown').classList.toggle('d-none');
+                });
+            }
+
+            // Guest dropdown click events
+            const guestText = document.getElementById('guestText');
+            if (guestText) {
+                guestText.addEventListener('click', () => {
+                    document.getElementById('guestDropdown').classList.toggle('d-none');
+                });
+            }
+
+            // Destination dropdown with recent searches
+            const destinationInput = document.getElementById('destinationInput');
+            if (destinationInput) {
+                destinationInput.addEventListener('focus', () => {
+                    showRecentSearches();
+                });
+
+                destinationInput.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        const dropdown = document.getElementById('destinationDropdown');
+                        if (dropdown) {
+                            dropdown.classList.add('d-none');
+                        }
+                    }, 200);
+                });
+
+                destinationInput.addEventListener('input', (e) => {
+                    if (e.target.value.length > 0) {
+                        showSearchSuggestions(e.target.value);
+                    } else {
+                        showRecentSearches();
+                    }
+                });
+            }
+        });
+
+        // Generate calendar
+        function generateCalendar() {
+            const month1 = new Date(currentYear, currentMonth, 1);
+            const month2 = new Date(currentYear, currentMonth + 1, 1);
+
+            document.getElementById('month1').textContent = `tháng ${month1.getMonth() + 1} năm ${month1.getFullYear()}`;
+            document.getElementById('month2').textContent = `tháng ${month2.getMonth() + 1} năm ${month2.getFullYear()}`;
+
+            generateMonthCalendar('calendar1', month1);
+            generateMonthCalendar('calendar2', month2);
+        }
+
+        // Generate single month calendar
+        function generateMonthCalendar(containerId, date) {
+            const container = document.getElementById(containerId);
+            const year = date.getFullYear();
+            const month = date.getMonth();
+
+            // Day headers
+            const dayHeaders = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+            let html = '';
+
+            dayHeaders.forEach(day => {
+                html += `<div class="calendar-day-header">${day}</div>`;
+            });
+
+            // Get first day of month and number of days
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Add empty cells for days before month starts
+            for (let i = 0; i < firstDay; i++) {
+                html += `<div class="calendar-day"></div>`;
+            }
+
+            // Add days of month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayDate = new Date(year, month, day);
+                const isToday = isSameDay(dayDate, new Date());
+                const isSelected = (selectedCheckin && isSameDay(dayDate, selectedCheckin)) ||
+                    (selectedCheckout && isSameDay(dayDate, selectedCheckout));
+                const isInRange = selectedCheckin && selectedCheckout &&
+                    dayDate > selectedCheckin && dayDate < selectedCheckout;
+                const isDisabled = dayDate < new Date();
+
+                let classes = 'calendar-day';
+                if (isSelected) classes += ' selected';
+                if (isInRange) classes += ' in-range';
+                if (isDisabled) classes += ' disabled';
+
+                html += `<div class="${classes}" data-date="${formatDate(dayDate)}" onclick="selectDate('${formatDate(dayDate)}')">${day}</div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Select date
+        function selectDate(dateString) {
+            const date = new Date(dateString);
+            if (date < new Date()) return; // Can't select past dates
+
+            if (!selectedCheckin || (selectedCheckin && selectedCheckout)) {
+                // Start new selection
+                selectedCheckin = date;
+                selectedCheckout = null;
+
+                // Update display for first selection
+                updateSelectedDateRange();
+            } else if (selectedCheckin && !selectedCheckout) {
+                // Complete selection
+                if (date > selectedCheckin) {
+                    selectedCheckout = date;
+                } else {
+                    selectedCheckout = selectedCheckin;
+                    selectedCheckin = date;
+                }
+
+                // Update hidden inputs
+                document.getElementById('checkinInput').value = formatDate(selectedCheckin);
+                document.getElementById('checkoutInput').value = formatDate(selectedCheckout);
+
+                // Update display
+                updateDateDisplay();
+                updateSelectedDateRange();
+
+                // Don't close dropdown automatically - let user choose flexible options
+            }
+
+            generateCalendar(); // Regenerate to show selection
+        }
+
+        // Change month
+        function changeMonth(direction) {
+            currentMonth += direction;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            } else if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            generateCalendar();
+        }
+
+        // Update selected date range display
+        function updateSelectedDateRange() {
+            const formatDisplayDate = (date) => {
+                const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+                const months = ['tháng 1', 'tháng 2', 'tháng 3', 'tháng 4', 'tháng 5', 'tháng 6',
+                    'tháng 7', 'tháng 8', 'tháng 9', 'tháng 10', 'tháng 11', 'tháng 12'];
+                return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]}`;
+            };
+
+            if (selectedCheckin && selectedCheckout) {
+                const rangeText = `${formatDisplayDate(selectedCheckin)} — ${formatDisplayDate(selectedCheckout)}`;
+                document.getElementById('selectedDateRange').textContent = rangeText;
+            } else if (selectedCheckin) {
+                const rangeText = `${formatDisplayDate(selectedCheckin)} — Chọn ngày về`;
+                document.getElementById('selectedDateRange').textContent = rangeText;
+            }
+        }
+
+        // Update main date display
+        function updateDateDisplay() {
+            const dateDisplay = document.getElementById('dateDisplay');
+            const checkinInput = document.getElementById('checkinInput');
+            const checkoutInput = document.getElementById('checkoutInput');
+
+            if (dateDisplay && checkinInput && checkoutInput && checkinInput.value && checkoutInput.value) {
+                const checkin = new Date(checkinInput.value);
+                const checkout = new Date(checkoutInput.value);
+                const formatDisplayDate = (date) => {
+                    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]}`;
+                };
+                dateDisplay.textContent = `${formatDisplayDate(checkin)} – ${formatDisplayDate(checkout)}`;
+            }
+        }
+
+        // Helper functions
+        function isSameDay(date1, date2) {
+            return date1.getDate() === date2.getDate() &&
+                date1.getMonth() === date2.getMonth() &&
+                date1.getFullYear() === date2.getFullYear();
+        }
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Close date picker
+        function closeDatePicker() {
+            document.getElementById('datePickerDropdown').classList.add('d-none');
+        }
+
+        // Guest management
+        function updateGuests(type, change) {
+            const countElement = document.getElementById(type + 'Count');
+            const hiddenInput = document.getElementById(type + 'Input');
+            let currentCount = parseInt(countElement.textContent);
+
+            // Apply limits
+            if (type === 'adults' && currentCount + change < 1) return;
+            if (type === 'children' && currentCount + change < 0) return;
+            if (type === 'rooms' && currentCount + change < 1) return;
+
+            currentCount += change;
+            countElement.textContent = currentCount;
+            hiddenInput.value = currentCount;
+
+            // Update display text
+            updateGuestText();
+
+            // Update buttons state
+            updateButtonStates();
+        }
+
+        function updateGuestText() {
+            const adults = document.getElementById('adultsCount').textContent;
+            const children = document.getElementById('childrenCount').textContent;
+            const rooms = document.getElementById('roomsCount').textContent;
+
+            const guestText = document.getElementById('guestText');
+            guestText.textContent = `${adults} người lớn · ${children} trẻ em · ${rooms} phòng`;
+
+            // Update selected guests display in date picker
+            const selectedGuests = document.getElementById('selectedGuests');
+            if (selectedGuests) {
+                selectedGuests.textContent = `${adults} người lớn • ${children} trẻ em • ${rooms} phòng`;
+            }
+        }
+
+        function updateButtonStates() {
+            // Update minus buttons
+            const adultsCount = parseInt(document.getElementById('adultsCount').textContent);
+            const childrenCount = parseInt(document.getElementById('childrenCount').textContent);
+            const roomsCount = parseInt(document.getElementById('roomsCount').textContent);
+
+            // Find and update minus buttons
+            const minusButtons = document.querySelectorAll('button[onclick*="updateGuests"]');
+            minusButtons.forEach(btn => {
+                if (btn.textContent === '−') {
+                    const onclick = btn.getAttribute('onclick');
+                    if (onclick.includes("'adults', -1")) {
+                        btn.disabled = adultsCount <= 1;
+                    } else if (onclick.includes("'children', -1")) {
+                        btn.disabled = childrenCount <= 0;
+                    } else if (onclick.includes("'rooms', -1")) {
+                        btn.disabled = roomsCount <= 1;
+                    }
+                }
+            });
+        }
+
+        function closeGuestDropdown() {
+            document.getElementById('guestDropdown').classList.add('d-none');
+        }
+
+        // Recent searches functionality
+        function getRecentSearches() {
+            const searches = localStorage.getItem('recentSearches');
+            return searches ? JSON.parse(searches) : [];
+        }
+
+        function saveRecentSearch(destination, checkin, checkout, adults, children, rooms) {
+            const searches = getRecentSearches();
+            const newSearch = {
+                destination,
+                checkin,
+                checkout,
+                adults,
+                children,
+                rooms,
+                timestamp: new Date().toISOString()
+            };
+
+            // Remove duplicate if exists
+            const filteredSearches = searches.filter(search =>
+                !(search.destination === destination &&
+                    search.checkin === checkin &&
+                    search.checkout === checkout)
+            );
+
+            // Add new search to beginning
+            filteredSearches.unshift(newSearch);
+
+            // Keep only last 10 searches
+            const recentSearches = filteredSearches.slice(0, 10);
+
+            localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
+        }
+
+        function showRecentSearches() {
+            const dropdown = document.getElementById('destinationDropdown');
+            const searches = getRecentSearches();
+
+            if (searches.length === 0) {
+                dropdown.innerHTML = '<div class="p-3 text-muted">Chưa có tìm kiếm gần đây</div>';
+            } else {
+                let html = '<div class="p-2 fw-bold border-bottom">Tìm kiếm gần đây của bạn</div>';
+
+                searches.forEach(search => {
+                    const checkinDate = search.checkin ? new Date(search.checkin).toLocaleDateString('vi-VN') : '';
+                    const checkoutDate = search.checkout ? new Date(search.checkout).toLocaleDateString('vi-VN') : '';
+                    const dateRange = checkinDate && checkoutDate ? `${checkinDate} – ${checkoutDate}` : '';
+
+                    html += `
+                        <div class="recent-search-item p-2 border-bottom" style="cursor: pointer; display: flex; align-items: center; gap: 8px;" 
+                             onclick="selectRecentSearch('${search.destination}', '${search.checkin}', '${search.checkout}', ${search.adults}, ${search.children}, ${search.rooms})">
+                            <i class="bi bi-arrow-clockwise text-muted"></i>
+                            <div>
+                                <div class="fw-semibold">${search.destination}</div>
+                                ${dateRange ? `<div class="small text-muted">${dateRange}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                dropdown.innerHTML = html;
+            }
+
+            dropdown.classList.remove('d-none');
+        }
+
+        function showSearchSuggestions(query) {
+            const dropdown = document.getElementById('destinationDropdown');
+
+            // Mock suggestions - in real app, this would be an API call
+            const suggestions = [
+                'Hà Nội', 'TP. Hồ Chí Minh', 'Đà Nẵng', 'Nha Trang', 'Phú Quốc',
+                'Quảng Ninh', 'Uông Bí', 'Hạ Long', 'Cát Bà', 'Sapa'
+            ].filter(city => city.toLowerCase().includes(query.toLowerCase()));
+
+            if (suggestions.length === 0) {
+                dropdown.innerHTML = '<div class="p-3 text-muted">Không tìm thấy địa điểm nào</div>';
+            } else {
+                let html = '<div class="p-2 fw-bold border-bottom">Gợi ý</div>';
+
+                suggestions.forEach(suggestion => {
+                    html += `
+                        <div class="suggestion-item p-2 border-bottom" style="cursor: pointer;" 
+                             onclick="selectSuggestion('${suggestion}')">
+                            <i class="bi bi-geo-alt text-muted"></i>
+                            <span class="ms-2">${suggestion}</span>
+                        </div>
+                    `;
+                });
+
+                dropdown.innerHTML = html;
+            }
+
+            dropdown.classList.remove('d-none');
+        }
+
+        function selectRecentSearch(destination, checkin, checkout, adults, children, rooms) {
+            // Update form values
+            document.getElementById('destinationInput').value = destination;
+            document.getElementById('checkinInput').value = checkin;
+            document.getElementById('checkoutInput').value = checkout;
+            document.getElementById('adultsInput').value = adults;
+            document.getElementById('childrenInput').value = children;
+            document.getElementById('roomsInput').value = rooms;
+
+            // Update displays
+            document.getElementById('adultsCount').textContent = adults;
+            document.getElementById('childrenCount').textContent = children;
+            document.getElementById('roomsCount').textContent = rooms;
+
+            // Update date display
+            if (checkin && checkout) {
+                const checkinDate = new Date(checkin);
+                const checkoutDate = new Date(checkout);
+                const formatDisplayDate = (date) => {
+                    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]}`;
+                };
+                document.getElementById('dateDisplay').textContent = `${formatDisplayDate(checkinDate)} – ${formatDisplayDate(checkoutDate)}`;
+            }
+
+            // Update guest text
+            updateGuestText();
+
+            // Close dropdown
+            document.getElementById('destinationDropdown').classList.add('d-none');
+        }
+
+        function selectSuggestion(destination) {
+            document.getElementById('destinationInput').value = destination;
+            document.getElementById('destinationDropdown').classList.add('d-none');
+        }
+
+
+        // Tab switching and flexible date options
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('date-tab')) {
+                // Remove active class from all tabs
+                document.querySelectorAll('.date-tab').forEach(tab => tab.classList.remove('active'));
+                // Add active class to clicked tab
+                e.target.classList.add('active');
+
+                // Show/hide tab content
+                const tabType = e.target.getAttribute('data-tab');
+                document.getElementById('calendarTab').classList.toggle('d-none', tabType !== 'calendar');
+                document.getElementById('flexibleTab').classList.toggle('d-none', tabType !== 'flexible');
+            }
+
+            // Handle flexible date options
+            if (e.target.classList.contains('duration-btn')) {
+                // Remove active class from all duration buttons
+                document.querySelectorAll('.duration-btn').forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked button
+                e.target.classList.add('active');
+
+                const days = parseInt(e.target.getAttribute('data-days'));
+                if (days > 0 && selectedCheckin && selectedCheckout) {
+                    // Adjust checkout date based on flexible option
+                    const newCheckout = new Date(selectedCheckin);
+                    newCheckout.setDate(newCheckout.getDate() + days);
+
+                    selectedCheckout = newCheckout;
+
+                    // Update hidden inputs
+                    document.getElementById('checkinInput').value = formatDate(selectedCheckin);
+                    document.getElementById('checkoutInput').value = formatDate(selectedCheckout);
+
+                    // Update display
+                    updateDateDisplay();
+                    updateSelectedDateRange();
+                    generateCalendar();
+                }
+            }
+
+            // Close date picker when clicking outside
+            const datePickerDropdown = document.getElementById('datePickerDropdown');
+            const dateDisplay = document.getElementById('dateDisplay');
+            if (datePickerDropdown && !datePickerDropdown.contains(e.target) && !dateDisplay.contains(e.target)) {
+                datePickerDropdown.classList.add('d-none');
+            }
+
+            // Close guest dropdown when clicking outside
+            const guestDropdown = document.getElementById('guestDropdown');
+            const guestText = document.getElementById('guestText');
+            if (guestDropdown && !guestDropdown.contains(e.target) && !guestText.contains(e.target)) {
+                guestDropdown.classList.add('d-none');
+            }
+        });
+
+        // Form submission - save recent search
+        const searchForm = document.querySelector('form[action="/Public/Search"]');
+        if (searchForm) {
+            searchForm.addEventListener('submit', (e) => {
+                const destination = document.getElementById('destinationInput').value;
+                const checkin = document.getElementById('checkinInput').value;
+                const checkout = document.getElementById('checkoutInput').value;
+                const adults = document.getElementById('adultsInput').value;
+                const children = document.getElementById('childrenInput').value;
+                const rooms = document.getElementById('roomsInput').value;
+
+                if (destination) {
+                    saveRecentSearch(destination, checkin, checkout, adults, children, rooms);
+                }
+            });
+        }
+
+        // Hàm để ẩn/hiện các mục filter
+        function toggleFilter(header) {
+            const content = header.nextElementSibling;
+            const chevron = header.querySelector('.chevron');
+
+            content.classList.toggle('collapsed');
+            header.classList.toggle('collapsed');
+
+            if (content.classList.contains('collapsed')) {
+                chevron.classList.remove('bi-chevron-up');
+                chevron.classList.add('bi-chevron-down');
+            } else {
+                chevron.classList.remove('bi-chevron-down');
+                chevron.classList.add('bi-chevron-up');
+            }
+        }
+
+        // Khởi tạo trạng thái chevron khi tải trang
+        document.querySelectorAll('.filter-header').forEach(header => {
+            const content = header.nextElementSibling;
+            const chevron = header.querySelector('.chevron');
+            if (content.classList.contains('collapsed')) {
+                chevron.classList.remove('bi-chevron-up');
+                chevron.classList.add('bi-chevron-down');
+            } else {
+                chevron.classList.remove('bi-chevron-down');
+                chevron.classList.add('bi-chevron-up');
+            }
+        });
+
+        // Hàm xử lý việc lọc kết quả
+        function handleFilterChange() {
+            const resultsContainer = document.getElementById('search-results-container');
+            if (!resultsContainer) return;
+
+            // Lấy tất cả các filter đang được chọn
+            const checkedFilters = Array.from(document.querySelectorAll('input[name="filter"]:checked'))
+                .map(cb => cb.value);
+
+            // Thêm hiệu ứng loading
+            resultsContainer.classList.add('loading');
+
+            // Tạo URL mới với các tham số filter
+            const url = new URL(window.location);
+            if (checkedFilters.length > 0) {
+                url.searchParams.set('filters', checkedFilters.join(','));
+            } else {
+                url.searchParams.delete('filters');
+            }
+
+            // Gửi yêu cầu AJAX
+            fetch(url.toString(), {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest' // Dấu hiệu quan trọng cho backend
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text(); // Lấy nội dung HTML từ PartialView
+                })
+                .then(html => {
+                    // Cập nhật nội dung kết quả
+                    resultsContainer.innerHTML = html;
+
+                    // Cập nhật URL trên thanh địa chỉ mà không tải lại trang
+                    window.history.pushState({}, '', url.toString());
+                })
+                .catch(error => {
+                    console.error('Filter error:', error);
+                    // Nếu lỗi, tải lại trang để đảm bảo người dùng thấy kết quả đúng
+                    window.location.href = url.toString();
+                })
+                .finally(() => {
+                    // Bỏ hiệu ứng loading
+                    resultsContainer.classList.remove('loading');
+                });
+        }
+
+        // Gắn sự kiện và khởi tạo trạng thái ban đầu
+        document.addEventListener('DOMContentLoaded', function () {
+            // Đọc filter từ URL và check vào các ô tương ứng khi tải trang
+            const urlParams = new URLSearchParams(window.location.search);
+            const filtersParam = urlParams.get('filters');
+
+            if (filtersParam) {
+                const activeFilters = filtersParam.split(',');
+                document.querySelectorAll('input[name="filter"]').forEach(checkbox => {
+                    if (activeFilters.includes(checkbox.value)) {
+                        checkbox.checked = true;
+                    }
+                });
+            }
+
+            // Gắn sự kiện 'change' cho tất cả các checkbox filter
+            document.querySelectorAll('input[name="filter"]').forEach(checkbox => {
+                checkbox.addEventListener('change', handleFilterChange);
+            });
+        });
+    </script>
+
+</body>
+
+</html>
