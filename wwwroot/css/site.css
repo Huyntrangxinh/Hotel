@@ -1,0 +1,1588 @@
+﻿:root {
+    --brand: #01357f;
+    --brand-2: #00224f;
+    --accent: #febb02;
+    --save-button: #FF5E20;
+    --save-button-hover: #e5551d;
+}
+
+/* ========== Global Button Styling ========== */
+.btn-primary,
+.btn-success,
+.btn-info,
+.btn-warning,
+.btn-danger,
+.btn-dark,
+.btn-outline-primary,
+.btn-outline-success,
+.btn-outline-info,
+.btn-outline-warning,
+.btn-outline-danger,
+.btn-outline-dark,
+button[type="submit"],
+input[type="submit"] {
+    background-color: var(--brand) !important;
+    border-color: var(--brand) !important;
+    color: white !important;
+}
+
+.btn-primary:hover,
+.btn-success:hover,
+.btn-info:hover,
+.btn-warning:hover,
+.btn-danger:hover,
+.btn-dark:hover,
+.btn-outline-primary:hover,
+.btn-outline-success:hover,
+.btn-outline-info:hover,
+.btn-outline-warning:hover,
+.btn-outline-danger:hover,
+.btn-outline-dark:hover,
+button[type="submit"]:hover,
+input[type="submit"]:hover {
+    background-color: #012a66 !important;
+    border-color: #012a66 !important;
+    color: white !important;
+}
+
+.btn-primary:focus,
+.btn-success:focus,
+.btn-info:focus,
+.btn-warning:focus,
+.btn-danger:focus,
+.btn-dark:focus,
+.btn-outline-primary:focus,
+.btn-outline-success:focus,
+.btn-outline-info:focus,
+.btn-outline-warning:focus,
+.btn-outline-danger:focus,
+.btn-outline-dark:focus,
+button[type="submit"]:focus,
+input[type="submit"]:focus {
+    background-color: var(--brand) !important;
+    border-color: var(--brand) !important;
+    box-shadow: 0 0 0 0.2rem rgba(1, 53, 127, 0.25) !important;
+}
+
+.bg-brand {
+    background: var(--brand);
+}
+
+.hero {
+    background: var(--brand);
+    color: #fff;
+}
+
+.search-card {
+    border: 2px solid var(--accent);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .12);
+}
+
+.search-input .input-group-text {
+    background: #fff;
+    border-right: 0;
+}
+
+.search-input .form-control {
+    border-left: 0;
+}
+
+.guest-dropdown .btn {
+    height: 100%;
+}
+
+.guest-panel {
+    position: absolute;
+    z-index: 20;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: .5rem;
+    padding: .75rem;
+    margin-top: .25rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
+}
+
+.counter .btn {
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+}
+
+.card img,
+.object-fit-cover {
+    object-fit: cover;
+}
+
+.section-title {
+    font-weight: 700;
+}
+
+.badge-hot {
+    background: var(--accent);
+}
+
+
+/* ========== Signup 2-panel ========== */
+.signup-card {
+    background: #fff;
+    border-radius: 1.25rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, .12);
+}
+
+.signup-left {
+    background: #6a67ff;
+    border-top-left-radius: 1.25rem;
+    border-bottom-left-radius: 1.25rem;
+    color: #fff;
+}
+
+.signup-input {
+    border: 1px solid #e7e7ef;
+    border-radius: .75rem;
+    padding: .9rem 1rem;
+}
+
+.signup-input:focus {
+    border-color: #6a67ff;
+    box-shadow: 0 0 0 .25rem rgba(106, 103, 255, .15);
+}
+
+.signup-btn {
+    background: #6a67ff;
+    border: none;
+    border-radius: 2rem;
+    padding: .9rem 1rem;
+    font-weight: 600;
+}
+
+.signup-btn:hover {
+    background: #5b57ff;
+}
+
+.btn-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (min-width:992px) {
+    .signup-card {
+        max-width: 980px;
+        margin: 0 auto;
+    }
+}
+
+/* ===== Auth full-width look ===== */
+.auth-hero {
+    background: var(--brand);
+    /* cùng màu với navbar */
+}
+
+.auth-card {
+    max-width: 980px;
+    /* rộng hơn; muốn full hơn: 1140px hoặc 1280px */
+    border-radius: 1.25rem;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .18);
+}
+
+.auth-input {
+    border: 1px solid #e7e7ef;
+    border-radius: .75rem;
+    padding: .9rem 1rem;
+}
+
+.auth-input:focus {
+    border-color: #6789ff3d;
+    /* nhẹ nhàng */
+    box-shadow: 0 0 0 .25rem rgba(0, 53, 128, .12);
+}
+
+.auth-btn {
+    background: var(--brand);
+    /* có thể đổi = var(--accent) hoặc var(--brand) */
+    border: none;
+    border-radius: 2rem;
+    padding: .95rem 1rem;
+    font-weight: 600;
+}
+
+.auth-btn:hover {
+    background: #012a66;
+}
+
+/* Optional: muốn gần như full màn hình hơn nữa */
+@media (min-width:1200px) {
+    .auth-card {
+        max-width: 1140px;
+    }
+}
+
+@media (min-width:1400px) {
+    .auth-card {
+        max-width: 1280px;
+    }
+}
+
+/* Auth full-width but compact */
+.auth-card {
+    max-width: 760px;
+    /* ↓ nhỏ hơn — chỉnh 700–820 tùy ý */
+    border-radius: 1rem;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, .14);
+}
+
+/* inputs + button giữ như trước */
+.auth-input {
+    border: 1px solid #e7e7ef;
+    border-radius: .75rem;
+    padding: .9rem 1rem;
+}
+
+.auth-input:focus {
+    border-color: #cbd5ff;
+    box-shadow: 0 0 0 .25rem rgba(0, 53, 128, .12);
+}
+
+.auth-btn {
+    background: var(--brand);
+    border: none;
+    border-radius: 2rem;
+    padding: .95rem 1rem;
+    font-weight: 600;
+}
+
+.auth-btn:hover {
+    background: #012a66;
+}
+
+/* "Or" divider */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    color: #6c757d;
+    font-size: .9rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #e9ecef;
+}
+
+/* Social buttons */
+.social-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    transition: box-shadow .15s, transform .15s;
+}
+
+.social-btn:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .12);
+    transform: translateY(-1px);
+}
+
+.social-btn svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.social-facebook {
+    color: #1877F2;
+}
+
+/* dùng icon bi-facebook */
+/* Primary auth button */
+.auth-btn {
+    background: #006CE4;
+    /* xanh Booking */
+    color: #fff;
+    /* chữ trắng */
+    border: none;
+    border-radius: 2rem;
+    padding: .95rem 1rem;
+    font-weight: 600;
+}
+
+.auth-btn:hover {
+    background: #0057c2;
+}
+
+.auth-btn:disabled {
+    background: #8dbcf2;
+    color: #fff;
+}
+
+/* ===== Host banner dưới navbar ===== */
+.host-banner {
+    background: var(--brand);
+    /* cùng màu navbar */
+    border-top: 1px solid rgba(255, 255, 255, .06);
+}
+
+.host-link {
+    color: #fff;
+}
+
+.host-link:hover {
+    opacity: .95;
+}
+
+.host-title {
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+.user-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .6rem;
+    background: rgba(255, 255, 255, .08);
+    padding: .35rem .6rem;
+    border-radius: 999px;
+}
+
+.avatar-initial {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #febb02;
+    color: #000;
+    font-weight: 700;
+    font-size: .95rem;
+}
+
+.user-meta {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.user-name {
+    font-weight: 700;
+}
+
+.user-tier {
+    font-size: .8rem;
+    opacity: .85;
+}
+
+/* Partner hero */
+.partner-hero {
+    background: var(--brand);
+}
+
+.partner-hero .text-accent {
+    color: var(--accent);
+}
+
+/* CTA card bên phải */
+.cta-card {
+    border: 3px solid var(--accent);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .15);
+}
+
+.btn-cta {
+    background: #006CE4;
+    color: #fff;
+    font-weight: 700;
+    border: none;
+    border-radius: .75rem;
+    padding: .9rem 1rem;
+}
+
+.btn-cta:hover {
+    background: #0057c2;
+}
+
+/* dấu check */
+.check-badge {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #e8f6ed;
+    color: #198754;
+    font-weight: 700;
+    flex: 0 0 24px;
+}
+
+/* Chip tài khoản trên navbar */
+.user-chip-nav {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .25rem .6rem !important;
+    background: rgba(255, 255, 255, .08);
+    border-radius: 999px;
+    color: #fff !important;
+}
+
+.user-chip-nav:hover {
+    opacity: .95;
+}
+
+/* Avatar tròn nhỏ */
+.avatar-initial.sm {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #febb02;
+    color: #000;
+    font-weight: 700;
+    font-size: .95rem;
+}
+
+/* Dropdown đẹp hơn */
+.user-dropdown {
+    min-width: 280px;
+    border-radius: .75rem;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, .18);
+    padding: .5rem;
+}
+
+.user-dropdown .dropdown-item {
+    border-radius: .5rem;
+    padding: .6rem .75rem;
+}
+
+.user-dropdown .dropdown-item i {
+    width: 1.1rem;
+}
+
+
+/* Link "Đăng chỗ nghỉ..." trên navbar: không nền, hover -> trắng */
+.host-post-link {
+    color: rgba(255, 255, 255, .55) !important;
+    /* giống nav-link mặc định của navbar-dark */
+    font-weight: 700;
+    padding: .5rem .75rem !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+}
+
+.host-post-link i {
+    opacity: .85;
+    transition: opacity .15s;
+}
+
+/* Hover/focus: chữ & icon thành trắng */
+.host-post-link:hover,
+.host-post-link:focus {
+    color: #fff !important;
+    background: transparent !important;
+}
+
+.host-post-link:hover i,
+.host-post-link:focus i {
+    opacity: 1;
+}
+
+/* (tuỳ chọn) khi đang ở trang Partner thì coi như "active" -> trắng luôn */
+.navbar-dark .nav-link.host-post-link.active {
+    color: #fff !important;
+}
+
+@media (min-width: 992px) {
+    .host-post-link {
+        padding: .4rem .75rem !important;
+        background: rgba(255, 255, 255, .08);
+    }
+
+    .host-post-link:hover {
+        background: rgba(255, 255, 255, .12);
+    }
+}
+
+
+/* Nav links: mặc định nhạt, HOVER -> trắng hẳn */
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, .55) !important;
+    transition: color .15s ease;
+}
+
+/* hover/focus = trắng hẳn cho TẤT CẢ các mục */
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link:focus {
+    color: #fff !important;
+}
+
+/* trạng thái active cũng trắng hẳn */
+.navbar-dark .navbar-nav .nav-link.active,
+.navbar-dark .navbar-nav .show>.nav-link {
+    color: #fff !important;
+}
+
+/* icon trong nav kế thừa màu, tăng chút độ rõ khi hover */
+.navbar-dark .navbar-nav .nav-link i {
+    opacity: .9;
+    transition: opacity .15s;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover i,
+.navbar-dark .navbar-nav .nav-link:focus i {
+    opacity: 1;
+}
+
+.section-muted {
+    background: #f5f7fb;
+}
+
+/* nền xám nhẹ */
+.step-card {
+    border: 1px solid #eef0f5;
+    border-radius: 1rem;
+    background: #fff;
+    transition: box-shadow .15s, transform .15s;
+}
+
+.step-card:hover {
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .08);
+    transform: translateY(-2px);
+}
+
+.step-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e7f1ff;
+    color: #006CE4;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.metric .metric-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #0b1f3f;
+}
+
+.metric .metric-note {
+    color: #6c757d;
+    font-size: .95rem;
+}
+
+/* Testimonials */
+.testimonial-card {
+    border: 1px solid #eee;
+    border-radius: .9rem;
+    background: #fff;
+    outline: 2px solid rgba(254, 187, 2, .5);
+    /* viền vàng mảnh như ảnh */
+    outline-offset: -6px;
+    transition: box-shadow .15s, transform .15s;
+}
+
+.testimonial-card:hover {
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .08);
+    transform: translateY(-2px);
+}
+
+.testimonial-card blockquote {
+    font-size: .95rem;
+    color: #0b1f3f;
+    margin: 0;
+}
+
+.host-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.xsmall {
+    font-size: .8rem;
+}
+
+:root {
+    --bk-blue: #006CE4;
+    --bk-blue-hover: #0057c2;
+    --bk-blue-active: #0048a3;
+}
+
+/* Nút xanh kiểu Booking */
+.btn-bk-primary {
+    background: var(--bk-blue);
+    color: #fff !important;
+    border: none;
+    font-weight: 700;
+    border-radius: 1rem;
+    /* bo tròn lớn */
+    padding: 1rem 1.25rem;
+    /* nút dày như hình */
+    box-shadow: 0 1px 0 rgba(0, 0, 0, .08);
+    line-height: 1.25;
+}
+
+.btn-bk-primary:hover {
+    background: var(--bk-blue-hover);
+}
+
+.btn-bk-primary:active {
+    background: var(--bk-blue-active);
+}
+
+.btn-bk-primary:focus {
+    box-shadow: 0 0 0 .25rem rgba(0, 108, 228, .25);
+    outline: 0;
+}
+
+/* Nút viền xanh (nếu cần loại viền) */
+.btn-bk-outline {
+    background: #fff;
+    color: var(--bk-blue) !important;
+    border: 2px solid var(--bk-blue);
+    font-weight: 700;
+    border-radius: 9999px;
+    /* pill */
+    padding: .95rem 1.35rem;
+}
+
+.btn-bk-outline:hover {
+    background: rgba(0, 108, 228, .08);
+}
+
+
+.type-card {
+    transition: all .15s ease;
+    border-width: 2px;
+}
+
+.btn-check:checked+.type-card,
+.type-card:hover {
+    background: #f0f6ff;
+    border-color: #006CE4;
+}
+
+/* thẻ chọn loại */
+.type-card {
+    transition: .15s;
+    border-width: 2px;
+}
+
+.btn-check:checked+.type-card,
+.type-card:hover {
+    background: #f0f6ff;
+    border-color: #006CE4;
+}
+
+/* sticky footer */
+.onb-sticky {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid #eee;
+    padding: .75rem 0;
+    z-index: 100;
+}
+
+/* nút primary giống booking */
+.btn-bk-primary {
+    background: #006CE4;
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    border-radius: .8rem;
+}
+
+.btn-bk-primary:hover {
+    filter: brightness(0.95);
+    color: #fff;
+}
+
+
+/* Modal chọn loại cơ sở — rõ, to, tương phản */
+#typeModal .modal-dialog {
+    max-width: 960px;
+    /* rộng hơn một chút */
+}
+
+#typeModal .type-grid {
+    row-gap: 14px;
+}
+
+/* thẻ chọn */
+#typeModal .type-card {
+    border-width: 2px;
+    border-color: #d6e4ff;
+    background: #f8fbff;
+    color: #0a3d7a;
+    font-weight: 600;
+    text-align: center;
+    padding: 18px 14px;
+    border-radius: 16px;
+    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
+}
+
+/* icon trên mỗi thẻ (nếu dùng) */
+#typeModal .type-card .type-icon {
+    display: block;
+    font-size: 22px;
+    margin-bottom: 6px;
+    opacity: .9;
+}
+
+/* hover */
+#typeModal .btn-check+.type-card:hover {
+    border-color: #006CE4;
+    box-shadow: 0 0 0 4px rgba(0, 108, 228, .12);
+    transform: translateY(-1px);
+}
+
+/* checked */
+#typeModal .btn-check:checked+.type-card {
+    background: #006CE4;
+    color: #fff;
+    border-color: #006CE4;
+    box-shadow: 0 0 0 4px rgba(0, 108, 228, .18);
+}
+
+/* nút Lưu đồng bộ style primary */
+#typeModal .btn-bk-primary {
+    background: #006CE4;
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    border-radius: .8rem;
+}
+
+#typeModal .btn-bk-primary:hover {
+    filter: brightness(.95);
+    color: #fff;
+}
+
+
+
+/* Container chính chứa 2 cột trái và phải */
+section.py-4>.container>.row {
+    /* Đặt chiều cao của nó bằng chiều cao màn hình trừ đi chiều cao của thanh header trên cùng (ước tính 60px) */
+    height: calc(100vh - 60px);
+}
+
+/* Cột nội dung bên phải */
+.col-lg-9 {
+    height: 100%;
+    /* Luôn cao bằng thẻ cha (.row) */
+    overflow-y: auto;
+    /* Thêm thanh cuộn dọc CHỈ cho cột này */
+}
+
+/* Cột menu bên trái */
+aside.col-lg-3.sticky-top {
+    align-self: flex-start;
+    /* Đảm bảo nó không bị kéo dài theo cột phải */
+    top: 20px;
+    /* Giữ khoảng cách 20px với lề trên */
+}
+
+/* Room Card Styles */
+.room-card {
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.room-card:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-2px);
+}
+
+.room-actions .btn {
+    border-radius: 6px;
+    padding: 6px 8px;
+    transition: all 0.2s ease;
+}
+
+.room-actions .btn:hover {
+    transform: scale(1.05);
+}
+
+.room-config {
+    border-left: 3px solid #f8f9fa;
+    padding-left: 12px;
+}
+
+.room-config .bi {
+    font-size: 16px;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+}
+
+/* Badge cho thông tin giường ngủ */
+.room-config .badge {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+    margin-right: 4px;
+    margin-bottom: 2px;
+    border-radius: 4px;
+    background-color: #f8f9fa !important;
+    color: #495057 !important;
+    border: 1px solid #dee2e6;
+}
+
+/* ========== Chatbot Widget Styles ========== */
+/* Reset whitespace for chatbot messages */
+#chatbot-messages * {
+    margin: 0;
+    padding: 0;
+}
+
+#chatbot-messages .message {
+    margin-bottom: 20px !important;
+}
+
+#chatbot-messages .message-content {
+    margin: 0;
+    padding: 6px 10px;
+    max-width: fit-content;
+    display: inline-block;
+}
+
+/* Remove any whitespace in message divs */
+
+.message-content {
+    font-size: 14px;
+    line-height: 1.4;
+    max-width: fit-content;
+    width: auto;
+    display: inline-block;
+    margin: 0;
+    padding: 6px 10px;
+}
+
+/* Hotel Card Styles */
+.hotel-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin: 16px 0;
+    overflow: hidden;
+    border: 1px solid #e9ecef;
+    max-width: 100%;
+}
+
+.hotel-card-header {
+    padding: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.hotel-name {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: white;
+}
+
+.hotel-location {
+    font-size: 14px;
+    opacity: 0.9;
+    margin: 0;
+}
+
+.hotel-card-body {
+    padding: 16px;
+}
+
+.hotel-rating {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.hotel-stars {
+    color: #ffc107;
+    font-size: 16px;
+    margin-right: 8px;
+}
+
+.hotel-rating-text {
+    font-size: 14px;
+    color: #6c757d;
+    margin: 0;
+}
+
+.hotel-price {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0 0 8px 0;
+}
+
+.hotel-price-detail {
+    font-size: 12px;
+    color: #6c757d;
+    margin: 0 0 12px 0;
+}
+
+
+.hotel-description {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #495057;
+    margin: 0 0 12px 0;
+}
+
+.hotel-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-hotel {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-hotel:hover {
+    background: #0056b3;
+}
+
+.btn-hotel-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-hotel-secondary:hover {
+    background: #545b62;
+}
+
+/* Ensure proper spacing between messages */
+
+:root {
+    --primary-gradient: linear-gradient(135deg, #8A2BE2 0%, #FF69B4 100%);
+    --primary-color-start: #8A2BE2;
+    --primary-color-end: #FF69B4;
+    --text-primary: #1a1a1a;
+    --text-secondary: #6b7280;
+    --surface-background: #ffffff;
+    --panel-background: #f9fafb;
+    --border-color: #e5e7eb;
+    --font-family: 'Inter', sans-serif;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+    --shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.1);
+}
+
+#chatbot-widget {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.chatbot-toggle {
+    width: 60px;
+    height: 60px;
+    background: var(--primary-gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    color: white;
+    font-size: 28px;
+    border: none;
+}
+
+.chatbot-toggle:hover {
+    transform: scale(1.1) translateY(-5px);
+    box-shadow: var(--shadow-hover);
+}
+
+.chatbot-toggle .bi-x-lg {
+    display: none;
+}
+
+.chatbot-toggle.active .bi-chat-dots {
+    display: none;
+}
+
+.chatbot-toggle.active .bi-x-lg {
+    display: block;
+}
+
+.chatbot-panel {
+    position: absolute;
+    bottom: 80px;
+    right: 0;
+    width: 370px;
+    height: 550px;
+    background: var(--surface-background);
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    transform-origin: bottom right;
+}
+
+.chatbot-panel.show {
+    display: flex;
+    animation: popIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.chatbot-panel.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    bottom: auto;
+    right: auto;
+    border-radius: 0;
+    z-index: 9999;
+    animation: none;
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.chatbot-header {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.chatbot-header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    opacity: 0.8;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.chatbot-header h6 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.chatbot-header .btn-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    opacity: 0.8;
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+}
+
+.chatbot-header .btn-close:hover {
+    opacity: 1;
+}
+
+.chatbot-messages {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    background: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    display: flex;
+    animation: messageFadeIn 0.3s ease-out;
+    margin-bottom: 20px !important;
+}
+
+.user-message {
+    justify-content: flex-end;
+    align-self: flex-end;
+}
+
+.bot-message {
+    justify-content: flex-start;
+    align-self: flex-start;
+}
+
+.message-content {
+    padding: 6px 10px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    max-width: fit-content;
+    width: auto;
+    margin: 0;
+    text-align: left;
+    box-sizing: border-box;
+    display: inline-block;
+    vertical-align: top;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Allow HTML content in bot messages */
+.bot-message .message-content {
+    max-width: 100%;
+    width: 100%;
+    white-space: normal;
+}
+
+.user-message .message-content {
+    background: var(--primary-gradient);
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+
+.bot-message .message-content {
+    background: #f8f9fa;
+    color: #333;
+    border: 1px solid #e9ecef;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes messageFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.typing {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 12px 18px;
+}
+
+.typing span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-secondary);
+    animation: typing-bounce 1.4s infinite ease-in-out;
+}
+
+.typing span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing-bounce {
+
+    0%,
+    80%,
+    100% {
+        transform: scale(0);
+    }
+
+    40% {
+        transform: scale(1.0);
+    }
+}
+
+.chatbot-input {
+    padding: 16px 20px;
+    background: var(--surface-background);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.chatbot-input input {
+    flex: 1;
+    border: 1px solid var(--border-color);
+    background-color: var(--panel-background);
+    border-radius: 20px;
+    padding: 12px 18px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    min-width: 0;
+}
+
+.chatbot-input input:focus {
+    border-color: var(--primary-color-start);
+    box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.1);
+}
+
+.chatbot-input button {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: var(--primary-gradient);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    font-size: 20px;
+}
+
+.chatbot-input button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.3);
+}
+
+.chatbot-input button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Hotel Card Styles */
+.hotel-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin: 16px 0;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+}
+
+.hotel-card-image {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    position: relative;
+}
+
+.hotel-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Remove hover transform to prevent flicker while images stream in */
+}
+
+/* No hover scale to avoid continuous layout shifts */
+
+/* Chatbot Search-style card (match Public/Search layout, scoped to chatbot) */
+#chatbot-messages .search-card {
+    display: grid;
+    grid-template-columns: 240px 1fr auto;
+    gap: 20px;
+    background: #ffffff;
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 8px;
+    padding: 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#chatbot-messages .search-card .hotel-image {
+    width: 100%;
+    height: 210px;
+    /* fixed height */
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+#chatbot-messages .search-card .hotel-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+#chatbot-messages .search-card .heart-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#chatbot-messages .search-card .hotel-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0a58ca;
+    margin: 0 0 5px;
+}
+
+#chatbot-messages .search-card .hotel-stars {
+    color: #fbbf24;
+    font-size: 12px;
+}
+
+#chatbot-messages .search-card .hotel-location {
+    color: #0a58ca;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+#chatbot-messages .search-card .room-type {
+    font-weight: 700;
+    margin: 8px 0 5px;
+}
+
+#chatbot-messages .search-card .promotion {
+    color: #008009;
+    font-weight: 500;
+}
+
+#chatbot-messages .search-card .warning {
+    color: #d00;
+    font-weight: 700;
+}
+
+#chatbot-messages .search-card .rating-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+#chatbot-messages .search-card .rating-score {
+    background: #0a58ca;
+    color: #fff;
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-weight: 700;
+}
+
+#chatbot-messages .search-card .price {
+    font-weight: 800;
+    font-size: 20px;
+}
+
+#chatbot-messages .search-card .price-includes {
+    color: #6b7280;
+    font-size: 12px;
+}
+
+#chatbot-messages .search-card .book-btn {
+    background: #0d6efd;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-weight: 600;
+}
+
+.hotel-card-header {
+    background: linear-gradient(135deg, #8A2BE2 0%, #FF69B4 100%);
+    color: white;
+    padding: 16px 20px;
+}
+
+.hotel-name {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    color: white;
+}
+
+.hotel-location {
+    font-size: 14px;
+    margin: 0;
+    opacity: 0.9;
+    color: white;
+}
+
+.hotel-card-body {
+    padding: 20px;
+}
+
+.hotel-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.hotel-stars {
+    color: #fbbf24;
+    font-size: 16px;
+}
+
+.hotel-rating-text {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.hotel-price {
+    font-size: 18px;
+    font-weight: 600;
+    color: #059669;
+    margin: 0 0 4px 0;
+}
+
+.hotel-price-detail {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 0 0 16px 0;
+}
+
+.hotel-amenities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.amenity-tag {
+    background: #f3f4f6;
+    color: #374151;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.hotel-description {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #374151;
+    margin: 0 0 20px 0;
+}
+
+.hotel-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-hotel {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: linear-gradient(135deg, #8A2BE2 0%, #FF69B4 100%);
+    color: white;
+}
+
+.btn-hotel:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
+}
+
+.btn-hotel-secondary {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.btn-hotel-secondary:hover {
+    background: #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+    #chatbot-widget {
+        bottom: 10px;
+        right: 10px;
+    }
+
+    .chatbot-panel:not(.fullscreen) {
+        width: calc(100vw - 20px);
+        height: 70vh;
+        bottom: 80px;
+        right: -10px;
+    }
+
+    .hotel-card {
+        margin: 12px 0;
+    }
+
+    .hotel-card-header {
+        padding: 12px 16px;
+    }
+
+    .hotel-card-body {
+        padding: 16px;
+    }
+
+    .hotel-actions {
+        flex-direction: column;
+    }
+}

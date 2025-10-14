@@ -1,0 +1,65 @@
+@model HotelBooking.ViewModels.Rooms.RoomCreateViewModel
+
+<section id="sec-detail" class="tera-card mb-3">
+    <div class="section-head">
+        <h3 class="tera-title">Chi tiết phòng</h3>
+        <p class="tera-desc">Nêu rõ các đặc điểm của phòng. Bạn có thể thay đổi cài đặt này sau trong TERA.</p>
+    </div>
+
+    <!-- Hàng: Kích cỡ phòng / đơn vị + Kích cỡ + Đơn vị -->
+    <div class="row g-3 align-items-start">
+        <div class="col-md-3">
+            <label class="form-label form-label-lg mb-1">Kích cỡ phòng / đơn vị</label>
+            <div class="form-hint">Kích thước phòng sẽ được hiển thị cho khách.</div>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label mb-1">Kích cỡ</label>
+            <input asp-for="SizeNumber" type="number" min="1" class="form-control form-control-sm"
+                placeholder="Nhập số" />
+            <span class="text-danger small" asp-validation-for="SizeNumber"></span>
+        </div>
+        <div class="col-md-5">
+            <label class="form-label mb-1">Đơn vị</label>
+            <select asp-for="SizeUnit" class="form-select form-select-sm">
+                <option value="" disabled selected>Nhập đơn vị</option>
+                <option value="m2">m²</option>
+                <option value="ft2">ft²</option>
+            </select>
+            <span class="text-danger small" asp-validation-for="SizeUnit"></span>
+        </div>
+    </div>
+
+    <!-- Hàng: Hút thuốc -->
+    <div class="row g-3 align-items-center mt-2">
+        <div class="col-md-3">
+            <label class="form-label form-label-lg mb-0">Hút thuốc</label>
+        </div>
+        <div class="col-md-9">
+            <div class="d-flex gap-4 align-items-center">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="SmokingAllowed" value="false"
+                        @(Model.SmokingAllowed ? "" : "checked") />
+                    <label class="form-check-label">Cấm hút thuốc</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="SmokingAllowed" value="true"
+                        @(Model.SmokingAllowed ? "checked" : "") />
+                    <label class="form-check-label">Cho phép</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hàng: Quỹ phòng -->
+    <div class="row g-3 align-items-start mt-2">
+        <div class="col-md-3">
+            <label class="form-label form-label-lg mb-1">Quỹ phòng</label>
+            <div class="form-hint">Số lượng phòng sẽ được mở để đặt phòng</div>
+        </div>
+        <div class="col-md-9">
+            <input asp-for="Quantity" type="number" min="1" class="form-control form-control-sm"
+                placeholder="Nhập số" />
+            <span class="text-danger small" asp-validation-for="Quantity"></span>
+        </div>
+    </div>
+</section>

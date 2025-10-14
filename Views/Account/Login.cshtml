@@ -1,0 +1,102 @@
+﻿@model HotelBooking.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<section class="auth-hero py-5">
+    <div class="container min-vh-100 d-flex align-items-center">
+        <div class="auth-card bg-white w-100 p-4 p-md-5 mx-auto">
+            <div class="mb-4">
+                <h3 class="fw-bold mb-0">Sign in</h3>
+            </div>
+
+            @if (TempData["success"] != null)
+            {
+                <div class="alert alert-success">@TempData["success"]</div>
+            }
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none" role="alert"></div>
+
+            <form asp-action="Login" method="post" asp-route-returnUrl="@ViewBag.ReturnUrl" class="auth-form">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label small text-muted">Email Address</label>
+                    <input asp-for="Email" class="form-control form-control-lg auth-input" />
+                    <span class="text-danger small" asp-validation-for="Email"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label small text-muted">Password</label>
+                    <div class="position-relative">
+                        <input asp-for="Password" class="form-control form-control-lg auth-input pe-5" />
+                        <button type="button"
+                            class="btn btn-link p-0 position-absolute end-0 top-50 translate-middle-y me-3 text-muted toggle-pass"
+                            data-target="Password">
+                            <i class="bi bi-eye-slash"></i>
+                        </button>
+                    </div>
+                    <span class="text-danger small" asp-validation-for="Password"></span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label small"></label>
+                    </div>
+                    <a asp-controller="Account" asp-action="ForgotPassword" class="small">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn auth-btn w-100 mb-3">Sign In</button>
+
+                <div class="text-center small mt-3">
+                    Don't have an account?
+                    <a asp-controller="Account" asp-action="Register">Create one</a>
+                </div>
+
+                <div class="text-center small mt-3 pt-3 border-top">
+                    <i class="bi bi-person-badge me-1"></i>
+                    <a asp-area="Admin" asp-controller="Account" asp-action="Login" class="text-decoration-none">
+                        Đăng nhập dành cho nhân viên
+                    </a>
+                </div>
+            </form>
+
+            <div class="auth-divider my-3 text-center"><span>Or</span></div>
+
+            <div class="d-flex justify-content-center gap-3">
+                <!-- Google visual button as anchor -->
+                <a href="javascript:void(0)" class="social-btn" title="Sign in with Google"
+                    aria-label="Sign in with Google" onclick="document.getElementById('googleLoginForm').submit()">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="20" height="20" />
+                </a>
+                <!-- Facebook (chưa triển khai) -->
+                <a class="social-btn social-facebook" href="javascript:void(0)" title="Sign in with Facebook"
+                    aria-label="Sign in with Facebook">
+                    <i class="bi bi-facebook"></i>
+                </a>
+            </div>
+
+            <form id="googleLoginForm" asp-controller="Account" asp-action="ExternalLogin"
+                asp-route-returnUrl="@ViewBag.ReturnUrl" method="post" class="d-none">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="provider" value="Google" />
+            </form>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Toggle show/hide password
+        document.querySelectorAll('.toggle-pass').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const input = document.getElementById(btn.dataset.target);
+                if (!input) return;
+                if (input.type === 'password') { input.type = 'text'; btn.innerHTML = '<i class="bi bi-eye"></i>'; }
+                else { input.type = 'password'; btn.innerHTML = '<i class="bi bi-eye-slash"></i>'; }
+            });
+        });
+    </script>
+}

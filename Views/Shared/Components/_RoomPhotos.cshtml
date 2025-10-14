@@ -1,0 +1,80 @@
+@model HotelBooking.ViewModels.Rooms.RoomCreateViewModel
+
+<section id="sec-photos" class="tera-card mb-3">
+    <div class="section-head">
+        <h3 class="tera-title">Ảnh phòng</h3>
+        <p class="tera-desc">Phòng phải có ít nhất một bức ảnh cho phòng ngủ và một bức ảnh cho phòng tắm. 56% khách truy cập vào trang phòng khách sạn thường bắt đầu bằng việc xem các bức ảnh.</p>
+        <a href="#" class="text-primary small">Xem Hướng dẫn về ảnh chụp chỗ ở.</a>
+    </div>
+
+    <!-- Yêu cầu về ảnh -->
+    <div class="photo-requirements mb-4">
+        <h6 class="fw-semibold mb-2">Yêu cầu về ảnh:</h6>
+        <ul class="list-unstyled small text-muted">
+            <li>• Độ phân giải: Tối thiểu 800x600 px và tối đa 4096x4096 px</li>
+            <li>• Kích cỡ: Tối thiểu 300KB và tối đa 20MB</li>
+        </ul>
+    </div>
+
+    <!-- Khu vực tải ảnh -->
+    <div class="row g-4">
+        <!-- Bedroom -->
+        <div class="col-md-6">
+            <div class="upload-zone" id="bedroomUpload">
+                <div class="upload-content text-center">
+                    <i class="bi bi-camera fs-1 text-muted mb-2"></i>
+                    <h6 class="mb-2">Bedroom</h6>
+                    <span class="btn btn-link p-0 text-primary">Tải lên ảnh</span>
+                </div>
+                <input type="file" name="BedroomPhotos" id="bedroomPhotos" multiple accept="image/*"
+                    class="upload-input" />
+            </div>
+            <div id="bedroomError" class="photo-error text-danger small d-none">Đây là phần bắt buộc.</div>
+        </div>
+
+        <!-- Bathroom -->
+        <div class="col-md-6">
+            <div class="upload-zone" id="bathroomUpload">
+                <div class="upload-content text-center">
+                    <i class="bi bi-camera fs-1 text-muted mb-2"></i>
+                    <h6 class="mb-2">Bathroom</h6>
+                    <span class="btn btn-link p-0 text-primary">Tải lên ảnh</span>
+                </div>
+                <input type="file" name="BathroomPhotos" id="bathroomPhotos" multiple accept="image/*"
+                    class="upload-input" />
+            </div>
+            <div id="bathroomError" class="photo-error text-danger small d-none">Đây là phần bắt buộc.</div>
+        </div>
+    </div>
+
+    <!-- Khu vực tải ảnh bổ sung -->
+    <div class="row g-4 mt-3">
+        <div class="col-12">
+            <!-- Khu vực tải ảnh lớn (khi chưa có ảnh) -->
+            <div class="upload-zone upload-zone-large" id="additionalUploadLarge">
+                <div class="upload-content text-center">
+                    <i class="bi bi-camera fs-1 text-muted mb-2"></i>
+                    <h6 class="mb-2">Tải lên thêm ảnh</h6>
+                    <small class="text-muted d-block">Thêm ảnh khác để hiển thị phòng tốt hơn</small>
+                </div>
+                <input type="file" name="AdditionalPhotos" id="additionalPhotos" multiple
+                    accept="image/*" class="upload-input" />
+            </div>
+
+            <!-- Lưới ảnh thumbnail (khi đã có ảnh) -->
+            <div id="additionalPhotosGrid" class="d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-semibold mb-0">Ảnh bổ sung</h6>
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnAddMorePhotos">
+                        <i class="bi bi-plus-lg me-1"></i>Tải lên thêm ảnh
+                    </button>
+                </div>
+                <div class="row g-3" id="additionalPhotosContainer">
+                    <!-- Ảnh thumbnail sẽ được render ở đây -->
+                </div>
+                <input type="file" name="MoreAdditionalPhotos" id="moreAdditionalPhotos" multiple
+                    accept="image/*" class="d-none" />
+            </div>
+        </div>
+    </div>
+</section>

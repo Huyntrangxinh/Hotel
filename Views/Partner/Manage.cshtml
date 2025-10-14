@@ -1,0 +1,66 @@
+@model IEnumerable<HotelBooking.Models.Property>
+@{
+    ViewData["Title"] = "Quản lý cơ sở lưu trú";
+    var stats = ViewBag.Stats;
+}
+
+<div class="container-fluid py-3">
+    <div class="row g-3">
+        <div class="col-lg-3">
+            <div class="list-group small">
+                <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center active">
+                    Tổng quan
+                    <span class="badge bg-light text-dark">@stats.Total</span>
+                </a>
+                <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="@Url.Action("MyProperties","Partner")">
+                    Cơ sở lưu trú của bạn
+                </a>
+                <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" href="@Url.Action("RegisterNewProperty","Partner")">
+                    Đăng ký mới
+                </a>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between small"><span>Bản nháp</span><strong>@stats.Draft</strong></div>
+                    <div class="d-flex justify-content-between small"><span>Đã gửi</span><strong>@stats.Submitted</strong></div>
+                    <div class="d-flex justify-content-between small"><span>Đã phê duyệt</span><strong>@stats.Approved</strong></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0 fw-bold">Quản lý cơ sở lưu trú</h5>
+                <a href="@Url.Action("RegisterNewProperty","Partner")" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle me-1"></i> Đăng ký mới</a>
+            </div>
+
+            <div class="row g-2">
+                @foreach (var p in Model)
+                {
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <div class="fw-semibold">@p.Name</div>
+                                        <div class="text-muted small">@((string.IsNullOrEmpty(p.AddressLine)?"Chưa có địa chỉ":p.AddressLine))</div>
+                                    </div>
+                                    
+                                </div>
+                                <div class="mt-2 d-flex gap-2">
+                                    <a class="btn btn-outline-secondary btn-sm" href="@Url.Action("PropertyDetail","Partner", new { id = p.Id })">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a class="btn btn-outline-primary btn-sm" href="@Url.Action("PropertyData","Partner", new { propertyId = p.Id, tab = "property" })">Thiết lập</a>
+                                    <a class="btn btn-outline-primary btn-sm" href="@Url.Action("Calendar","Partner", new { propertyId = p.Id })">Lịch giá</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+

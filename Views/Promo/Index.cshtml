@@ -1,0 +1,35 @@
+@model IEnumerable<HotelBooking.Models.Discount>
+@{
+    ViewData["Title"] = "Ưu đãi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container my-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Ưu đãi</li>
+        </ol>
+    </nav>
+
+    <div class="row g-3">
+        @foreach (var d in Model)
+        {
+            <div class="col-12 col-md-6 col-lg-4">
+                <a class="text-decoration-none text-reset" href="/Promo/@d.Id">
+                    <div class="card h-100 shadow-sm">
+                        @if (!string.IsNullOrWhiteSpace(d.ImageUrl))
+                        {
+                            <img src="@d.ImageUrl" class="card-img-top object-fit-cover" style="height:180px;" />
+                        }
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-1">@d.Title</h6>
+                            <small class="text-muted">Mã: <code>@d.Code</code></small>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+</div>
+

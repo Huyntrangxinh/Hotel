@@ -1,0 +1,762 @@
+@model HotelBooking.ViewModels.BookingViewModel
+@{
+    ViewData["Title"] = "Đặt phòng - " + Model.PropertyName;
+}
+
+<div class="booking-page">
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="mb-4">
+            <h4 class="mb-2">@Model.PropertyName</h4>
+            <div class="d-flex align-items-center">
+                <div class="stars me-2">
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                </div>
+                <span class="rating-text">4.8 (237)</span>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Column - Booking Form -->
+            <div class="col-lg-7">
+
+
+                <form asp-action="Book" method="post" id="bookingForm">
+                    <input type="hidden" asp-for="PropertyId" />
+                    <input type="hidden" asp-for="RoomId" />
+                    <input type="hidden" asp-for="CheckIn" />
+                    <input type="hidden" asp-for="CheckOut" />
+                    <input type="hidden" asp-for="Guests" />
+                    <input type="hidden" asp-for="PricePerNight" />
+                    <input type="hidden" asp-for="TotalNights" />
+                    <input type="hidden" asp-for="TotalPrice" />
+
+                    <!-- Contact Information Card -->
+                    <div class="booking-card mb-3">
+                        <div class="card-header">
+                            <i class="bi bi-person-circle me-2"></i>
+                            <span>Liên hệ đặt chỗ</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-3">Thêm liên hệ để nhận xác nhận đặt chỗ.</p>
+
+                            <div class="mb-3">
+                                <label class="form-label">Họ tên*</label>
+                                <input asp-for="FullName" class="form-control"
+                                    placeholder="như trên CMND (không dấu)" />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Điện thoại di động*</label>
+                                    <div class="phone-input-group">
+                                        <select class="country-code">
+                                            <option value="+84">🇻🇳 +84</option>
+                                        </select>
+                                        <input asp-for="PhoneNumber" class="form-control phone-input"
+                                            placeholder="VD: +84 8012345678 (Trong đó (+84) là mã quốc gia và 8012345678 là số di động" />
+                                    </div>
+                                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Email*</label>
+                                    <input asp-for="Email" class="form-control" placeholder="VD: email@example.com" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="bookingForMyself" checked>
+                                <label class="form-check-label" for="bookingForMyself">
+                                    Tôi đặt chỗ cho chính mình
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Guest Information Card -->
+                    <div class="booking-card mb-3">
+                        <div class="card-header">
+                            <i class="bi bi-people me-2"></i>
+                            <span>Thông tin khách hàng</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-3">Vui lòng điền đầy đủ các thông tin để nhận xác nhận đơn
+                                hàng</p>
+
+                            <div class="mb-3">
+                                <label class="form-label">Họ tên*</label>
+                                <input asp-for="GuestName" class="form-control"
+                                    placeholder="như trên CMND (không dấu)" />
+                                <span asp-validation-for="GuestName" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Special Requests Card -->
+                    <div class="booking-card mb-3">
+                        <div class="card-header">
+                            <i class="bi bi-chat-left-text me-2"></i>
+                            <span>Yêu cầu đặc biệt</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-3">
+                                Bạn cần thêm giường phụ hoặc có yêu cầu đặc biệt? Gửi yêu cầu và khách sạn sẽ cố gắng
+                                đáp ứng nguyện vọng của bạn. (Xin lưu ý yêu cầu đặc biệt không được bảo đảm trước và có
+                                thể thu phí)
+                            </p>
+
+                            <div class="row mb-3">
+                                <div class="col-md-4 mb-2">
+                                    <div class="form-check">
+                                        <input asp-for="NonSmokingRoom" class="form-check-input" type="checkbox">
+                                        <label asp-for="NonSmokingRoom" class="form-check-label">
+                                            Phòng không hút thuốc
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <div class="form-check">
+                                        <input asp-for="ConnectingRoom" class="form-check-input" type="checkbox">
+                                        <label asp-for="ConnectingRoom" class="form-check-label">
+                                            Phòng liên thông
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <div class="form-check">
+                                        <input asp-for="HighFloor" class="form-check-input" type="checkbox">
+                                        <label asp-for="HighFloor" class="form-check-label">
+                                            Tầng lầu
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="form-label">Đọc tất cả</label>
+                                <textarea asp-for="SpecialRequests" class="form-control" rows="3"
+                                    placeholder=""></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Accommodation Policy Card -->
+                    <div class="booking-card mb-3">
+                        <div class="card-header">
+                            <i class="bi bi-file-text me-2"></i>
+                            <span>Chính sách Chỗ ở</span>
+                            <a href="#" class="ms-auto text-primary" data-bs-toggle="modal"
+                                data-bs-target="#policyModal">
+                                Đọc tất cả
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <div class="policy-item">
+                                <i class="bi bi-sun policy-icon"></i>
+                                <div>
+                                    <strong>Bữa sáng</strong>
+                                    <p class="mb-0 text-muted small">Bữa sáng tại cơ sở lưu trú được phục vụ từ 06:30
+                                        đến 09:30.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Insurance Banner -->
+                    <div class="insurance-banner mb-3">
+                        <img src="/images/anhgiadinh.webp" alt="Gia đình du lịch" class="family-icon" />
+                        <div>
+                            <h6 class="mb-1">Tạo nên những ký ức đáng nhớ với các hoạt động này!</h6>
+                        </div>
+                    </div>
+
+                    <!-- Travel Insurance Card -->
+                    <div class="booking-card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start">
+                                <input type="checkbox" class="form-check-input me-3 mt-1">
+                                <div class="flex-grow-1">
+                                    <strong>Bảo hiểm Du lịch Chubb - Hotel Protect</strong>
+                                    <p class="text-muted small mb-2">Bảo vệ kỹ nghỉ của Quý khách khi (a) ra đi họp, mất
+                                        đặt phòng khách sạn, và hơn thế nữa.</p>
+                                    <a href="#" class="text-primary small">Thông tin</a>
+                                </div>
+                                <div class="text-end ms-3">
+                                    <strong>VND43.500</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Terms and Conditions -->
+                    <div class="form-check mb-4">
+                        <input asp-for="AgreeToTerms" class="form-check-input" type="checkbox" required>
+                        <label asp-for="AgreeToTerms" class="form-check-label small">
+                            Bằng cách tiến hành thanh toán, bạn đã đồng ý với
+                            <a href="#" class="text-primary">Điều khoản và Điều kiện</a>,
+                            <a href="#" class="text-primary">Chính sách Bảo mật</a>,
+                            và <a href="#" class="text-primary">Quy trình Hoàn tiền Lưu trú</a> của Traveloka.
+                        </label>
+                        <span asp-validation-for="AgreeToTerms" class="text-danger"></span>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Right Column - Booking Summary -->
+            <div class="col-lg-5">
+                <div class="summary-card sticky-top">
+                    <div class="room-info-banner mb-3">
+
+                        <div class="booking-selection mb-3">
+                            <div class="room-name mb-2">
+                                <strong>(1x) @Model.RoomName</strong>
+                            </div>
+                        </div>
+
+                        <div class="booking-dates">
+                            <div class="row g-0">
+                                <div class="col-5">
+                                    <div class="date-box">
+                                        <div class="date-label">Nhận phòng</div>
+                                        <div class="date-main">@Model.CheckIn.ToString("dddd, dd 'tháng' MM", new
+                                                                                        System.Globalization.CultureInfo("vi-VN"))</div>
+                                        <div class="date-year">@Model.CheckIn.ToString("yyyy")</div>
+                                        <div class="date-time">Từ 14:00</div>
+                                    </div>
+                                </div>
+                                <div class="col-2 text-center d-flex align-items-center justify-content-center">
+                                    <div class="nights-badge">
+                                        <i class="bi bi-moon-fill"></i>
+                                        <span>@Model.TotalNights đêm</span>
+                                    </div>
+                                </div>
+                                <div class="col-5">
+                                    <div class="date-box">
+                                        <div class="date-label">Trả phòng</div>
+                                        <div class="date-main">@Model.CheckOut.ToString("dddd, dd 'tháng' MM", new
+                                                                                        System.Globalization.CultureInfo("vi-VN"))</div>
+                                        <div class="date-year">@Model.CheckOut.ToString("yyyy")</div>
+                                        <div class="date-time">Trước 12:00</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="room-details mt-3">
+                            <div class="detail-item">
+                                <i class="bi bi-people-fill"></i>
+                                <span>@Model.Guests khách, 1 trẻ em (8 tuổi)</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="bi bi-info-circle-fill text-primary"></i>
+                                <a href="#" class="text-primary">Chi tiết phí trẻ em tại đây</a>
+                            </div>
+                            <div class="detail-item">
+                                <i class="bi bi-shield-fill-check text-success"></i>
+                                <span>Đặt phòng này không được hoàn tiền.</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="bi bi-x-circle-fill text-muted"></i>
+                                <span>Non-reschedulable</span>
+                            </div>
+                            <div class="detail-item mt-2">
+                                <span>💳 🏦</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-note mb-3">
+                        <i class="bi bi-info-circle text-primary"></i>
+                        <small class="text-muted">
+                            Thuế và phí là do khách được Traveloka chuyển trả cho khách sạn. Mọi thắc mắc về thông tin
+                            khác liên quan đến thuế hoặc chi phí khác của Traveloka sẽ được giải đáp
+                        </small>
+                    </div>
+
+                    <!-- Price Details -->
+                    <div class="price-section">
+                        <div class="price-header mb-3">
+                            <i class="bi bi-tag-fill"></i>
+                            <strong>Chi tiết giá</strong>
+                            <button class="btn-collapse ms-auto" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#priceDetails">
+                                <i class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+
+                        <div class="collapse show" id="priceDetails">
+                            <div class="price-row">
+                                <span>Giá phòng</span>
+                                <span>@( (Model.PricePerNight * Model.TotalNights).ToString("N0") ) VND</span>
+                            </div>
+                            <div class="price-subtext">
+                                <span>(1x) @Model.RoomName (@Model.TotalNights đêm)</span>
+                            </div>
+                            <div class="price-row mt-2">
+                                <span>Thuế và phí</span>
+                                <span>@((Model.TotalPrice * 0.1m).ToString("N0")) VND</span>
+                            </div>
+
+                            <div class="price-divider"></div>
+
+                            <div class="price-row-total mb-2">
+                                <span>Tổng cộng</span>
+                            </div>
+                            <div class="price-breakdown mb-2">
+                                <span>1 phòng, @Model.TotalNights đêm</span>
+                                <span class="text-muted text-decoration-line-through">@((Model.PricePerNight *
+                                                                        Model.TotalNights * 1.15m).ToString("N0")) VND</span>
+                            </div>
+                        </div>
+
+                        <div class="final-price-row">
+                            <strong class="final-price">@(((Model.PricePerNight * Model.TotalNights) *
+                                                                1.1m).ToString("N0")) VND</strong>
+                        </div>
+                    </div>
+
+                    <!-- Continue Button -->
+                    <button type="submit" form="bookingForm" class="btn btn-primary btn-continue">
+                        Tiếp tục
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .booking-page {
+        background-color: #f5f7fa;
+        min-height: 100vh;
+    }
+
+    .stars i {
+        color: #FFB400;
+        font-size: 14px;
+    }
+
+    .rating-text {
+        color: #687176;
+        font-size: 14px;
+    }
+
+    .alert-banner {
+        background: #E3F2FD;
+        border: 1px solid #BBDEFB;
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+    }
+
+    .alert-icon {
+        width: 40px;
+        height: 40px;
+        margin-right: 12px;
+    }
+
+    .btn-link {
+        color: #0194F3;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .btn-link-info {
+        color: #0194F3;
+        text-decoration: none;
+    }
+
+    .booking-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-header {
+        background: white;
+        padding: 16px 20px;
+        border-bottom: 1px solid #E8EAED;
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+        font-size: 15px;
+    }
+
+    .card-header i {
+        font-size: 20px;
+        color: #0194F3;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    .form-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #1C1C1C;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        border: 1px solid #DFE1E6;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .form-control:focus {
+        border-color: #0194F3;
+        box-shadow: 0 0 0 3px rgba(1, 148, 243, 0.1);
+    }
+
+    .phone-input-group {
+        display: flex;
+        gap: 8px;
+    }
+
+    .country-code {
+        width: 100px;
+        border: 1px solid #DFE1E6;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .phone-input {
+        flex: 1;
+    }
+
+    .form-check-input:checked {
+        background-color: #0194F3;
+        border-color: #0194F3;
+    }
+
+    .policy-item {
+        display: flex;
+        align-items: start;
+        gap: 12px;
+        background: #F5F7FA;
+        padding: 16px;
+        border-radius: 8px;
+    }
+
+    .policy-icon {
+        font-size: 24px;
+        color: #FFB400;
+    }
+
+    .insurance-banner {
+        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .family-icon {
+        width: 60px;
+        height: 60px;
+    }
+
+    .summary-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        top: 20px;
+    }
+
+    .badge {
+        font-size: 11px;
+        padding: 4px 8px;
+        font-weight: 500;
+    }
+
+    .btn-link-small {
+        font-size: 13px;
+        color: #0194F3;
+        text-decoration: none;
+    }
+
+    .room-info-banner {
+        background: #F8F9FA;
+        padding: 16px;
+        border-radius: 8px;
+        border: 1px solid #E8EAED;
+    }
+
+    .booking-selection {
+        padding-bottom: 12px;
+        border-bottom: 1px solid #E8EAED;
+    }
+
+    .room-name {
+        font-size: 14px;
+        color: #1C1C1C;
+    }
+
+    .booking-dates {
+        margin-top: 12px;
+    }
+
+    .date-box {
+        padding: 8px;
+    }
+
+    .date-label {
+        font-size: 11px;
+        color: #687176;
+        margin-bottom: 4px;
+    }
+
+    .date-main {
+        font-weight: 600;
+        font-size: 12px;
+        color: #1C1C1C;
+        margin-bottom: 2px;
+    }
+
+    .date-year {
+        font-size: 11px;
+        color: #687176;
+        margin-bottom: 2px;
+    }
+
+    .date-time {
+        font-size: 11px;
+        color: #687176;
+    }
+
+    .nights-badge {
+        background: white;
+        border: 1px solid #E8EAED;
+        border-radius: 8px;
+        padding: 8px;
+        text-align: center;
+        font-size: 11px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .nights-badge i {
+        font-size: 16px;
+        color: #FFB400;
+    }
+
+    .room-details {
+        border-top: 1px solid #E8EAED;
+        padding-top: 12px;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: #3C3C3C;
+        margin-bottom: 8px;
+    }
+
+    .detail-item i {
+        font-size: 14px;
+        color: #687176;
+    }
+
+    .detail-item a {
+        font-size: 12px;
+    }
+
+    .info-note {
+        background: #E3F2FD;
+        padding: 12px;
+        border-radius: 8px;
+        display: flex;
+        gap: 8px;
+        align-items: start;
+    }
+
+    .price-section {
+        border-top: 1px solid #E8EAED;
+        padding-top: 16px;
+    }
+
+    .price-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .price-header i {
+        color: #0194F3;
+        font-size: 18px;
+    }
+
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 14px;
+        color: #687176;
+    }
+
+    .price-row.total {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #E8EAED;
+        font-weight: 600;
+        color: #1C1C1C;
+    }
+
+    .price-row.total-amount {
+        font-size: 13px;
+    }
+
+    .final-price {
+        text-align: right;
+        font-size: 24px;
+        font-weight: 700;
+        color: #FF6B35;
+        margin-top: 8px;
+    }
+
+    .btn-continue {
+        width: 100%;
+        background: #0194F3;
+        border: none;
+        border-radius: 8px;
+        padding: 14px;
+        font-size: 16px;
+        font-weight: 600;
+        margin-top: 20px;
+        transition: background 0.3s;
+    }
+
+    .btn-continue:hover {
+        background: #0176C7;
+    }
+
+    .price-header .btn-collapse {
+        border: none;
+        background: transparent;
+        padding: 4px;
+        line-height: 1;
+    }
+
+    .price-header .btn-collapse:focus {
+        outline: none;
+        box-shadow: none;
+    }
+
+    .price-header .btn-collapse i {
+        font-size: 18px;
+        color: #0194F3;
+    }
+
+    @@media (min-width: 992px) {
+        .sticky-top {
+            position: sticky;
+            z-index: 100;
+        }
+    }
+</style>
+
+<!-- Policy Modal -->
+<div class="modal fade" id="policyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Lưu ý quan trọng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item py-3">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-cup-hot text-warning me-3" style="font-size:20px"></i>
+                            <div>
+                                <div class="fw-bold mb-1">Bữa sáng</div>
+                                <div class="text-muted">Bữa sáng tại cơ sở lưu trú được phục vụ từ 06:30 đến 09:30.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="list-group-item py-3">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-slash-circle text-danger me-3" style="font-size:20px"></i>
+                            <div>
+                                <div class="fw-bold mb-1">Hút Thuốc</div>
+                                <div class="text-muted">Chỉ được phép hút thuốc trong khu vực chỉ định.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="list-group-item py-3">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-ban text-danger me-3" style="font-size:20px"></i>
+                            <div>
+                                <div class="fw-bold mb-1">Thú cưng</div>
+                                <div class="text-muted">Không được mang theo thú cưng.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="list-group-item py-3">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-info-circle text-primary me-3" style="font-size:20px"></i>
+                            <div>
+                                <div class="fw-bold mb-1">Chính Sách Bổ Sung</div>
+                                <div class="text-muted">
+                                    TRẺ EM TỪ 0 ĐẾN DƯỚI 6 TUỔI ĐƯỢC Ở MIỄN PHÍ TRÊN GIƯỜNG CÓ SẴN VỚI BỐ MẸ.<br />
+                                    TRẺ TỪ 6 TUỔI ĐẾN DƯỚI 11 TUỔI Ở CHUNG VỚI BỐ MẸ TRÊN GIƯỜNG CÓ SẴN VỚI PHỤ PHÍ
+                                    150.000 VND.<br />
+                                    TRẺ TỪ 11 TUỔI TRỞ LÊN ĐƯỢC CỘNG NHƯ NGƯỜI LỚN CÓ SET UP GIƯỜNG CÓ PHỤ VỚI PHÍ
+                                    300.000 VND.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('bookingForMyself').addEventListener('change', function () {
+            const fullNameInput = document.querySelector('input[name="FullName"]');
+            const guestNameInput = document.querySelector('input[name="GuestName"]');
+
+            if (this.checked && fullNameInput.value) {
+                guestNameInput.value = fullNameInput.value;
+            } else if (!this.checked) {
+                guestNameInput.value = '';
+            }
+        });
+
+        document.querySelector('input[name="FullName"]').addEventListener('input', function () {
+            const bookingForMyself = document.getElementById('bookingForMyself');
+            const guestNameInput = document.querySelector('input[name="GuestName"]');
+
+            if (bookingForMyself.checked) {
+                guestNameInput.value = this.value;
+            }
+        });
+    </script>
+}

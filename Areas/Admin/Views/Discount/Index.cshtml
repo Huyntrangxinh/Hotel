@@ -1,0 +1,53 @@
+@model IEnumerable<HotelBooking.Models.Discount>
+@{
+    ViewData["Title"] = "Mã ưu đãi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    @if (TempData["success"] != null)
+    {
+        <div class="alert alert-success">@TempData["success"]</div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">Mã ưu đãi</h2>
+        <a asp-area="Admin" asp-controller="Discount" asp-action="Create" class="btn btn-primary">+ Tạo mã</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Code</th>
+                    <th>Tiêu đề</th>
+                    <th>Giảm</th>
+                    <th>Thời gian</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in Model)
+                {
+                    <tr>
+                        <td><code>@d.Code</code></td>
+                        <td>@d.Title</td>
+                        <td>
+                            @if (d.DiscountPercent.HasValue)
+                            {
+                                @($"{d.DiscountPercent}%")
+                            }
+                            else if (d.DiscountAmount.HasValue)
+                            {
+                                @($"VND {d.DiscountAmount:N0}")
+                            }
+                        </td>
+                        <td>@d.StartDate?.ToString("yyyy-MM-dd") - @d.EndDate?.ToString("yyyy-MM-dd")</td>
+                        <td>@(d.IsActive ? "Hoạt động" : "Tắt")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

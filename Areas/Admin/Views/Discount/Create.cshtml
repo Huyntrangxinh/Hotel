@@ -1,0 +1,64 @@
+@model HotelBooking.Models.Discount
+@{
+    ViewData["Title"] = "Tạo mã ưu đãi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3">Tạo mã ưu đãi</h2>
+    <form asp-area="Admin" asp-controller="Discount" asp-action="Create" method="post">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label asp-for="Code" class="form-label">Mã</label>
+                <input asp-for="Code" class="form-control" placeholder="SUMMER20" />
+                <span asp-validation-for="Code" class="text-danger"></span>
+            </div>
+            <div class="col-md-8">
+                <label asp-for="Title" class="form-label">Tiêu đề</label>
+                <input asp-for="Title" class="form-control" placeholder="Ưu đãi mùa hè" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="col-md-12">
+                <label asp-for="Description" class="form-label">Mô tả</label>
+                <textarea asp-for="Description" class="form-control" rows="3"
+                    placeholder="Chi tiết ưu đãi..."></textarea>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="DiscountPercent" class="form-label">Giảm (%)</label>
+                <input asp-for="DiscountPercent" class="form-control" type="number" min="0" max="100" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="DiscountAmount" class="form-label">Giảm theo số tiền (VND)</label>
+                <input asp-for="DiscountAmount" class="form-control" type="number" min="0" step="1000" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="StartDate" class="form-label">Bắt đầu</label>
+                <input asp-for="StartDate" class="form-control" type="date" />
+            </div>
+            <div class="col-md-6">
+                <label asp-for="EndDate" class="form-label">Kết thúc</label>
+                <input asp-for="EndDate" class="form-control" type="date" />
+            </div>
+            <div class="col-md-8">
+                <label asp-for="ImageUrl" class="form-label">Ảnh banner (URL)</label>
+                <input asp-for="ImageUrl" class="form-control" placeholder="https://..." />
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <div class="form-check">
+                    <input asp-for="IsActive" class="form-check-input" />
+                    <label class="form-check-label" asp-for="IsActive">Hoạt động</label>
+                </div>
+            </div>
+        </div>
+        <div class="mt-3">
+            <button class="btn btn-primary" type="submit">Lưu</button>
+            <a asp-area="Admin" asp-controller="Discount" asp-action="Index"
+                class="btn btn-outline-secondary ms-2">Hủy</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

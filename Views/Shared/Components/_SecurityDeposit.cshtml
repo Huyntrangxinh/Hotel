@@ -1,0 +1,22 @@
+@model HotelBooking.ViewModels.Rooms.RoomCreateViewModel
+
+<section id="sec-security" class="tera-card mb-3">
+    <div class="section-head">
+        <h3 class="tera-title">Mức bảo hộ</h3>
+        <p class="tera-desc">Đặt mức giá tối thiểu cho phòng này. Thao tác này đảm bảo rằng phòng của bạn sẽ không được
+            bán với mức giá thấp hơn mức giá này sau khi đã áp dụng giảm giá, khuyến mãi.</p>
+    </div>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label form-label-lg mb-1">Mức giá tối thiểu</label>
+            <div class="input-group">
+                <span class="input-group-text">VND</span>
+                <input type="hidden" asp-for="SecurityDeposit" id="SecurityDeposit"
+                    value="@Model.SecurityDeposit?.ToString().Split('.')[0]" />
+                <input type="text" id="SecurityDepositDisplay" class="form-control form-control-sm"
+                    placeholder="Nhập giá" inputmode="numeric" autocomplete="off" />
+            </div>
+            <span class="text-danger small" asp-validation-for="SecurityDeposit"></span>
+        </div>
+    </div>
+</section>

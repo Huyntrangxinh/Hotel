@@ -1,0 +1,315 @@
+@model HotelBooking.ViewModels.PreviewViewModel
+
+@{
+    ViewData["Title"] = "Xem trước & Xác nhận đăng tải";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="container py-4 py-lg-5">
+    <!-- Header -->
+    <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 page-header">
+        <div>
+            <h1 style="font-size: 1.5rem;">Xem trước & Xác nhận đăng tải</h1>
+            <p class="mb-2 mb-md-0" style="font-size: 0.9rem;">Kiểm tra lại toàn bộ thông tin trước khi đăng tải lên Booking.com</p>
+        </div>
+        <div>
+            <a href="@Url.Action("PropertyData", "Partner", new { propertyId = Model.PropertyId })" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại
+            </a>
+        </div>
+    </header>
+
+    <!-- Success/Error Messages -->
+    @* Ẩn toàn bộ alert TempData theo yêu cầu *@
+
+    <!-- Property Information -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="h5"><i class="bi bi-building"></i>Thông tin khách sạn</h5>
+            <a href="@Url.Action("PropertyData", "Partner", new { propertyId = Model.PropertyId, tab = "property" })" class="btn-edit"><i class="bi bi-pencil me-1"></i>Chỉnh sửa</a>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-6 mb-3 mb-lg-0">
+                    <div class="info-label">Tên khách sạn</div>
+                    <p class="info-value">@Model.PropertyName</p>
+                </div>
+                <div class="col-lg-6">
+                    <div class="info-label">Đánh giá sao</div>
+                    <p class="info-value">@(Model.PropertyData?.StarRating?.ToString() ?? "Chưa đánh giá") sao</p>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-lg-6 mb-3 mb-lg-0">
+                    <div class="info-label">Địa chỉ</div>
+                    <p class="info-value">@(Model.PropertyData?.Property?.AddressLine ?? "Chưa cập nhật")</p>
+                </div>
+                <div class="col-lg-6">
+                    <div class="info-label">Số lượng phòng</div>
+                    <p class="info-value">@(Model.PropertyData?.NumberOfRooms?.ToString() ?? "Chưa cập nhật") phòng</p>
+                </div>
+            </div>
+             <div class="row mt-3">
+                <div class="col-12">
+                    <div class="info-label">Mô tả</div>
+                    <p class="info-value">@(Model.PropertyData?.RoomDescription ?? "Chưa cập nhật")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Room Types -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="h5"><i class="bi bi-door-open"></i>Loại phòng</h5>
+            <a href="@Url.Action("PropertyData", "Partner", new { propertyId = Model.PropertyId, tab = "rooms" })" class="btn-edit"><i class="bi bi-pencil me-1"></i>Chỉnh sửa</a>
+        </div>
+        <div class="card-body">
+            @if (Model.Rooms.Any())
+            {
+                <div class="row g-3">
+                    @foreach (var room in Model.Rooms)
+                    {
+                        <div class="col-md-6">
+                            <div class="item-card">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                     <h6 class="fw-bold mb-0">@room.Name</h6>
+                                     <span class="badge bg-light text-dark border">@room.RoomType</span>
+                                </div>
+                                <div class="small text-muted">
+                                    <div><i class="bi bi-rulers me-1"></i> @room.Size@room.SizeUnit</div>
+                                    <div><i class="bi bi-people me-1"></i> Sức chứa: @room.CapacityAdults người lớn</div>
+                                    @if (room.AllowChildren)
+                                    {
+                                        <div><i class="bi bi-check-circle me-1"></i> Cho phép trẻ em</div>
+                                    }
+                                    <div><i class="bi bi-house-door me-1"></i> Số lượng: @room.Quantity phòng</div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <i class="bi bi-door-open text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-2">Chưa có phòng nào được tạo</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Pricing -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="h5"><i class="bi bi-tags"></i>Giá phòng & Gói giá</h5>
+            <a href="@Url.Action("PropertyData", "Partner", new { propertyId = Model.PropertyId, tab = "pricing" })" class="btn-edit"><i class="bi bi-pencil me-1"></i>Chỉnh sửa</a>
+        </div>
+        <div class="card-body">
+            <!-- Price Package -->
+            @if (Model.PricePackage != null)
+            {
+                <h6 class="fw-bold mb-3">Gói giá áp dụng</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="item-card">
+                            <div class="fw-bold mb-1">@Model.PricePackage.CancellationPolicyDisplayName</div>
+                            <p class="small text-muted mb-0">
+                                @{
+                                    var policyDesc = Model.PricePackage.CancellationPolicy switch
+                                    {
+                                        "refund_1" => "Khách có thể được hoàn tiền cho đến 1 ngày trước ngày làm thủ tục nhận phòng (trước 14:00).",
+                                        "refund_3" => "Khách có thể được hoàn tiền cho đến 3 ngày trước ngày làm thủ tục nhận phòng (trước 14:00).",
+                                        "refund_7" => "Khách có thể được hoàn tiền cho đến 7 ngày trước ngày làm thủ tục nhận phòng (trước 14:00).",
+                                        _ => "Không thể hoàn tiền"
+                                    };
+                                }
+                                @policyDesc
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="item-card">
+                            <div class="fw-bold mb-1">Bữa ăn</div>
+                            <p class="small text-muted mb-0">@Model.PricePackage.BreakfastDisplayName bữa sáng</p>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Room Prices -->
+            <h6 class="fw-bold mb-3">Bảng giá theo phòng</h6>
+            @if (Model.RoomPrices.Any())
+            {
+                <div class="row g-3">
+                    @foreach (var room in Model.Rooms)
+                    {
+                        if (Model.RoomPrices.TryGetValue(room.Id, out var price))
+                        {
+                            <div class="col-md-6">
+                                <div class="item-card">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-semibold">@room.Name</div>
+                                            <div class="text-muted small">@room.RoomType</div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="price-display">@String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:N0}", price) VND</div>
+                                            <div class="text-muted small">/ đêm</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <i class="bi bi-currency-exchange text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-2">Chưa có giá phòng nào được thiết lập</p>
+                </div>
+            }
+        </div>
+    </div>
+
+     <!-- Publish Section -->
+     <div class="card text-center">
+         <div class="card-body" style="padding: 1rem;">
+             <h5 class="fw-bold mb-2" style="font-size: 1rem;">Sẵn sàng đăng tải lên Booking.com?</h5>
+             <p class="text-muted mb-3 mx-auto" style="max-width: 500px; font-size: 0.85rem;">Hãy kiểm tra lại toàn bộ thông tin trước khi đăng tải. Bạn có thể chỉnh sửa bất kỳ mục nào bằng cách nhấn nút "Chỉnh sửa" ở trên.</p>
+             
+             <form asp-action="Publish" method="post" class="d-inline">
+                 <input type="hidden" name="propertyId" value="@Model.PropertyId" />
+                 <button type="submit" class="btn btn-primary-solid">
+                     <i class="bi bi-check-circle me-2"></i>Hoàn tất & Đăng lên Booking.com
+                 </button>
+             </form>
+         </div>
+     </div>
+</div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    :root {
+        --primary-color: #003580; /* Booking.com primary blue */
+        --light-gray-bg: #f0f2f5;
+        --border-color: #e0e0e0;
+        --text-color-primary: #212529;
+        --text-color-secondary: #6c757d;
+    }
+
+    /* Header styles */
+    .page-header h1 {
+        font-weight: 700;
+        font-size: 1.75rem;
+    }
+    
+    .page-header p {
+        color: var(--text-color-secondary);
+    }
+
+    /* Card styles */
+    .card {
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1rem;
+    }
+
+    .card-header {
+        background-color: #fff;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .card-header .h5 {
+        font-weight: 600;
+        margin-bottom: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+    }
+    
+    .card-header .h5 i {
+        color: var(--primary-color);
+        font-size: 0.9rem;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+    
+    /* Form element styles */
+    .info-label {
+        font-weight: 500;
+        color: var(--text-color-secondary);
+        font-size: 0.8rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .info-value {
+        font-weight: 500;
+        font-size: 0.9rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    /* Content specific styles */
+    .item-card {
+        background-color: #f8f9fa;
+        border: 1px solid var(--border-color);
+        border-radius: 0.25rem;
+        padding: 0.75rem;
+        height: 100%;
+    }
+
+    .price-display {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    /* Button styles */
+    .btn-edit {
+        color: var(--primary-color);
+        font-weight: 600;
+        text-decoration: none;
+        font-size: 0.85rem;
+    }
+    
+    .btn-edit:hover {
+        text-decoration: underline;
+    }
+
+    .btn-primary-solid {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color: #fff;
+        font-weight: 600;
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
+    
+    .btn-primary-solid:hover {
+        background-color: #00225c;
+        border-color: #00225c;
+    }
+    
+    .btn-outline-secondary {
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+</style>
+

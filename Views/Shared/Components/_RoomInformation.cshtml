@@ -1,0 +1,33 @@
+@model HotelBooking.ViewModels.Rooms.RoomCreateViewModel
+
+<section id="sec-info" class="tera-card mb-3">
+    <div class="section-head">
+        <h3 class="tera-title">Thông tin phòng</h3>
+        <p class="tera-desc">Nêu rõ tên và loại phòng. Bạn có thể thay đổi cài đặt này sau trong TERA.</p>
+    </div>
+
+    <div class="row g-3 align-items-center">
+        <div class="col-md-3">
+            <label class="form-label form-label-lg mb-0">Loại phòng</label>
+        </div>
+        <div class="col-md-9">
+            <select asp-for="RoomType" class="form-select form-select-sm">
+                <option value="">Chọn loại phòng</option>
+                @foreach (var t in Model.RoomTypes)
+                {
+                    <option>@t</option>
+                }
+            </select>
+            <span class="text-danger small" asp-validation-for="RoomType"></span>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label form-label-lg mb-0">Tên phòng</label>
+        </div>
+        <div class="col-md-9">
+            <input asp-for="RoomName" class="form-control form-control-sm"
+                placeholder="Nhập tên phòng của bạn bằng ký tự chữ và số." />
+            <span class="text-danger small" asp-validation-for="RoomName"></span>
+        </div>
+    </div>
+</section>
