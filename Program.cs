@@ -3,6 +3,11 @@ using Microsoft.AspNetCore.Identity;
 using HotelBooking.Models;
 using HotelBooking.Data;
 using QuestPDF.Infrastructure; // Dòng này đã đúng vị trí
+using Microsoft.Extensions.Localization;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
+using HotelBooking.Services;
+using HotelBooking.Filters;
 
 namespace HotelBooking
 {
@@ -16,10 +21,37 @@ namespace HotelBooking
             QuestPDF.Settings.License = LicenseType.Community;
             
             // Add services to the container.
-            builder.Services.AddControllersWithViews();
+            builder.Services
+                .AddControllersWithViews(options =>
+                {
+                    options.Filters.Add<UserHasPropertiesFilter>();
+                })
+                .AddViewLocalization()
+                .AddDataAnnotationsLocalization();
             
             // Add HttpClient for OpenAI API
             builder.Services.AddHttpClient();
+            builder.Services.AddScoped<IBookingEmailService, BookingEmailService>();
+
+            // Add Localization services
+            builder.Services.AddLocalization();
+            builder.Services.Configure<RequestLocalizationOptions>(options =>
+            {
+                var supportedCultures = new[]
+                {
+                    new CultureInfo("vi-VN"),
+                    new CultureInfo("en-US")
+                };
+
+                options.DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture("vi-VN");
+                options.SupportedCultures = supportedCultures;
+                options.SupportedUICultures = supportedCultures;
+
+                // Thêm cookie provider
+                options.RequestCultureProviders.Clear();
+                options.RequestCultureProviders.Add(new Microsoft.AspNetCore.Localization.CookieRequestCultureProvider());
+                options.RequestCultureProviders.Add(new Microsoft.AspNetCore.Localization.QueryStringRequestCultureProvider());
+            });
 
             // Kết nối SQLite từ appsettings.json
             builder.Services.AddDbContext<ApplicationDbContext>(opt =>
@@ -83,6 +115,16 @@ namespace HotelBooking
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+
+            // Add Request Localization middleware - PHẢI ĐẶT TRƯỚC UseRouting()
+            app.UseRequestLocalization();
+            
+            // Add custom culture middleware
+            app.UseMiddleware<HotelBooking.Middleware.CultureMiddleware>();
+            
+            // Force set thread culture
+            CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("vi-VN");
+            CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo("vi-VN");
 
             app.UseRouting();
 

@@ -2,10 +2,36 @@
 
 @foreach (var p in Model.Properties)
 {
+    var photoUrl = Model.MainPhotoUrls.TryGetValue(p.Id, out var url)
+        ? url
+        : "/img/recent.jpg";
+    var minPrice = Model.MinPriceByProperty.ContainsKey(p.Id)
+        ? Model.MinPriceByProperty[p.Id]
+        : 0;
+    var propertyLink = Url.Action("Hotel", "Public", new
+    {
+        id = p.Id,
+        checkin = Model.Checkin?.ToString("yyyy-MM-dd"),
+        checkout = Model.Checkout?.ToString("yyyy-MM-dd"),
+        adults = ViewBag.SearchAdults,
+        children = ViewBag.SearchChildren,
+        rooms = ViewBag.SearchRooms
+    });
     <div class="hotel-card">
-        <div class="hotel-image"
-            style="background-image: url('@(Model.MainPhotoUrls.TryGetValue(p.Id, out var url) ? url : "/img/recent.jpg")');">
-            <button class="heart-btn">♡</button>
+        <div class="hotel-image" style="background-image: url('@photoUrl');">
+            <button class="heart-btn"
+                    type="button"
+                    aria-label="Yêu thích"
+                    data-property-id="@p.Id"
+                    data-property-name="@p.Name"
+                    data-property-city="@p.City"
+                    data-property-address="@p.AddressLine"
+                    data-property-price="@minPrice"
+                    data-property-image="@photoUrl"
+                    data-property-url="@propertyLink">
+                <i class="bi bi-heart"></i>
+                <i class="bi bi-heart-fill"></i>
+            </button>
         </div>
         <div class="hotel-details">
             <h2 class="hotel-name">@p.Name
@@ -60,8 +86,7 @@
                 <div class="price">VND @String.Format("{0:N0}", Model.MinPriceByProperty.ContainsKey(p.Id) ?
                                     Model.MinPriceByProperty[p.Id] : 0)</div>
             <div class="price-includes">+VND 469.000 thuế và phí</div>
-            <a class="book-btn"
-                href="@Url.Action("Hotel", "Public", new { id = p.Id, checkin = Model.Checkin?.ToString("yyyy-MM-dd"), checkout = Model.Checkout?.ToString("yyyy-MM-dd"), adults = ViewBag.SearchAdults, children = ViewBag.SearchChildren, rooms = ViewBag.SearchRooms })">Xem
+            <a class="book-btn" href="@propertyLink">Xem
                 chỗ trống</a>
         </div>
     </div>

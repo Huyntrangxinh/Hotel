@@ -3,8 +3,11 @@
 }
 @using Microsoft.AspNetCore.Identity
 @using HotelBooking.Models
+@using Microsoft.Extensions.Localization
+@using System.Text.Json
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
+@inject IStringLocalizer<SharedResource> Localizer
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -62,6 +65,89 @@
             border-radius: 3px;
             cursor: pointer;
             font-size: 14px;
+        }
+        
+        .booking-language-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: #003580;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+            padding: 0;
+        }
+        
+        .booking-language-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+        
+        .booking-language-btn img {
+            width: 22px;
+            height: 22px;
+            object-fit: cover;
+            border-radius: 50%;
+            display: block;
+        }
+        
+        .language-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .language-dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 120px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1000;
+            border-radius: 8px;
+            overflow: hidden;
+            top: 100%;
+            right: 0;
+            margin-top: 4px;
+        }
+        
+        .language-dropdown-content.show {
+            display: block;
+        }
+        
+        .language-option {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+        
+        .language-option:last-child {
+            border-bottom: none;
+        }
+        
+        .language-option:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .language-option img {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .language-option span {
+            font-size: 14px;
+            font-weight: 500;
         }
         
         .booking-user-info {
@@ -231,6 +317,25 @@
                         <a href="/" class="booking-logo">Booking.com</a>
                         <div class="booking-header-right">
                             <button class="booking-currency-selector">VND</button>
+                            <div class="language-dropdown">
+                                <button class="booking-language-btn" title="Đổi ngôn ngữ" onclick="toggleLanguageDropdown()">
+                                    <img src="~/img/vietnam.png" alt="Tiếng Việt" />
+                                </button>
+                                <div class="language-dropdown-content" id="languageDropdown">
+                                    <a href="#" class="language-option" onclick="selectLanguage('vietnam', 'Tiếng Việt')">
+                                        <img src="~/img/vietnam.png" alt="Tiếng Việt" />
+                                        <span>Tiếng Việt</span>
+                                    </a>
+                                    <a href="#" class="language-option" onclick="selectLanguage('england', 'English')">
+                                        <img src="~/img/england.png" alt="English" />
+                                        <span>English</span>
+                                    </a>
+                                    <a href="#" class="language-option" onclick="selectLanguage('china', '中文')">
+                                        <img src="~/img/china.png" alt="中文" />
+                                        <span>中文</span>
+                                    </a>
+                                </div>
+                            </div>
                             <button class="booking-help-btn">?</button>
                             @if (SignInManager.IsSignedIn(User))
                             {
@@ -241,14 +346,14 @@
                                 <div class="booking-user-info">
                                     <div class="booking-user-avatar">@initial</div>
                                     <span>@displayName</span>
-                                    <span style="font-size: 11px;">Genius Cấp 1</span>
+                                    <span style="font-size: 11px;">@Localizer["GeniusLevel1"]</span>
                                 </div>
                             }
                             else
                             {
                                 <div class="booking-user-info">
                                     <div class="booking-user-avatar">?</div>
-                                    <span>Đăng nhập</span>
+                                    <span>@Localizer["SignIn"]</span>
                                 </div>
                             }
                         </div>
@@ -257,12 +362,9 @@
                     <!-- Navigation -->
                     <nav>
                         <ul class="booking-nav-menu">
-                            <li><a href="/" class="booking-nav-item active">🛏️ Lưu trú</a></li>
-                            <li><a href="#" class="booking-nav-item">✈️ Chuyến bay</a></li>
-                            <li><a href="#" class="booking-nav-item">🚗 Chuyến bay + Khách sạn</a></li>
-                            <li><a href="#" class="booking-nav-item">🚗 Thuê xe</a></li>
-                            <li><a href="#" class="booking-nav-item">🎢 Hoạt động</a></li>
-                            <li><a href="#" class="booking-nav-item">🚕 Taxi sân bay</a></li>
+                            <li><a href="/" class="booking-nav-item active">🛏️ @Localizer["Accommodation"]</a></li>
+                            <li><a href="#" class="booking-nav-item">🎢 @Localizer["Activities"]</a></li>
+                            <li><a href="#" class="booking-nav-item">🚕 @Localizer["AirportTaxi"]</a></li>
                         </ul>
                     </nav>
                 </div>
@@ -284,12 +386,13 @@
                     <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
                         <a class="nav-link active" asp-area="" asp-controller="Home" asp-action="Index">
-                            <i class="bi bi-houses"></i> Lưu trú
+                            <i class="bi bi-houses"></i> @Localizer["Hotels"]
                         </a>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-airplane"></i> Chuyến bay</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-car-front"></i> Thuê xe</a></li>
-                         <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-question-circle"></i> Trợ giúp</a></li>
+                         <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-question-circle"></i> @Localizer["Help"]</a></li>
+                         <li class="nav-item">
+                             @await Html.PartialAsync("_LanguageSwitcher")
+                         </li>
 
                         @{
                             var isPartner = string.Equals(
@@ -310,7 +413,7 @@
                             <li class="nav-item">
                             <a class="nav-link host-post-link @(isPartner ? "active" : "")"
                                    asp-area="" asp-controller="Partner" asp-action="Index">
-                                    <i class="bi bi-building"></i> Đăng chỗ nghỉ của Quý vị
+                                    <i class="bi bi-building"></i> @Localizer["ListYourProperty"]
                                 </a>
                             </li>
                         }
@@ -328,17 +431,25 @@
                                 <span class="avatar-initial sm">@initial</span>
                                 <span class="d-none d-md-inline ms-2">
                                     <span class="fw-bold">@displayName</span>
-                                    <small class="d-block text-white-50">Genius Cấp 1</small>
+                                    <small class="d-block text-white-50">@Localizer["GeniusLevel1"]</small>
                                 </span>
                                 </a>
 
                                 <ul class="dropdown-menu dropdown-menu-end user-dropdown">
-                                    <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i> Tài khoản</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="bi bi-bag me-2"></i> Đặt chỗ & Chuyến đi</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-stars me-2"></i> Chương trình khách hàng thân thiết Genius</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-wallet2 me-2"></i> Tặng thưởng & Ví</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-people me-2"></i> Đánh giá</a></li>
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-heart me-2"></i> Đã lưu</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i> @Localizer["Account"]</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="bi bi-bag me-2"></i> @Localizer["BookingsAndTrips"]</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-stars me-2"></i> @Localizer["GeniusLoyaltyProgram"]</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-wallet2 me-2"></i> @Localizer["RewardsAndWallet"]</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-people me-2"></i> @Localizer["Reviews"]</a></li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center justify-content-between"
+                                       href="#"
+                                       data-bs-toggle="modal"
+                                       data-bs-target="#savedPropertiesModal">
+                                        <span><i class="bi bi-heart me-2"></i> @Localizer["Saved"]</span>
+                                        <span class="badge bg-secondary rounded-pill ms-2" data-saved-count style="display:none;">0</span>
+                                    </a>
+                                </li>
                                 
                                 <li><hr class="dropdown-divider" /></li>
 
@@ -354,12 +465,12 @@
                                 {
                                     <li>
                                         <a class="dropdown-item" asp-area="" asp-controller="Partner" asp-action="MyProperties">
-                                            <i class="bi bi-shop-window me-2"></i> Cơ sở lưu trú của bạn
+                                            <i class="bi bi-shop-window me-2"></i> @Localizer["YourProperties"]
                                         </a>
                                     </li>
                                     <li>
                                         <a class="dropdown-item" asp-area="" asp-controller="Partner" asp-action="GoToHub">
-                                            <i class="bi bi-kanban me-2"></i> Quản lý cơ sở lưu trú của bạn
+                                            <i class="bi bi-kanban me-2"></i> @Localizer["ManageYourProperties"]
                                         </a>
                                     </li>
                                 }
@@ -368,7 +479,7 @@
                                     <li>
                                         <form asp-area="" asp-controller="Account" asp-action="Logout" method="post">
                                             <button type="submit" class="dropdown-item text-danger">
-                                                <i class="bi bi-box-arrow-right me-2"></i> Đăng xuất
+                                                <i class="bi bi-box-arrow-right me-2"></i> @Localizer["LogOut"]
                                             </button>
                                         </form>
                                     </li>
@@ -409,10 +520,10 @@
                         else
                         {
                             <li class="nav-item me-2">
-                                <a asp-area="" asp-controller="Account" asp-action="Register" class="btn btn-light btn-sm ms-lg-3">Đăng ký</a>
+                                <a asp-area="" asp-controller="Account" asp-action="Register" class="btn btn-light btn-sm ms-lg-3">@Localizer["SignUp"]</a>
                             </li>
                             <li class="nav-item">
-                            <a asp-area="" asp-controller="Account" asp-action="Login" class="btn btn-outline-light btn-sm ms-lg-2">Đăng nhập</a>
+                            <a asp-area="" asp-controller="Account" asp-action="Login" class="btn btn-outline-light btn-sm ms-lg-2">@Localizer["SignIn"]</a>
                             </li>
                         }
                     </ul>
@@ -427,30 +538,73 @@
 
     <!-- Chatbot Widget -->
     <div id="chatbot-widget">
-        <div id="chatbot-button" class="chatbot-toggle" title="AI Assistant">
+        <div id="chatbot-button" class="chatbot-toggle" title="@Localizer["AIAssistant"]">
             <i class="bi bi-chat-dots"></i>
             <i class="bi bi-x-lg"></i>
         </div>
+        <div id="chatbot-nudge" class="chatbot-nudge" aria-hidden="true">@Localizer["NeedHelp"]</div>
         <div id="chatbot-panel" class="chatbot-panel">
-            <div class="chatbot-header">
-                <h6 class="mb-0">🤖 AI Assistant</h6>
-                <div class="chatbot-header-actions">
-                    <button id="chatbot-maximize" class="btn-icon" title="Toggle Fullscreen">
-                        <i class="bi bi-arrows-fullscreen"></i>
+            <!-- Chat History Sidebar -->
+            <div class="chatbot-sidebar">
+                <div class="sidebar-header">
+                    <button id="chatbot-new-chat" class="btn-new-chat">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>@Localizer["NewChat"]</span>
                     </button>
-                    <button id="chatbot-close" class="btn-icon" title="Close Chat">
-                       <i class="bi bi-x-lg"></i>
+                </div>
+                <div class="sidebar-content">
+                    <div id="chat-history-list" class="chat-history-list">
+                        <!-- Chat history items will be populated here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Chat Area -->
+            <div class="chatbot-main">
+                <div class="chatbot-header">
+                    <h6 class="mb-0">🤖 @Localizer["AIAssistant"]</h6>
+                    <div class="chatbot-header-actions">
+                        <button id="chatbot-clear" class="btn-icon" title="@Localizer["ClearChat"]">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        <button id="chatbot-maximize" class="btn-icon" title="@Localizer["ToggleFullscreen"]">
+                            <i class="bi bi-arrows-fullscreen"></i>
+                        </button>
+                        <button id="chatbot-close" class="btn-icon" title="@Localizer["CloseChat"]">
+                           <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="chatbot-messages" class="chatbot-messages">
+                    <div class="message bot-message"><div class="message-content">@Localizer["ChatWelcome"]</div></div>
+                </div>
+                <div class="chatbot-input">
+                    <input type="text" id="chatbot-input-field" placeholder="@Localizer["TypeMessage"]" maxlength="500">
+                    <button id="chatbot-send">
+                        <i class="bi bi-send-fill"></i>
                     </button>
                 </div>
             </div>
-            <div id="chatbot-messages" class="chatbot-messages">
-                <div class="message bot-message"><div class="message-content">Xin chào! Tôi có thể giúp bạn tìm khách sạn phù hợp. Bạn muốn đi đâu và khi nào?</div></div>
-            </div>
-            <div class="chatbot-input">
-                <input type="text" id="chatbot-input-field" placeholder="Type a message..." maxlength="500">
-                <button id="chatbot-send">
-                    <i class="bi bi-send-fill"></i>
-                </button>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="savedPropertiesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@Localizer["SavedProperties"]</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@Localizer["Close"]"></button>
+                </div>
+                <div class="modal-body" id="savedPropertiesContainer">
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-heart fs-3"></i>
+                        <p class="mb-0">@Localizer["NoSavedProperties"]</p>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-danger" id="clearSavedProperties">@Localizer["ClearAll"]</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@Localizer["Close"]</button>
+                </div>
             </div>
         </div>
     </div>
@@ -458,6 +612,194 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/chatbot.js" asp-append-version="true"></script>
+    
+    @{
+        var savedStrings = new
+        {
+            Empty = Localizer["NoSavedProperties"].Value,
+            View = Localizer["ViewAvailability"].Value,
+            Remove = Localizer["Remove"].Value,
+            ClearAll = Localizer["ClearAll"].Value,
+            PriceSuffix = " VND"
+        };
+    }
+    <script>
+        (function () {
+            const STORAGE_KEY = 'hb_saved_properties';
+            const strings = @Html.Raw(JsonSerializer.Serialize(savedStrings));
+
+            function readSaved() {
+                if (typeof window === 'undefined' || !window.localStorage) {
+                    return [];
+                }
+                try {
+                    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+                } catch (error) {
+                    console.warn('Cannot parse saved properties', error);
+                    return [];
+                }
+            }
+
+            function writeSaved(list) {
+                if (typeof window === 'undefined' || !window.localStorage) {
+                    return;
+                }
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+            }
+
+            function formatCurrency(value) {
+                if (!value || isNaN(value)) return '';
+                try {
+                    return new Intl.NumberFormat('vi-VN').format(value) + strings.PriceSuffix;
+                } catch {
+                    return value + strings.PriceSuffix;
+                }
+            }
+
+            function renderSavedList() {
+                const container = document.getElementById('savedPropertiesContainer');
+                if (!container) return;
+
+                const saved = readSaved();
+                if (!saved.length) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-heart fs-3"></i>
+                            <p class="mb-0">${strings.Empty}</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = saved.map(item => `
+                    <div class="saved-item border rounded p-3 mb-3 d-flex align-items-center gap-3">
+                        <img src="${item.image || '/img/recent.jpg'}" alt="${item.name || ''}" class="rounded" style="width:80px;height:80px;object-fit:cover;">
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold">${item.name || ''}</div>
+                            <div class="text-muted small">${item.city || ''}</div>
+                            <div class="text-muted small">${item.address || ''}</div>
+                            <div class="fw-semibold text-primary mt-1">${formatCurrency(item.price)}</div>
+                        </div>
+                        <div class="d-flex flex-column gap-2">
+                            <a class="btn btn-sm btn-primary" href="${item.url || '#'}">${strings.View}</a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-remove-saved="${item.id}">${strings.Remove}</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                container.querySelectorAll('[data-remove-saved]').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        removeSavedProperty(this.dataset.removeSaved);
+                    });
+                });
+            }
+
+            function removeSavedProperty(id) {
+                if (!id) return;
+                const saved = readSaved().filter(item => item.id !== id);
+                writeSaved(saved);
+                notifySavedChanged();
+            }
+
+            function clearSavedProperties() {
+                writeSaved([]);
+                notifySavedChanged();
+            }
+
+            function updateSavedBadge() {
+                const count = readSaved().length;
+                document.querySelectorAll('[data-saved-count]').forEach(badge => {
+                    if (count > 0) {
+                        badge.textContent = count;
+                        badge.style.display = 'inline-flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                });
+            }
+
+            function notifySavedChanged() {
+                window.dispatchEvent(new CustomEvent('savedPropertiesChanged'));
+            }
+
+            window.addEventListener('savedPropertiesChanged', function () {
+                renderSavedList();
+                updateSavedBadge();
+            });
+
+            document.addEventListener('DOMContentLoaded', function () {
+                renderSavedList();
+                updateSavedBadge();
+                const clearBtn = document.getElementById('clearSavedProperties');
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', function () {
+                        clearSavedProperties();
+                    });
+                }
+            });
+        })();
+    </script>
+    
+    <script>
+        function toggleLanguageDropdown() {
+            const dropdown1 = document.getElementById('languageDropdown');
+            const dropdown2 = document.getElementById('languageDropdown2');
+            
+            if (dropdown1) {
+                dropdown1.classList.toggle('show');
+            }
+            if (dropdown2) {
+                dropdown2.classList.toggle('show');
+            }
+        }
+        
+        function selectLanguage(flag, language) {
+            // Ngăn chặn hành vi mặc định của thẻ <a>
+            event.preventDefault();
+            
+            // Đóng dropdown
+            const dropdown1 = document.getElementById('languageDropdown');
+            const dropdown2 = document.getElementById('languageDropdown2');
+            
+            if (dropdown1) {
+                dropdown1.classList.remove('show');
+            }
+            if (dropdown2) {
+                dropdown2.classList.remove('show');
+            }
+            
+            // Cập nhật ảnh cờ hiện tại
+            const buttons = document.querySelectorAll('.booking-language-btn img');
+            const imgBase = '@Url.Content("~/img/")';
+            buttons.forEach(button => {
+                button.src = imgBase + flag + '.png';
+                button.alt = language;
+            });
+            
+            // Hiển thị thông báo (có thể thay bằng logic đổi ngôn ngữ thực tế)
+            alert(`Đã chọn ngôn ngữ: ${language}`);
+        }
+        
+        // Đóng dropdown khi click bên ngoài
+        document.addEventListener('click', function(event) {
+            const dropdowns = document.querySelectorAll('.language-dropdown-content');
+            const buttons = document.querySelectorAll('.booking-language-btn');
+            
+            let isClickInside = false;
+            buttons.forEach(button => {
+                if (button.contains(event.target)) {
+                    isClickInside = true;
+                }
+            });
+            
+            if (!isClickInside) {
+                dropdowns.forEach(dropdown => {
+                    dropdown.classList.remove('show');
+                });
+            }
+        });
+    </script>
     <script src="~/js/chatbot.js" asp-append-version="true"></script>
     
     <script>

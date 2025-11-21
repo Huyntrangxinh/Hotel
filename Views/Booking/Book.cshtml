@@ -1,6 +1,8 @@
 @model HotelBooking.ViewModels.BookingViewModel
+@using System.Text.Json
+@inject IStringLocalizer<SharedResource> Localizer
 @{
-    ViewData["Title"] = "Đặt phòng - " + Model.PropertyName;
+    ViewData["Title"] = Localizer["BookRoom"] + " - " + Model.PropertyName;
 }
 
 <div class="booking-page">
@@ -34,38 +36,44 @@
                     <input type="hidden" asp-for="TotalNights" />
                     <input type="hidden" asp-for="TotalPrice" />
 
+                    <!-- Discount fields -->
+                    <input type="hidden" asp-for="DiscountCode" id="discountCodeHidden" />
+                    <input type="hidden" asp-for="DiscountAmount" id="discountAmountHidden" />
+                    <input type="hidden" asp-for="DiscountPercentage" id="discountPercentageHidden" />
+
                     <!-- Contact Information Card -->
                     <div class="booking-card mb-3">
                         <div class="card-header">
                             <i class="bi bi-person-circle me-2"></i>
-                            <span>Liên hệ đặt chỗ</span>
+                            <span>@Localizer["ContactBooking"]</span>
                         </div>
                         <div class="card-body">
-                            <p class="text-muted small mb-3">Thêm liên hệ để nhận xác nhận đặt chỗ.</p>
+                            <p class="text-muted small mb-3">@Localizer["AddContactForConfirmation"]</p>
 
                             <div class="mb-3">
-                                <label class="form-label">Họ tên*</label>
+                                <label class="form-label">@Localizer["FullName"]*</label>
                                 <input asp-for="FullName" class="form-control"
-                                    placeholder="như trên CMND (không dấu)" />
+                                    placeholder="@Localizer["FullNamePlaceholder"]" />
                                 <span asp-validation-for="FullName" class="text-danger"></span>
                             </div>
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Điện thoại di động*</label>
+                                    <label class="form-label">@Localizer["MobilePhone"]*</label>
                                     <div class="phone-input-group">
                                         <select class="country-code">
                                             <option value="+84">🇻🇳 +84</option>
                                         </select>
                                         <input asp-for="PhoneNumber" class="form-control phone-input"
-                                            placeholder="VD: +84 8012345678 (Trong đó (+84) là mã quốc gia và 8012345678 là số di động" />
+                                            placeholder="@Localizer["PhonePlaceholder"]" />
                                     </div>
                                     <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                                 </div>
 
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Email*</label>
-                                    <input asp-for="Email" class="form-control" placeholder="VD: email@example.com" />
+                                    <label class="form-label">@Localizer["Email"]*</label>
+                                    <input asp-for="Email" class="form-control"
+                                        placeholder="@Localizer["EmailPlaceholder"]" />
                                     <span asp-validation-for="Email" class="text-danger"></span>
                                 </div>
                             </div>
@@ -73,7 +81,7 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="bookingForMyself" checked>
                                 <label class="form-check-label" for="bookingForMyself">
-                                    Tôi đặt chỗ cho chính mình
+                                    @Localizer["BookingForMyself"]
                                 </label>
                             </div>
                         </div>
@@ -83,16 +91,15 @@
                     <div class="booking-card mb-3">
                         <div class="card-header">
                             <i class="bi bi-people me-2"></i>
-                            <span>Thông tin khách hàng</span>
+                            <span>@Localizer["GuestInformation"]</span>
                         </div>
                         <div class="card-body">
-                            <p class="text-muted small mb-3">Vui lòng điền đầy đủ các thông tin để nhận xác nhận đơn
-                                hàng</p>
+                            <p class="text-muted small mb-3">@Localizer["FillCompleteInfo"]</p>
 
                             <div class="mb-3">
-                                <label class="form-label">Họ tên*</label>
+                                <label class="form-label">@Localizer["FullName"]*</label>
                                 <input asp-for="GuestName" class="form-control"
-                                    placeholder="như trên CMND (không dấu)" />
+                                    placeholder="@Localizer["FullNamePlaceholder"]" />
                                 <span asp-validation-for="GuestName" class="text-danger"></span>
                             </div>
                         </div>
@@ -102,13 +109,11 @@
                     <div class="booking-card mb-3">
                         <div class="card-header">
                             <i class="bi bi-chat-left-text me-2"></i>
-                            <span>Yêu cầu đặc biệt</span>
+                            <span>@Localizer["SpecialRequests"]</span>
                         </div>
                         <div class="card-body">
                             <p class="text-muted small mb-3">
-                                Bạn cần thêm giường phụ hoặc có yêu cầu đặc biệt? Gửi yêu cầu và khách sạn sẽ cố gắng
-                                đáp ứng nguyện vọng của bạn. (Xin lưu ý yêu cầu đặc biệt không được bảo đảm trước và có
-                                thể thu phí)
+                                @Localizer["SpecialRequestsDescription"]
                             </p>
 
                             <div class="row mb-3">
@@ -116,7 +121,7 @@
                                     <div class="form-check">
                                         <input asp-for="NonSmokingRoom" class="form-check-input" type="checkbox">
                                         <label asp-for="NonSmokingRoom" class="form-check-label">
-                                            Phòng không hút thuốc
+                                            @Localizer["NonSmokingRoom"]
                                         </label>
                                     </div>
                                 </div>
@@ -124,7 +129,7 @@
                                     <div class="form-check">
                                         <input asp-for="ConnectingRoom" class="form-check-input" type="checkbox">
                                         <label asp-for="ConnectingRoom" class="form-check-label">
-                                            Phòng liên thông
+                                            @Localizer["ConnectingRoom"]
                                         </label>
                                     </div>
                                 </div>
@@ -132,16 +137,16 @@
                                     <div class="form-check">
                                         <input asp-for="HighFloor" class="form-check-input" type="checkbox">
                                         <label asp-for="HighFloor" class="form-check-label">
-                                            Tầng lầu
+                                            @Localizer["HighFloor"]
                                         </label>
                                     </div>
                                 </div>
                             </div>
 
                             <div>
-                                <label class="form-label">Đọc tất cả</label>
+                                <label class="form-label">@Localizer["OtherRequests"]</label>
                                 <textarea asp-for="SpecialRequests" class="form-control" rows="3"
-                                    placeholder=""></textarea>
+                                    placeholder="@Localizer["SpecialRequestsPlaceholder"]"></textarea>
                             </div>
                         </div>
                     </div>
@@ -150,19 +155,18 @@
                     <div class="booking-card mb-3">
                         <div class="card-header">
                             <i class="bi bi-file-text me-2"></i>
-                            <span>Chính sách Chỗ ở</span>
+                            <span>@Localizer["AccommodationPolicy"]</span>
                             <a href="#" class="ms-auto text-primary" data-bs-toggle="modal"
                                 data-bs-target="#policyModal">
-                                Đọc tất cả
+                                @Localizer["ReadAll"]
                             </a>
                         </div>
                         <div class="card-body">
                             <div class="policy-item">
                                 <i class="bi bi-sun policy-icon"></i>
                                 <div>
-                                    <strong>Bữa sáng</strong>
-                                    <p class="mb-0 text-muted small">Bữa sáng tại cơ sở lưu trú được phục vụ từ 06:30
-                                        đến 09:30.</p>
+                                    <strong>@Localizer["Breakfast"]</strong>
+                                    <p class="mb-0 text-muted small">@Localizer["BreakfastDescription"]</p>
                                 </div>
                             </div>
                         </div>
@@ -172,7 +176,7 @@
                     <div class="insurance-banner mb-3">
                         <img src="/images/anhgiadinh.webp" alt="Gia đình du lịch" class="family-icon" />
                         <div>
-                            <h6 class="mb-1">Tạo nên những ký ức đáng nhớ với các hoạt động này!</h6>
+                            <h6 class="mb-1">@Localizer["CreateMemories"]</h6>
                         </div>
                     </div>
 
@@ -182,10 +186,9 @@
                             <div class="d-flex align-items-start">
                                 <input type="checkbox" class="form-check-input me-3 mt-1">
                                 <div class="flex-grow-1">
-                                    <strong>Bảo hiểm Du lịch Chubb - Hotel Protect</strong>
-                                    <p class="text-muted small mb-2">Bảo vệ kỹ nghỉ của Quý khách khi (a) ra đi họp, mất
-                                        đặt phòng khách sạn, và hơn thế nữa.</p>
-                                    <a href="#" class="text-primary small">Thông tin</a>
+                                    <strong>@Localizer["TravelInsurance"]</strong>
+                                    <p class="text-muted small mb-2">@Localizer["TravelInsuranceDescription"]</p>
+                                    <a href="#" class="text-primary small">@Localizer["Information"]</a>
                                 </div>
                                 <div class="text-end ms-3">
                                     <strong>VND43.500</strong>
@@ -198,10 +201,10 @@
                     <div class="form-check mb-4">
                         <input asp-for="AgreeToTerms" class="form-check-input" type="checkbox" required>
                         <label asp-for="AgreeToTerms" class="form-check-label small">
-                            Bằng cách tiến hành thanh toán, bạn đã đồng ý với
-                            <a href="#" class="text-primary">Điều khoản và Điều kiện</a>,
-                            <a href="#" class="text-primary">Chính sách Bảo mật</a>,
-                            và <a href="#" class="text-primary">Quy trình Hoàn tiền Lưu trú</a> của Traveloka.
+                            @Localizer["AgreeToTerms"]
+                            <a href="#" class="text-primary">@Localizer["TermsAndConditions"]</a>,
+                            <a href="#" class="text-primary">@Localizer["PrivacyPolicy"]</a>,
+                            và <a href="#" class="text-primary">@Localizer["RefundPolicy"]</a> của Traveloka.
                         </label>
                         <span asp-validation-for="AgreeToTerms" class="text-danger"></span>
                     </div>
@@ -223,26 +226,26 @@
                             <div class="row g-0">
                                 <div class="col-5">
                                     <div class="date-box">
-                                        <div class="date-label">Nhận phòng</div>
-                                        <div class="date-main">@Model.CheckIn.ToString("dddd, dd 'tháng' MM", new
-                                                                                        System.Globalization.CultureInfo("vi-VN"))</div>
+                                        <div class="date-label">@Localizer["CheckIn"]</div>
+                                        <div class="date-main">@Model.CheckIn.ToString("dddd, dd MMMM",
+                                                                                        System.Globalization.CultureInfo.CurrentCulture)</div>
                                         <div class="date-year">@Model.CheckIn.ToString("yyyy")</div>
-                                        <div class="date-time">Từ 14:00</div>
+                                        <div class="date-time">@Localizer["From"] 14:00</div>
                                     </div>
                                 </div>
                                 <div class="col-2 text-center d-flex align-items-center justify-content-center">
                                     <div class="nights-badge">
                                         <i class="bi bi-moon-fill"></i>
-                                        <span>@Model.TotalNights đêm</span>
+                                        <span>@Model.TotalNights @Localizer["Nights"]</span>
                                     </div>
                                 </div>
                                 <div class="col-5">
                                     <div class="date-box">
-                                        <div class="date-label">Trả phòng</div>
-                                        <div class="date-main">@Model.CheckOut.ToString("dddd, dd 'tháng' MM", new
-                                                                                        System.Globalization.CultureInfo("vi-VN"))</div>
+                                        <div class="date-label">@Localizer["CheckOut"]</div>
+                                        <div class="date-main">@Model.CheckOut.ToString("dddd, dd MMMM",
+                                                                                        System.Globalization.CultureInfo.CurrentCulture)</div>
                                         <div class="date-year">@Model.CheckOut.ToString("yyyy")</div>
-                                        <div class="date-time">Trước 12:00</div>
+                                        <div class="date-time">@Localizer["Before"] 12:00</div>
                                     </div>
                                 </div>
                             </div>
@@ -251,19 +254,20 @@
                         <div class="room-details mt-3">
                             <div class="detail-item">
                                 <i class="bi bi-people-fill"></i>
-                                <span>@Model.Guests khách, 1 trẻ em (8 tuổi)</span>
+                                <span>@Model.Guests @Localizer["Guests"], 1 @Localizer["Children"] (8
+                                    @Localizer["YearsOld"])</span>
                             </div>
                             <div class="detail-item">
                                 <i class="bi bi-info-circle-fill text-primary"></i>
-                                <a href="#" class="text-primary">Chi tiết phí trẻ em tại đây</a>
+                                <a href="#" class="text-primary">@Localizer["ChildFeeDetails"]</a>
                             </div>
                             <div class="detail-item">
                                 <i class="bi bi-shield-fill-check text-success"></i>
-                                <span>Đặt phòng này không được hoàn tiền.</span>
+                                <span>@Localizer["NonRefundable"]</span>
                             </div>
                             <div class="detail-item">
                                 <i class="bi bi-x-circle-fill text-muted"></i>
-                                <span>Non-reschedulable</span>
+                                <span>@Localizer["NonReschedulable"]</span>
                             </div>
                             <div class="detail-item mt-2">
                                 <span>💳 🏦</span>
@@ -274,8 +278,7 @@
                     <div class="info-note mb-3">
                         <i class="bi bi-info-circle text-primary"></i>
                         <small class="text-muted">
-                            Thuế và phí là do khách được Traveloka chuyển trả cho khách sạn. Mọi thắc mắc về thông tin
-                            khác liên quan đến thuế hoặc chi phí khác của Traveloka sẽ được giải đáp
+                            @Localizer["TaxAndFeesNote"]
                         </small>
                     </div>
 
@@ -283,7 +286,7 @@
                     <div class="price-section">
                         <div class="price-header mb-3">
                             <i class="bi bi-tag-fill"></i>
-                            <strong>Chi tiết giá</strong>
+                            <strong>@Localizer["PriceDetails"]</strong>
                             <button class="btn-collapse ms-auto" type="button" data-bs-toggle="collapse"
                                 data-bs-target="#priceDetails">
                                 <i class="bi bi-chevron-up"></i>
@@ -292,38 +295,57 @@
 
                         <div class="collapse show" id="priceDetails">
                             <div class="price-row">
-                                <span>Giá phòng</span>
+                                <span>@Localizer["RoomPrice"]</span>
                                 <span>@( (Model.PricePerNight * Model.TotalNights).ToString("N0") ) VND</span>
                             </div>
                             <div class="price-subtext">
-                                <span>(1x) @Model.RoomName (@Model.TotalNights đêm)</span>
+                                <span>(1x) @Model.RoomName (@Model.TotalNights @Localizer["Nights"])</span>
                             </div>
                             <div class="price-row mt-2">
-                                <span>Thuế và phí</span>
+                                <span>@Localizer["TaxAndFees"]</span>
                                 <span>@((Model.TotalPrice * 0.1m).ToString("N0")) VND</span>
+                            </div>
+
+                            <!-- Discount Code Section -->
+                            <div class="discount-section mt-3">
+                                <div class="d-flex gap-2">
+                                    <div class="flex-grow-1">
+                                        <input type="text" id="discountCode" class="form-control"
+                                            placeholder="@Localizer["EnterDiscountCode"]" maxlength="20">
+                                    </div>
+                                    <button type="button" id="applyDiscount"
+                                        class="btn btn-outline-primary">@Localizer["Apply"]</button>
+                                </div>
+                                <div id="discountMessage" class="mt-2 small"></div>
+                            </div>
+
+                            <!-- Discount Row (hidden by default) -->
+                            <div id="discountRow" class="price-row text-success" style="display: none;">
+                                <span>@Localizer["Discount"]</span>
+                                <span id="discountAmount">0 VND</span>
                             </div>
 
                             <div class="price-divider"></div>
 
                             <div class="price-row-total mb-2">
-                                <span>Tổng cộng</span>
+                                <span>@Localizer["Total"]</span>
                             </div>
                             <div class="price-breakdown mb-2">
-                                <span>1 phòng, @Model.TotalNights đêm</span>
+                                <span>1 @Localizer["Room"], @Model.TotalNights @Localizer["Nights"]</span>
                                 <span class="text-muted text-decoration-line-through">@((Model.PricePerNight *
-                                                                        Model.TotalNights * 1.15m).ToString("N0")) VND</span>
+                                                                        Model.TotalNights * 1.1m).ToString("N0")) VND</span>
                             </div>
                         </div>
 
                         <div class="final-price-row">
-                            <strong class="final-price">@(((Model.PricePerNight * Model.TotalNights) *
+                            <strong class="final-price" id="finalPrice">@(((Model.PricePerNight * Model.TotalNights) *
                                                                 1.1m).ToString("N0")) VND</strong>
                         </div>
                     </div>
 
                     <!-- Continue Button -->
                     <button type="submit" form="bookingForm" class="btn btn-primary btn-continue">
-                        Tiếp tục
+                        @Localizer["Continue"]
                     </button>
                 </div>
             </div>
@@ -739,6 +761,11 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
+        // Disable validation for SpecialRequests field
+        $(document).ready(function () {
+            $('textarea[name="SpecialRequests"]').removeAttr('data-val-required');
+            $('textarea[name="SpecialRequests"]').removeAttr('data-val');
+        });
         document.getElementById('bookingForMyself').addEventListener('change', function () {
             const fullNameInput = document.querySelector('input[name="FullName"]');
             const guestNameInput = document.querySelector('input[name="GuestName"]');
@@ -747,6 +774,150 @@
                 guestNameInput.value = fullNameInput.value;
             } else if (!this.checked) {
                 guestNameInput.value = '';
+            }
+        });
+
+        // Discount Code Functionality
+        @{
+                var localizedStrings = new
+                {
+                            pleaseEnterDiscountCode = Localizer["PleaseEnterDiscountCode"].Value,
+                            discountCodeApplied = Localizer["DiscountCodeApplied"].Value,
+                            invalidDiscountCode = Localizer["InvalidDiscountCode"].Value,
+                            apply = Localizer["Apply"].Value,
+                            applied = Localizer["Applied"].Value
+                };
+            }
+            const localizedStrings = @Html.Raw(JsonSerializer.Serialize(localizedStrings));
+
+        const discountCodes = {
+            'HOCHIMINH25': 25,
+            'CHINA25': 25,
+            '1010': 50,
+            'SUMMER20': 20,
+            'WELCOME10': 10,
+            'SAVE15': 15,
+            'TRAVEL30': 30
+        };
+
+        let originalPrice = @((Model.PricePerNight * Model.TotalNights * 1.1m).ToString("F2").Replace(",", "."));
+        let currentDiscount = 0;
+        let appliedCode = '';
+
+        document.getElementById('applyDiscount').addEventListener('click', function () {
+            console.log('Apply discount button clicked');
+            const code = document.getElementById('discountCode').value.trim().toUpperCase();
+            const messageDiv = document.getElementById('discountMessage');
+            const discountRow = document.getElementById('discountRow');
+            const discountAmount = document.getElementById('discountAmount');
+            const finalPrice = document.getElementById('finalPrice');
+
+            console.log('Code entered:', code);
+            console.log('Original price:', originalPrice);
+
+            if (!code) {
+                messageDiv.innerHTML = '<span class="text-danger">' + localizedStrings.pleaseEnterDiscountCode + '</span>';
+                return;
+            }
+
+            if (discountCodes[code]) {
+                const discountPercent = discountCodes[code];
+                currentDiscount = originalPrice * (discountPercent / 100);
+                appliedCode = code;
+
+                console.log('Discount percent:', discountPercent);
+                console.log('Discount amount:', currentDiscount);
+
+                // Show discount row
+                discountRow.style.display = 'flex';
+                discountAmount.textContent = `-${Math.round(currentDiscount).toLocaleString()} VND`;
+
+                // Update final price
+                const newPrice = originalPrice - currentDiscount;
+                finalPrice.textContent = `${Math.round(newPrice).toLocaleString()} VND`;
+
+                console.log('New price:', newPrice);
+
+                // Show success message
+                messageDiv.innerHTML = `<span class="text-success">${localizedStrings.discountCodeApplied.replace('{0}', discountPercent)}</span>`;
+
+                // Update button state but keep it clickable
+                this.textContent = localizedStrings.applied;
+                this.classList.remove('btn-outline-primary');
+                this.classList.add('btn-success');
+
+                // Update hidden fields for form submission
+                document.getElementById('discountCodeHidden').value = code;
+                document.getElementById('discountAmountHidden').value = currentDiscount;
+                document.getElementById('discountPercentageHidden').value = discountPercent;
+
+                // Update TotalPrice with discounted amount
+                document.querySelector('input[name="TotalPrice"]').value = newPrice;
+            } else {
+                messageDiv.innerHTML = '<span class="text-danger">' + localizedStrings.invalidDiscountCode + '</span>';
+            }
+        });
+
+        // Allow changing discount code
+        document.getElementById('discountCode').addEventListener('input', function () {
+            if (appliedCode && this.value.toUpperCase() !== appliedCode) {
+                // Reset discount
+                currentDiscount = 0;
+                appliedCode = '';
+
+                document.getElementById('discountRow').style.display = 'none';
+                document.getElementById('finalPrice').textContent = `${Math.round(originalPrice).toLocaleString()} VND`;
+                document.getElementById('discountMessage').innerHTML = '';
+
+                // Reset hidden fields
+                document.getElementById('discountCodeHidden').value = '';
+                document.getElementById('discountAmountHidden').value = '0';
+                document.getElementById('discountPercentageHidden').value = '0';
+                document.querySelector('input[name="TotalPrice"]').value = originalPrice;
+
+                // Reset button to allow new application
+                document.getElementById('applyDiscount').textContent = localizedStrings.apply;
+                document.getElementById('applyDiscount').classList.remove('btn-success');
+                document.getElementById('applyDiscount').classList.add('btn-outline-primary');
+            }
+        });
+
+        // Allow clicking apply button again to change discount
+        document.getElementById('applyDiscount').addEventListener('click', function () {
+            // If already applied, allow changing
+            if (this.textContent === localizedStrings.applied) {
+                this.textContent = localizedStrings.apply;
+                this.classList.remove('btn-success');
+                this.classList.add('btn-outline-primary');
+
+                // Clear current discount
+                currentDiscount = 0;
+                appliedCode = '';
+                document.getElementById('discountRow').style.display = 'none';
+                document.getElementById('finalPrice').textContent = `${Math.round(originalPrice).toLocaleString()} VND`;
+                document.getElementById('discountMessage').innerHTML = '';
+
+                // Re-apply the current code in the input
+                const currentCode = document.getElementById('discountCode').value.trim().toUpperCase();
+                if (currentCode && discountCodes[currentCode]) {
+                    // Apply the new code immediately
+                    const discountPercent = discountCodes[currentCode];
+                    currentDiscount = originalPrice * (discountPercent / 100);
+                    appliedCode = currentCode;
+
+                    document.getElementById('discountRow').style.display = 'flex';
+                    document.getElementById('discountAmount').textContent = `-${Math.round(currentDiscount).toLocaleString()} VND`;
+
+                    const newPrice = originalPrice - currentDiscount;
+                    document.getElementById('finalPrice').textContent = `${Math.round(newPrice).toLocaleString()} VND`;
+
+                    document.getElementById('discountMessage').innerHTML = `<span class="text-success">${localizedStrings.discountCodeApplied.replace('{0}', discountPercent)}</span>`;
+
+                    this.textContent = localizedStrings.applied;
+                    this.classList.remove('btn-outline-primary');
+                    this.classList.add('btn-success');
+                }
+                return;
             }
         });
 

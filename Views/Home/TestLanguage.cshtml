@@ -1,0 +1,74 @@
+@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = "Language Test";
+}
+
+<div class="container mt-5">
+    <h1>🌐 Language Test Page</h1>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Current Culture Info:</h3>
+            <p><strong>Current Culture:</strong> @System.Globalization.CultureInfo.CurrentCulture.Name</p>
+            <p><strong>Current UI Culture:</strong> @System.Globalization.CultureInfo.CurrentUICulture.Name</p>
+            <p><strong>Current Thread Culture:</strong> @Thread.CurrentThread.CurrentCulture.Name</p>
+        </div>
+
+        <div class="col-md-6">
+            <h3>Localized Strings:</h3>
+            <p><strong>Home:</strong> @Localizer["Home"]</p>
+            <p><strong>Hotels:</strong> @Localizer["Hotels"]</p>
+            <p><strong>Search:</strong> @Localizer["Search"]</p>
+            <p><strong>Language:</strong> @Localizer["Language"]</p>
+            <p><strong>HeroTitle:</strong> @Localizer["HeroTitle"]</p>
+            <p><strong>OffersTitle:</strong> @Localizer["OffersTitle"]</p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <h3>Cookie Information:</h3>
+            <div id="cookieInfo">
+                <p>Loading cookie information...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <h3>Quick Language Switch:</h3>
+            <a href="/Language/SetLanguage?culture=vi-VN&returnUrl=/Home/TestLanguage" class="btn btn-primary me-2">🇻🇳
+                Tiếng Việt</a>
+            <a href="/Language/SetLanguage?culture=en-US&returnUrl=/Home/TestLanguage" class="btn btn-success">🇺🇸
+                English</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Hiển thị thông tin cookie
+        const cookieInfo = document.getElementById('cookieInfo');
+        const cookies = document.cookie.split(';');
+        let cookieHtml = '<ul>';
+
+        cookies.forEach(cookie => {
+            if (cookie.trim()) {
+                cookieHtml += `<li><strong>${cookie.trim()}</strong></li>`;
+            }
+        });
+
+        cookieHtml += '</ul>';
+        cookieInfo.innerHTML = cookieHtml;
+
+        // Auto refresh sau 2 giây để test
+        setTimeout(() => {
+            location.reload();
+        }, 2000);
+    });
+</script>
+
+
+
+
+

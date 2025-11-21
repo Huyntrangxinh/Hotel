@@ -59,14 +59,7 @@ namespace HotelBooking.ViewModels.Rooms
             "Phòng Twin"
         };
         public List<string> BedTypes { get; set; } = new() { "Giường đơn", "Giường đôi", "Giường Twin", "Giường Queen", "Giường King" };
-        public Dictionary<string, string[]> AmenityGroups { get; set; } = new()
-        {
-            ["Tiện nghi tích hợp"] = new[] { "Ban công sân thượng", "Phòng thông nhau", "Hồ bơi riêng" },
-            ["Tiện nghi phòng"]      = new[] { "Điều hòa không khí", "Bàn làm việc", "Lò vi sóng", "Đồ ủi", "Tivi",
-                                              "Mini bar", "Máy sấy tóc", "Wifi", "Máy giặt", "Nhà tắm chung",
-                                              "Tủ lạnh", "Máy pha cà phê/trà" },
-            ["Phòng tắm"]            = new[] { "Đồ dùng vệ sinh", "Áo choàng tắm", "Bồn tắm", "Vòi sen", "Nhà tắm riêng", "Nước nóng" },
-        };
+        public Dictionary<string, string[]> AmenityGroups { get; set; } = new();
     }
 
     public class BedItem { [Required] public string Type { get; set; } = string.Empty; [Range(0.1, double.MaxValue)] public decimal Count { get; set; } public int BedroomIndex { get; set; } = 0; }

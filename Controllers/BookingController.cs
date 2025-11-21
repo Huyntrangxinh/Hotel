@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +9,7 @@ using HotelBooking.Data;
 using HotelBooking.Models;
 using HotelBooking.ViewModels;
 using Microsoft.AspNetCore.Identity;
+using HotelBooking.Services;
 
 namespace HotelBooking.Controllers
 {
@@ -15,11 +17,16 @@ namespace HotelBooking.Controllers
     {
         private readonly ApplicationDbContext _db;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IBookingEmailService _bookingEmailService;
 
-        public BookingController(ApplicationDbContext db, UserManager<ApplicationUser> userManager)
+        public BookingController(
+            ApplicationDbContext db,
+            UserManager<ApplicationUser> userManager,
+            IBookingEmailService bookingEmailService)
         {
             _db = db;
             _userManager = userManager;
+            _bookingEmailService = bookingEmailService;
         }
 
         [HttpGet]
@@ -95,16 +102,18 @@ namespace HotelBooking.Controllers
                 model.RoomPhotos = room?.Photos?.Select(p => p.Url).ToList() ?? new List<string>();
                 model.RoomAmenities = room?.Amenities?.Select(a => a.Name).ToList() ?? new List<string>();
                 model.TotalNights = Math.Max(1, (model.CheckOut - model.CheckIn).Days);
-                model.TotalPrice = model.PricePerNight * model.TotalNights;
+                model.TotalPrice = model.PricePerNight * model.TotalNights * 1.1m; // Include taxes and fees
                 return View(model);
             }
 
             var user = await _userManager.GetUserAsync(User);
+            
             var booking = new Booking
             {
                 PropertyId = model.PropertyId,
                 RoomId = model.RoomId,
-                UserId = user?.Id,
+                UserId = user?.Id ?? "guest", // Sử dụng "guest" nếu user chưa đăng nhập
+                BookingCode = GenerateBookingCode(),
                 FullName = model.FullName,
                 PhoneNumber = model.PhoneNumber,
                 Email = model.Email,
@@ -119,6 +128,9 @@ namespace HotelBooking.Controllers
                 PricePerNight = model.PricePerNight,
                 TotalNights = model.TotalNights,
                 TotalPrice = model.TotalPrice,
+                DiscountCode = model.DiscountCode ?? string.Empty,
+                DiscountAmount = model.DiscountAmount,
+                DiscountPercentage = model.DiscountPercentage,
                 Status = BookingStatus.Pending,
                 CreatedAt = DateTime.UtcNow
             };
@@ -126,14 +138,73 @@ namespace HotelBooking.Controllers
             _db.Bookings.Add(booking);
             await _db.SaveChangesAsync();
 
+            // Trừ số lượng phòng trong bảng Rooms
+            var roomToUpdate = await _db.Rooms.FirstOrDefaultAsync(r => r.Id == model.RoomId);
+            if (roomToUpdate != null && roomToUpdate.Quantity > 0)
+            {
+                roomToUpdate.Quantity -= 1; // Trừ đi 1 phòng
+                _db.Rooms.Update(roomToUpdate);
+                await _db.SaveChangesAsync();
+            }
+
             return RedirectToAction("Payment", new { bookingId = booking.Id });
         }
 
-        [HttpGet]
-        public IActionResult Success(string bookingId)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmPayment(int bookingId)
         {
-            ViewBag.BookingId = bookingId;
-            return View();
+            var booking = await _db.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
+            if (booking == null)
+            {
+                return RedirectToAction("Payment", new { bookingId });
+            }
+
+            if (booking.Status != BookingStatus.Confirmed)
+            {
+                booking.Status = BookingStatus.Confirmed;
+                _db.Bookings.Update(booking);
+                await _db.SaveChangesAsync();
+            }
+
+            if (!string.IsNullOrWhiteSpace(booking.Email))
+            {
+                var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == booking.PropertyId);
+                var room = await _db.Rooms.FirstOrDefaultAsync(r => r.Id == booking.RoomId);
+
+                await _bookingEmailService.SendBookingConfirmationAsync(new BookingConfirmationEmailModel
+                {
+                    Email = booking.Email,
+                    FullName = booking.FullName,
+                    GuestName = booking.GuestName,
+                    PhoneNumber = booking.PhoneNumber,
+                    BookingCode = booking.BookingCode,
+                    PropertyName = property?.Name ?? "Khách sạn",
+                    RoomName = room?.Name ?? "Phòng",
+                    CheckIn = booking.CheckIn,
+                    CheckOut = booking.CheckOut,
+                    TotalNights = booking.TotalNights,
+                    Guests = booking.Guests,
+                    TotalPrice = booking.TotalPrice
+                });
+            }
+
+            return RedirectToAction("Success", new { bookingId = booking.Id });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Success(string bookingId)
+        {
+            if (int.TryParse(bookingId, out int id))
+            {
+                var booking = await _db.Bookings.FirstOrDefaultAsync(b => b.Id == id);
+                if (booking != null)
+                {
+                    ViewBag.BookingId = booking.BookingCode;
+                    return View();
+                }
+            }
+            return NotFound();
         }
 
         [HttpGet]
@@ -154,7 +225,23 @@ namespace HotelBooking.Controllers
             ViewBag.CheckOut = booking.CheckOut;
             ViewBag.TotalNights = booking.TotalNights;
             ViewBag.Guests = booking.Guests;
-            ViewBag.TotalPrice = booking.TotalPrice;
+            
+            // Calculate final price with discount
+            var finalPrice = booking.TotalPrice;
+            var originalPrice = booking.TotalPrice;
+            
+            // If there's a discount, calculate original price and final price
+            if (!string.IsNullOrEmpty(booking.DiscountCode) && booking.DiscountAmount > 0)
+            {
+                originalPrice = booking.TotalPrice + booking.DiscountAmount;
+                finalPrice = booking.TotalPrice; // TotalPrice already contains the discounted amount
+            }
+            
+            ViewBag.TotalPrice = finalPrice;
+            ViewBag.OriginalPrice = originalPrice;
+            ViewBag.DiscountCode = booking.DiscountCode;
+            ViewBag.DiscountAmount = booking.DiscountAmount;
+            ViewBag.DiscountPercentage = booking.DiscountPercentage;
 
             // Contact details
             ViewBag.ContactFullName = booking.FullName;
@@ -176,6 +263,15 @@ namespace HotelBooking.Controllers
             ViewBag.BreakfastIncluded = pricePackage?.BreakfastIncluded ?? false;
             ViewBag.CancellationPolicyDisplayName = pricePackage?.CancellationPolicyDisplayName ?? "";
             return View();
+        }
+
+        private string GenerateBookingCode()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var random = new Random();
+            var result = new string(Enumerable.Repeat(chars, 8)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+            return result;
         }
     }
 }

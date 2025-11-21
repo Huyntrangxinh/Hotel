@@ -1,0 +1,70 @@
+@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = "Debug Language";
+}
+
+<div class="container mt-5">
+    <h1>🔍 Debug Language Page</h1>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Server Info:</h3>
+            <p><strong>Current Culture:</strong> @System.Globalization.CultureInfo.CurrentCulture.Name</p>
+            <p><strong>Current UI Culture:</strong> @System.Globalization.CultureInfo.CurrentUICulture.Name</p>
+            <p><strong>Thread Culture:</strong> @Thread.CurrentThread.CurrentCulture.Name</p>
+            <p><strong>Thread UI Culture:</strong> @Thread.CurrentThread.CurrentUICulture.Name</p>
+        </div>
+
+        <div class="col-md-6">
+            <h3>Localized Strings:</h3>
+            <p><strong>Home:</strong> "@Localizer["Home"]"</p>
+            <p><strong>Hotels:</strong> "@Localizer["Hotels"]"</p>
+            <p><strong>Search:</strong> "@Localizer["Search"]"</p>
+            <p><strong>Language:</strong> "@Localizer["Language"]"</p>
+            <p><strong>HeroTitle:</strong> "@Localizer["HeroTitle"]"</p>
+            <p><strong>OffersTitle:</strong> "@Localizer["OffersTitle"]"</p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <h3>Quick Test:</h3>
+            <a href="/Language/SetLanguage?culture=vi-VN&returnUrl=/Home/DebugLanguage"
+                class="btn btn-primary me-2">🇻🇳 Tiếng Việt</a>
+            <a href="/Language/SetLanguage?culture=en-US&returnUrl=/Home/DebugLanguage" class="btn btn-success">🇺🇸
+                English</a>
+            <a href="/Home/DebugLanguage" class="btn btn-info ms-2">🔄 Refresh</a>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <h3>Cookie Info:</h3>
+            <div id="cookieInfo">
+                <p>Loading...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const cookieInfo = document.getElementById('cookieInfo');
+        const cookies = document.cookie.split(';');
+        let html = '<ul>';
+
+        cookies.forEach(cookie => {
+            if (cookie.trim()) {
+                html += `<li><strong>${cookie.trim()}</strong></li>`;
+            }
+        });
+
+        html += '</ul>';
+        cookieInfo.innerHTML = html;
+    });
+</script>
+
+
+
+
+

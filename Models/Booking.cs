@@ -12,6 +12,7 @@ namespace HotelBooking.Models
     public class Booking
     {
         public int Id { get; set; }
+        public string BookingCode { get; set; }
 
         // Relations
         public int PropertyId { get; set; }
@@ -39,6 +40,11 @@ namespace HotelBooking.Models
         public decimal PricePerNight { get; set; }
         public int TotalNights { get; set; }
         public decimal TotalPrice { get; set; }
+        
+        // Discount information
+        public string? DiscountCode { get; set; }
+        public decimal DiscountAmount { get; set; }
+        public decimal DiscountPercentage { get; set; }
 
         // Meta
         public BookingStatus Status { get; set; } = BookingStatus.Pending;

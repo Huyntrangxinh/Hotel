@@ -1,11 +1,12 @@
 @model HotelBooking.ViewModels.Rooms.RoomCreateViewModel
+@inject IStringLocalizer<SharedResource> Localizer
 @{
-    ViewData["Title"] = "Dữ liệu phòng";
+    ViewData["Title"] = @Localizer["RoomData"];
 }
 <div class="container-xl ui-compact room-wizard" style="max-width:1100px;">
     <div class="d-flex align-items-start justify-content-between mb-3">
         <a href="@Url.Action("PropertyData", "Partner", new { propertyId = Model.PropertyId, tab = "rooms" })"
-            class="btn btn-link px-0 text-decoration-none mt-2">&larr; Quay lại</a>
+            class="btn btn-link px-0 text-decoration-none mt-2">&larr; @Localizer["GoBack"]</a>
     </div>
 
     <div class="row">
@@ -42,7 +43,7 @@
 
                 <div class="action-bar d-flex justify-content-end align-items-center no-bg">
                     <button type="submit" class="btn btn-primary px-4 py-2"
-                        style="font-size:16px; background-color: #FF5E20; border-color: #FF5E20;">Lưu</button>
+                        style="font-size:16px; background-color: #FF5E20; border-color: #FF5E20;">@Localizer["Save"]</button>
                 </div>
             </form>
         </div>

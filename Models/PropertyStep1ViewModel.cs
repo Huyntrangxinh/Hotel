@@ -22,10 +22,10 @@ public class PropertyStep1ViewModel
     [Display(Name = "Quốc gia"), Required, MaxLength(2)]
     public string CountryCode { get; set; } = "VN";
 
-    [Display(Name = "Thành phố / Tỉnh"), Required, MaxLength(120)]
+    [Display(Name = "Thành phố / Tỉnh"), Required(ErrorMessage = "Please Enter City"), MaxLength(120)]
     public string City { get; set; } = string.Empty;
 
-    [Display(Name = "Địa chỉ"), Required, MaxLength(200)]
+    [Display(Name = "Địa chỉ"), Required(ErrorMessage = "Please Enter Address"), MaxLength(200)]
     public string AddressLine { get; set; } = string.Empty;
 
     [Display(Name = "Mã bưu chính"), MaxLength(20)]
@@ -36,26 +36,26 @@ public class PropertyStep1ViewModel
     [Display(Name = "Mã quốc gia")]
     public string PropertyPhoneCountryCode { get; set; } = "+84";
 
-    [Display(Name = "Số điện thoại"), Required(ErrorMessage = "Vui lòng nhập số điện thoại cơ sở."), MaxLength(20)]
+    [Display(Name = "Số điện thoại"), Required(ErrorMessage = "Please Enter Property Phone"), MaxLength(20)]
     public string PropertyPhoneNumber { get; set; } = string.Empty;
 
     // --- Người phụ trách ---
-    [Display(Name = "Tên"), Required(ErrorMessage = "Vui lòng nhập tên."), MaxLength(100)]
+    [Display(Name = "Tên"), Required(ErrorMessage = "Please Enter First Name"), MaxLength(100)]
     public string PicFirstName { get; set; } = string.Empty;
 
-    [Display(Name = "Họ"), Required(ErrorMessage = "Vui lòng nhập họ."), MaxLength(100)]
+    [Display(Name = "Họ"), Required(ErrorMessage = "Please Enter Last Name"), MaxLength(100)]
     public string PicLastName { get; set; } = string.Empty;
 
-    [Display(Name = "Email"), Required(ErrorMessage = "Vui lòng nhập email."), EmailAddress, MaxLength(150)]
+    [Display(Name = "Email"), Required(ErrorMessage = "Please Enter Email"), EmailAddress, MaxLength(150)]
     public string PicEmail { get; set; } = string.Empty;
 
-    [Display(Name = "Vị trí"), Required(ErrorMessage = "Vui lòng chọn vị trí.")]
+    [Display(Name = "Vị trí"), Required(ErrorMessage = "Please Select Position")]
     public string PicPosition { get; set; } = string.Empty;
 
     [Display(Name = "Mã quốc gia")]
     public string PicPhoneCountryCode { get; set; } = "+84";
 
-    [Display(Name = "Số điện thoại"), Required(ErrorMessage = "Vui lòng nhập số điện thoại người phụ trách."), MaxLength(20)]
+    [Display(Name = "Số điện thoại"), Required(ErrorMessage = "Please Enter Contact Phone"), MaxLength(20)]
     public string PicPhoneNumber { get; set; } = string.Empty;
 
     // === KẾT THÚC CODE MỚI ===

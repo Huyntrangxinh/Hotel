@@ -9,6 +9,10 @@ using QuestPDF.Fluent;
 using HotelBooking.Documents;
 using HotelBooking.ViewModels.Rooms;
 using System.Text.Json;
+using Microsoft.Extensions.Localization;
+using HotelBooking.Resources;
+using System.Linq;
+using Microsoft.AspNetCore.Http;
 
 namespace HotelBooking.Controllers
 {
@@ -18,12 +22,14 @@ namespace HotelBooking.Controllers
         private readonly ApplicationDbContext _db;
         private readonly UserManager<ApplicationUser> _users;
         private readonly IWebHostEnvironment _hostEnvironment;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
-        public PartnerController(ApplicationDbContext db, UserManager<ApplicationUser> users, IWebHostEnvironment hostEnvironment)
+        public PartnerController(ApplicationDbContext db, UserManager<ApplicationUser> users, IWebHostEnvironment hostEnvironment, IStringLocalizer<SharedResource> localizer)
         {
             _db = db;
             _users = users;
             _hostEnvironment = hostEnvironment;
+            _localizer = localizer;
         }
 
         // Thêm method để set ViewBag.UserHasProperties
@@ -505,7 +511,7 @@ public async Task<IActionResult> GenerateContractPdf(int propertyId)
         SignatoryEmail = property.SignatoryEmail
     };
 
-    var document = new ContractDocument(reviewModel);
+    var document = new ContractDocument(reviewModel, _localizer);
     byte[] pdfBytes = document.GeneratePdf();
 
     return File(pdfBytes, "application/pdf");
@@ -537,13 +543,18 @@ public async Task<IActionResult> Finalize(int propertyId)
     return RedirectToAction(nameof(Success));
 }
 
-[Authorize(Roles = "Partner")] // Chỉ Partner mới vào được trang này
+// Bỏ yêu cầu role "Partner", chỉ cần kiểm tra người dùng có property hay không
 public async Task<IActionResult> MyProperties()
 {
-    await SetUserHasPropertiesAsync(); // Thêm dòng này
     var userId = _users.GetUserId(User);
+    if (string.IsNullOrEmpty(userId))
+    {
+        return RedirectToAction("Login", "Account", new { returnUrl = Url.Action(nameof(MyProperties), "Partner") });
+    }
     
-    // Thêm logging để debug
+    await SetUserHasPropertiesAsync();
+    
+    // Kiểm tra xem người dùng có property nào không
     var allProperties = await _db.Properties
         .Where(p => p.UserId == userId)
         .ToListAsync();
@@ -551,14 +562,7 @@ public async Task<IActionResult> MyProperties()
     var myProperties = allProperties
         .OrderByDescending(p => p.CreatedAt)
         .ToList();
-        
-    // Log để debug
-    Console.WriteLine($"User ID: {userId}");
-    Console.WriteLine($"Total properties found: {allProperties.Count}");
-    foreach (var prop in allProperties)
-    {
-        Console.WriteLine($"Property ID: {prop.Id}, Name: {prop.Name}, Status: {prop.Status}, Created: {prop.CreatedAt}");
-    }
+    
     // Load thumbnail ảnh đầu tiên cho mỗi property
     var propIds = myProperties.Select(p => p.Id).ToList();
     var thumbs = await _db.PropertyData
@@ -782,12 +786,18 @@ public async Task<IActionResult> Success()
 
         // Action để hiển thị và xử lý thông tin chi tiết property
         [HttpGet]
-        public async Task<IActionResult> PropertyData(int propertyId, string? tab = "property")
+        public async Task<IActionResult> PropertyData(int? propertyId, string? tab = "property")
         {
             var me = await _users.GetUserAsync(User);
             if (me == null) return RedirectToAction("Login", "Account");
 
             await SetUserHasPropertiesAsync();
+            
+            // Nếu không có propertyId, redirect về MyProperties
+            if (!propertyId.HasValue)
+            {
+                return RedirectToAction("MyProperties", "Partner");
+            }
             
             var property = await _db.Properties
                 .FirstOrDefaultAsync(p => p.Id == propertyId && p.UserId == me.Id);
@@ -1016,11 +1026,36 @@ public async Task<IActionResult> Success()
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> PropertyData(PropertyDataViewModel viewModel)
         {
+            Console.WriteLine("===DEBUG===photos");
+            Console.WriteLine($"PropertyId: {viewModel?.PropertyId}");
+            Console.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
+            Console.WriteLine($"Request.ContentType: {Request.ContentType}");
+            Console.WriteLine($"Request.Form.Count: {Request.Form.Count}");
+            Console.WriteLine($"Request.Form.Files.Count: {Request.Form.Files.Count}");
+            
+            // Log ModelState errors
+            if (!ModelState.IsValid)
+            {
+                Console.WriteLine("=== MODELSTATE ERRORS ===");
+                foreach (var error in ModelState)
+                {
+                    if (error.Value.Errors.Count > 0)
+                    {
+                        Console.WriteLine($"Key: {error.Key}");
+                        foreach (var err in error.Value.Errors)
+                        {
+                            Console.WriteLine($"  Error: {err.ErrorMessage}");
+                        }
+                    }
+                }
+            }
+            
             var me = await _users.GetUserAsync(User);
             if (me == null) return RedirectToAction("Login", "Account");
 
             if (!ModelState.IsValid)
             {
+                Console.WriteLine("❌ ModelState is invalid, returning View with errors");
                 await SetUserHasPropertiesAsync();
                 return View(viewModel);
             }
@@ -1075,11 +1110,7 @@ public async Task<IActionResult> Success()
             propertyData.HasLuggageStorage = viewModel.HasLuggageStorage;
             propertyData.HasAirportTransfer = viewModel.HasAirportTransfer;
 
-            // Lưu thông tin ảnh
-            if (!string.IsNullOrEmpty(viewModel.PhotoCategoriesJson))
-            {
-                propertyData.PhotoCategoriesJson = viewModel.PhotoCategoriesJson;
-            }
+            // Lưu thông tin ảnh - sẽ được cập nhật sau khi xử lý manifest
 
             // Debug: Log thông tin về files được upload
             Console.WriteLine($"=== DEBUG PHOTO UPLOAD ===");
@@ -1100,6 +1131,13 @@ public async Task<IActionResult> Success()
                 ? new List<string>()
                 : propertyData.PhotoPaths.Split('|', StringSplitOptions.RemoveEmptyEntries).ToList();
 
+            Console.WriteLine("=== List ảnh cũ (existing photos from DB) ===");
+            Console.WriteLine($"Count: {existingUrls.Count}");
+            for (int i = 0; i < existingUrls.Count; i++)
+            {
+                Console.WriteLine($"  Existing[{i}]: {existingUrls[i]}");
+            }
+
             var deletedUrls = new List<string>();
             try
             {
@@ -1110,18 +1148,34 @@ public async Task<IActionResult> Success()
             }
             catch { }
 
+            Console.WriteLine("=== List ảnh bị xóa (deleted photos) ===");
+            Console.WriteLine($"Count: {deletedUrls.Count}");
+            for (int i = 0; i < deletedUrls.Count; i++)
+            {
+                Console.WriteLine($"  Deleted[{i}]: {deletedUrls[i]}");
+            }
+
             // Xóa URL cũ (và có thể xóa file vật lý)
             if (deletedUrls.Count > 0)
             {
                 existingUrls = existingUrls.Where(u => !deletedUrls.Contains(u)).ToList();
             }
+            
+            Console.WriteLine($"=== Existing URLs after deletion: {existingUrls.Count} ===");
 
             // Build danh sách cuối cùng theo manifest
             var manifestItems = new List<(int? NewIndex, string? Url, string Category, int Order)>();
+            var categories = new List<string>();
             try
             {
                 var raw = string.IsNullOrWhiteSpace(viewModel.PhotoManifestJson) ? "[]" : viewModel.PhotoManifestJson;
+                Console.WriteLine($"=== Manifest JSON ===");
+                Console.WriteLine($"Raw manifest: {raw}");
+                
                 var dicts = System.Text.Json.JsonSerializer.Deserialize<List<System.Text.Json.Nodes.JsonObject>>(raw) ?? new();
+                Console.WriteLine($"=== Manifest Items (parsed) ===");
+                Console.WriteLine($"Count: {dicts.Count}");
+                
                 foreach (var d in dicts)
                 {
                     int order = d["order"]?.GetValue<int>() ?? 0;
@@ -1129,43 +1183,150 @@ public async Task<IActionResult> Success()
                     string? url = d["url"]?.GetValue<string>();
                     int? newIdx = d["newIndex"]?.GetValue<int?>();
                     manifestItems.Add((newIdx, url, category, order));
+                    
+                    if (newIdx.HasValue)
+                    {
+                        Console.WriteLine($"  Manifest[{order}]: NEW photo (newIndex={newIdx}, category={category})");
+                    }
+                    else if (!string.IsNullOrEmpty(url))
+                    {
+                        Console.WriteLine($"  Manifest[{order}]: EXISTING photo (url={url}, category={category})");
+                    }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing manifest: {ex.Message}");
+            }
 
             // Thư mục lưu file
             var wwwRootPath2 = _hostEnvironment.WebRootPath;
             var uploadsDir2 = Path.Combine(wwwRootPath2, "uploads", "properties", viewModel.PropertyId.ToString());
             Directory.CreateDirectory(uploadsDir2);
 
-            var finalUrls = new string[manifestItems.Count];
-            for (int i = 0; i < manifestItems.Count; i++)
+            // Tìm order lớn nhất để tạo mảng đủ lớn
+            var maxOrder = manifestItems.Any() ? manifestItems.Max(m => m.Order) : -1;
+            var finalUrls = new List<string>();
+            var finalCategories = new List<string>();
+
+            // Sắp xếp manifest theo order để xử lý đúng thứ tự
+            var sortedManifest = manifestItems.OrderBy(m => m.Order).ToList();
+            
+            // Debug: Log thông tin files nhận được từ cả model binding và Request.Form.Files
+            Console.WriteLine($"=== DEBUG PHOTO PROCESSING ===");
+            Console.WriteLine($"Total files from model binding: {viewModel.PropertyPhotos?.Count ?? 0}");
+            Console.WriteLine($"Total files from Request.Form.Files: {Request.Form.Files.Count}");
+            
+            // Lấy files trực tiếp từ Request.Form.Files thay vì dựa vào model binding
+            var allUploadedFiles = Request.Form.Files.Where(f => f.Name == "PropertyPhotos").ToList();
+            
+            Console.WriteLine("=== List ảnh mới (new photos received from client) ===");
+            Console.WriteLine($"Count from Request.Form.Files: {allUploadedFiles.Count}");
+            for (int i = 0; i < allUploadedFiles.Count; i++)
             {
-                var it = manifestItems[i];
-                if (!string.IsNullOrEmpty(it.Url))
+                var f = allUploadedFiles[i];
+                Console.WriteLine($"  New[{i}]: {f.FileName} (Size: {f.Length} bytes, ContentType: {f.ContentType})");
+            }
+            
+            Console.WriteLine($"Count from model binding: {viewModel.PropertyPhotos?.Count ?? 0}");
+            if (viewModel.PropertyPhotos != null)
+            {
+                for (int i = 0; i < viewModel.PropertyPhotos.Count; i++)
                 {
-                    // Ảnh cũ: giữ nguyên URL tại vị trí order
-                    finalUrls[it.Order] = it.Url!;
+                    var f = viewModel.PropertyPhotos[i];
+                    Console.WriteLine($"  ModelBinding[{i}]: {f?.FileName} (Size: {f?.Length} bytes, ContentType: {f?.ContentType})");
                 }
-                else if (it.NewIndex.HasValue)
+            }
+            
+            // Sử dụng files từ Request thay vì từ model binding nếu model binding không đúng
+            if (allUploadedFiles.Count > (viewModel.PropertyPhotos?.Count ?? 0))
+            {
+                Console.WriteLine($"⚠️ WARNING: Request has {allUploadedFiles.Count} files but model binding only has {viewModel.PropertyPhotos?.Count ?? 0}");
+                Console.WriteLine($"Using files from Request.Form.Files instead of model binding");
+            }
+            
+            if (viewModel.PropertyPhotos != null)
+            {
+                for (int i = 0; i < viewModel.PropertyPhotos.Count; i++)
                 {
-                    var file = (viewModel.PropertyPhotos ?? new List<IFormFile>()).ElementAtOrDefault(it.NewIndex.Value);
-                    if (file != null && file.Length > 0 && file.ContentType.StartsWith("image/"))
+                    var f = viewModel.PropertyPhotos[i];
+                    Console.WriteLine($"  Model File[{i}]: {f?.FileName} (Size: {f?.Length} bytes, ContentType: {f?.ContentType})");
+                }
+            }
+            Console.WriteLine($"Manifest items count: {manifestItems.Count}");
+            foreach (var m in sortedManifest)
+            {
+                Console.WriteLine($"  Manifest: Order={m.Order}, NewIndex={m.NewIndex}, Url={m.Url}, Category={m.Category}");
+            }
+            
+            for (int i = 0; i <= maxOrder; i++)
+            {
+                var it = sortedManifest.FirstOrDefault(m => m.Order == i);
+                if (it.Url != null || it.NewIndex.HasValue)
+                {
+                    if (!string.IsNullOrEmpty(it.Url))
                     {
-                        var fileName = Guid.NewGuid().ToString("N") + Path.GetExtension(file.FileName);
-                        var filePath = Path.Combine(uploadsDir2, fileName);
-                        using (var fs = new FileStream(filePath, FileMode.Create))
+                        // Ảnh cũ: giữ nguyên URL
+                        finalUrls.Add(it.Url);
+                        finalCategories.Add(it.Category);
+                        Console.WriteLine($"  Processed existing photo at order {i}: {it.Url}");
+                    }
+                    else if (it.NewIndex.HasValue)
+                    {
+                        // Sử dụng files từ Request.Form.Files thay vì model binding để đảm bảo lấy đúng tất cả files
+                        var fileList = allUploadedFiles.Count > 0 ? allUploadedFiles : (viewModel.PropertyPhotos ?? new List<IFormFile>());
+                        Console.WriteLine($"  Trying to get file at index {it.NewIndex.Value} from {fileList.Count} files (source: {(allUploadedFiles.Count > 0 ? "Request.Form.Files" : "Model binding")})");
+                        
+                        if (it.NewIndex.Value >= 0 && it.NewIndex.Value < fileList.Count)
                         {
-                            await file.CopyToAsync(fs);
+                            var file = fileList[it.NewIndex.Value];
+                            if (file != null && file.Length > 0 && file.ContentType.StartsWith("image/"))
+                            {
+                                var fileName = Guid.NewGuid().ToString("N") + Path.GetExtension(file.FileName);
+                                var filePath = Path.Combine(uploadsDir2, fileName);
+                                using (var fs = new FileStream(filePath, FileMode.Create))
+                                {
+                                    await file.CopyToAsync(fs);
+                                }
+                                var photoUrl = $"/uploads/properties/{viewModel.PropertyId}/{fileName}";
+                                finalUrls.Add(photoUrl);
+                                finalCategories.Add(it.Category);
+                                Console.WriteLine($"  ✅ Processed new photo at order {i} (index {it.NewIndex.Value}): {photoUrl}");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"  ❌ File at index {it.NewIndex.Value} is null or invalid");
+                            }
                         }
-                        finalUrls[it.Order] = $"/uploads/properties/{viewModel.PropertyId}/{fileName}";
+                        else
+                        {
+                            Console.WriteLine($"  ❌ Index {it.NewIndex.Value} is out of range (0-{fileList.Count - 1})");
+                            Console.WriteLine($"  Available files: {string.Join(", ", fileList.Select((f, idx) => $"[{idx}]{f.FileName}"))}");
+                        }
                     }
                 }
             }
+            
+            Console.WriteLine($"Final URLs count: {finalUrls.Count}");
+            Console.WriteLine($"Final Categories count: {finalCategories.Count}");
 
-            // Nếu không có manifest, giữ nguyên danh sách cũ
-            var merged = finalUrls.Any(u => !string.IsNullOrEmpty(u)) ? finalUrls.Where(u => !string.IsNullOrEmpty(u)) : existingUrls;
-            propertyData.PhotoPaths = string.Join('|', merged);
+            // Nếu có manifest, cập nhật theo manifest (kể cả khi rỗng - người dùng đã xóa hết ảnh)
+            if (!string.IsNullOrWhiteSpace(viewModel.PhotoManifestJson))
+            {
+                if (finalUrls.Any())
+                {
+                    propertyData.PhotoPaths = string.Join('|', finalUrls);
+                    propertyData.PhotoCategoriesJson = System.Text.Json.JsonSerializer.Serialize(finalCategories);
+                }
+                else
+                {
+                    // Manifest rỗng = người dùng đã xóa hết ảnh
+                    propertyData.PhotoPaths = string.Empty;
+                    propertyData.PhotoCategoriesJson = "[]";
+                    Console.WriteLine("Info: Manifest is empty, clearing all photos");
+                }
+            }
+            // Nếu không có manifest, giữ nguyên danh sách cũ (không thay đổi)
 
             propertyData.UpdatedAt = DateTime.UtcNow;
 
@@ -1230,7 +1391,37 @@ public async Task<IActionResult> Success()
                 PropertyId = propertyId,
                 RoomId = roomId ?? 0,
                 PropertyName = prop?.Name ?? $"Cơ sở lưu trú {propertyId}",
-                RegistrationNumber = $"REG-{propertyId:D6}"
+                RegistrationNumber = $"REG-{propertyId:D6}",
+                AmenityGroups = new Dictionary<string, string[]>
+                {
+                    [_localizer["IntegratedAmenities"].Value] = new[] { 
+                        _localizer["BalconyTerrace"].Value, 
+                        _localizer["ConnectingRooms"].Value, 
+                        _localizer["PrivatePool"].Value 
+                    },
+                    [_localizer["RoomAmenities"].Value] = new[] { 
+                        _localizer["AirConditioning"].Value, 
+                        _localizer["Desk"].Value, 
+                        _localizer["Microwave"].Value, 
+                        _localizer["IroningFacilities"].Value, 
+                        _localizer["TV"].Value,
+                        _localizer["Minibar"].Value, 
+                        _localizer["HairDryer"].Value, 
+                        _localizer["Wifi"].Value, 
+                        _localizer["WashingMachine"].Value, 
+                        _localizer["SharedBathroom"].Value,
+                        _localizer["Refrigerator"].Value, 
+                        _localizer["CoffeeTeaMaker"].Value 
+                    },
+                    [_localizer["Bathroom"].Value] = new[] { 
+                        _localizer["Toiletries"].Value, 
+                        _localizer["Bathrobe"].Value, 
+                        _localizer["Bathtub"].Value, 
+                        _localizer["Shower"].Value, 
+                        _localizer["PrivateBathroom"].Value, 
+                        _localizer["HotWater"].Value 
+                    }
+                }
             };
             return View(vm);
         }
@@ -1839,12 +2030,111 @@ public async Task<IActionResult> Success()
             var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == propertyId && p.UserId == meId);
             if (property == null) return NotFound();
 
+            // Lấy danh sách booking cho property này với thông tin phòng
+            var bookings = await _db.Bookings
+                .Where(b => b.PropertyId == propertyId)
+                .OrderByDescending(b => b.CreatedAt)
+                .ToListAsync();
+
+            // Lấy thông tin phòng cho mỗi booking
+            var bookingWithRooms = new List<dynamic>();
+            foreach (var booking in bookings)
+            {
+                var room = await _db.Rooms.FirstOrDefaultAsync(r => r.Id == booking.RoomId);
+                bookingWithRooms.Add(new
+                {
+                    Booking = booking,
+                    RoomName = room?.Name ?? "Phòng không xác định"
+                });
+            }
+
+            // Lấy booking gần đây (30 ngày qua) để hiển thị trong phần "Đặt phòng" - chỉ 5 booking gần nhất
+            var recentBookings = bookingWithRooms
+                .Where(b => b.Booking.CreatedAt >= DateTime.Today.AddDays(-30))
+                .GroupBy(b => b.Booking.Id) // Nhóm theo Booking ID để tránh trùng lặp
+                .Select(g => g.First()) // Lấy booking đầu tiên trong mỗi nhóm
+                .OrderByDescending(b => b.Booking.CreatedAt) // Sắp xếp theo ngày tạo mới nhất
+                .Take(5) // Chỉ lấy 5 booking gần nhất
+                .ToList();
+
+            // Tính toán thống kê (30 ngày qua)
+            var last30Days = DateTime.Today.AddDays(-30);
+            var recentBookingsForStats = bookings.Where(b => b.CreatedAt >= last30Days).ToList();
+            
+            // Tính doanh thu sau khi trừ hoa hồng Booking.com (20%)
+            var totalRevenue = recentBookingsForStats.Sum(b => b.TotalPrice * 0.8m); // 80% sau khi trừ 20% hoa hồng
+            var averageDailyRate = recentBookingsForStats.Any() ? recentBookingsForStats.Average(b => b.PricePerNight) : 0;
+            var cancellationRate = recentBookingsForStats.Any() ? (recentBookingsForStats.Count(b => b.Status == BookingStatus.Cancelled) * 100.0 / recentBookingsForStats.Count) : 0;
+            var totalNights = recentBookingsForStats.Sum(b => b.TotalNights);
+            
+            // Dữ liệu cho biểu đồ (7 ngày qua) - trừ hoa hồng
+            var chartData = new List<object>();
+            for (int i = 6; i >= 0; i--)
+            {
+                var date = DateTime.Today.AddDays(-i);
+                var dayBookings = bookings.Where(b => b.CreatedAt.Date == date.Date).ToList();
+                var dayRevenue = dayBookings.Sum(b => b.TotalPrice * 0.8m); // Trừ 20% hoa hồng
+                var dayBookingsCount = dayBookings.Count;
+                
+                chartData.Add(new
+                {
+                    Date = date.ToString("dd/MM"),
+                    Revenue = dayRevenue,
+                    Bookings = dayBookingsCount
+                });
+            }
+
             ViewBag.Property = property;
             ViewBag.RoomCount = await _db.Rooms.CountAsync(r => r.PropertyId == propertyId);
             ViewBag.HasPricePackage = await _db.PricePackages.AnyAsync(p => p.PropertyId == propertyId);
             ViewBag.HasRoomPrices = await _db.RoomPrices.AnyAsync(p => p.PropertyId == propertyId);
+            
+            // Dữ liệu booking
+            ViewBag.RecentBookings = recentBookings;
+            ViewBag.TotalRevenue = totalRevenue;
+            ViewBag.AverageDailyRate = averageDailyRate;
+            ViewBag.CancellationRate = cancellationRate;
+            ViewBag.TotalNights = totalNights;
+            ViewBag.ChartData = chartData;
+            
             return View("PropertyHub");
         }
+
+        [HttpGet]
+        public async Task<IActionResult> AllBookings(int propertyId)
+        {
+            await SetUserHasPropertiesAsync();
+            var meId = _users.GetUserId(User);
+
+            // Kiểm tra quyền truy cập
+            var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == propertyId && p.UserId == meId);
+            if (property == null) return NotFound();
+
+            // Lấy tất cả booking cho property này với thông tin phòng
+            var bookings = await _db.Bookings
+                .Where(b => b.PropertyId == propertyId)
+                .OrderByDescending(b => b.CreatedAt)
+                .ToListAsync();
+
+            // Lấy thông tin phòng cho mỗi booking
+            var bookingWithRooms = new List<dynamic>();
+            foreach (var booking in bookings)
+            {
+                var room = await _db.Rooms.FirstOrDefaultAsync(r => r.Id == booking.RoomId);
+                
+                bookingWithRooms.Add(new
+                {
+                    Booking = booking,
+                    RoomName = room?.Name ?? "Phòng không xác định"
+                });
+            }
+
+            ViewBag.Property = property;
+            ViewBag.Bookings = bookingWithRooms;
+            
+            return View();
+        }
+
 
         // Shortcut from global nav: tự chọn property gần nhất và chuyển tới Hub
         [HttpGet]
@@ -1899,10 +2189,24 @@ public async Task<IActionResult> Success()
             ViewBag.Month = m;
             ViewBag.PropertyName = property.Name;
 
-            // Rooms for sidebar/rows
+            // Rooms for sidebar/rows with remaining count
             var rooms = await _db.Rooms.Where(r => r.PropertyId == propertyId)
                                         .OrderBy(r => r.Name)
                                         .ToListAsync();
+            
+            // Calculate remaining rooms for each room type
+            var roomQuantities = new Dictionary<int, (int Original, int Remaining)>();
+            foreach (var room in rooms)
+            {
+                var bookedCount = await _db.Bookings
+                    .Where(b => b.RoomId == room.Id && b.Status != BookingStatus.Cancelled)
+                    .CountAsync();
+                var originalQuantity = room.Quantity;
+                var remainingQuantity = originalQuantity - bookedCount;
+                roomQuantities[room.Id] = (originalQuantity, remainingQuantity);
+            }
+            
+            ViewBag.RoomQuantities = roomQuantities;
             return View("Calendar", rooms);
         }
 
@@ -1918,8 +2222,31 @@ public async Task<IActionResult> Success()
 
             var rooms = await _db.Rooms.Where(r => r.PropertyId == propertyId)
                                         .OrderBy(r => r.Name)
-                                        .Select(r => new { r.Id, r.Name })
+                                        .Select(r => new { r.Id, r.Name, r.Quantity })
                                         .ToListAsync();
+
+            // Calculate remaining rooms for each room type
+            var roomQuantities = new Dictionary<int, object>();
+            foreach (var room in rooms)
+            {
+                // Get all bookings for this room
+                var allBookings = await _db.Bookings
+                    .Where(b => b.RoomId == room.Id)
+                    .ToListAsync();
+                
+                var bookedCount = allBookings
+                    .Where(b => b.Status != BookingStatus.Cancelled)
+                    .Count();
+                
+                var originalQuantity = room.Quantity;
+                var remainingQuantity = originalQuantity - bookedCount;
+                
+                // Debug log
+                Console.WriteLine($"Room {room.Id} ({room.Name}): Original={originalQuantity}, Booked={bookedCount}, Remaining={remainingQuantity}");
+                Console.WriteLine($"All bookings for room {room.Id}: {string.Join(", ", allBookings.Select(b => $"ID:{b.Id}, Status:{b.Status}"))}");
+                
+                roomQuantities[room.Id] = new { original = originalQuantity, remaining = remainingQuantity };
+            }
 
             var rates = await _db.RoomDailyRates
                 .Where(x => x.PropertyId == propertyId && x.Date >= start && x.Date < end)
@@ -1938,7 +2265,7 @@ public async Task<IActionResult> Success()
                 .Where(p => p.PropertyId == propertyId)
                 .ToDictionaryAsync(p => p.RoomId, p => p.Amount);
 
-            return Json(new { rooms, rates, basePrices });
+            return Json(new { rooms, rates, basePrices, roomQuantities });
         }
 
         public class RateUpdateRequest
@@ -1991,6 +2318,32 @@ public async Task<IActionResult> Success()
 
             await _db.SaveChangesAsync();
             return Ok(new { success = true });
+        }
+
+        // Xem chi tiết booking
+        [HttpGet]
+        public async Task<IActionResult> BookingDetails(string bookingCode)
+        {
+            await SetUserHasPropertiesAsync();
+            var meId = _users.GetUserId(User);
+            
+            var booking = await _db.Bookings
+                .FirstOrDefaultAsync(b => b.BookingCode == bookingCode && b.PropertyId > 0);
+            
+            if (booking == null) return NotFound();
+            
+            // Kiểm tra quyền truy cập
+            var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == booking.PropertyId && p.UserId == meId);
+            if (property == null) return NotFound();
+            
+            // Lấy thông tin phòng
+            var room = await _db.Rooms.FirstOrDefaultAsync(r => r.Id == booking.RoomId);
+            
+            ViewBag.Booking = booking;
+            ViewBag.Room = room;
+            ViewBag.Property = property;
+            
+            return View();
         }
     }
 }

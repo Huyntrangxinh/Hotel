@@ -1,5 +1,7 @@
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
 @{
-    ViewData["Title"] = "Thanh toán";
+    ViewData["Title"] = Localizer["Payment"];
     var bookingId = ViewBag.BookingId?.ToString();
     DateTime? ci = ViewBag.CheckIn;
     DateTime? co = ViewBag.CheckOut;
@@ -11,41 +13,186 @@
     <div class="row g-4">
         <div class="col-lg-8">
             <div class="card p-3">
-                <h5 class="mb-3">Bạn muốn thanh toán thế nào?</h5>
+                <h5 class="mb-3">@Localizer["HowDoYouWantToPay"]</h5>
                 <div class="list-group">
-                    <a class="list-group-item list-group-item-action active" href="#">VietQR</a>
-                    <a class="list-group-item list-group-item-action" href="#">Ngân hàng di động</a>
-                    <a class="list-group-item list-group-item-action" href="#">Tại cửa hàng</a>
-                    <a class="list-group-item list-group-item-action" href="#">Thẻ thanh toán</a>
+                    <a class="list-group-item list-group-item-action payment-option active" data-payment="vietqr"
+                        href="#">VietQR</a>
+                    <a class="list-group-item list-group-item-action payment-option" data-payment="mobile"
+                        href="#">@Localizer["MobileBanking"]</a>
+                    <a class="list-group-item list-group-item-action payment-option" data-payment="store"
+                        href="#">@Localizer["AtTheStore"]</a>
+                    <a class="list-group-item list-group-item-action payment-option" data-payment="card"
+                        href="#">@Localizer["PaymentCard"]</a>
+                </div>
+
+                <!-- QR Code Section (hidden by default) -->
+                <div id="qr-section" class="mt-3" style="display: none;">
+                    <div class="card p-3 text-center">
+                        <h6 class="mb-3">@Localizer["ScanQRCodeToPay"]</h6>
+                        <div class="mb-3">
+                            <img id="qr-code" src="" alt="QR Code" class="img-fluid" style="max-width: 200px;">
+                        </div>
+                        <div class="small text-muted">
+                            <p>@Localizer["OpenBankingAppAndScanQR"]</p>
+                            <p class="mb-0">@Localizer["Amount"]: <strong>@string.Format("{0:N0} VND", total)</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Banking Section (hidden by default) -->
+                <div id="mobile-section" class="mt-3" style="display: none;">
+                    <div class="card p-3">
+                        <h6 class="mb-3">@Localizer["MobileBankingInformation"]</h6>
+                        <form>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">@Localizer["Bank"]</label>
+                                    <select class="form-select" required>
+                                        <option value="">@Localizer["SelectBank"]</option>
+                                        <option value="vietcombank">Vietcombank</option>
+                                        <option value="bidv">BIDV</option>
+                                        <option value="agribank">Agribank</option>
+                                        <option value="techcombank">Techcombank</option>
+                                        <option value="mbbank">MB Bank</option>
+                                        <option value="vietinbank">VietinBank</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">@Localizer["AccountNumber"]</label>
+                                    <input type="text" class="form-control"
+                                        placeholder="@Localizer["EnterAccountNumber"]" required>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">@Localizer["AccountHolderName"]</label>
+                                    <input type="text" class="form-control"
+                                        placeholder="@Localizer["EnterAccountHolderName"]" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">@Localizer["AmountVND"]</label>
+                                    <input type="text" class="form-control" value="@total.ToString("N0")" readonly>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">@Localizer["Note"]</label>
+                                <textarea class="form-control" rows="2"
+                                    placeholder="@Localizer["PaymentNoteOptional"]"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Store Payment Section (hidden by default) -->
+                <div id="store-section" class="mt-3" style="display: none;">
+                    <div class="card p-3">
+                        <h6 class="mb-3">@Localizer["PayAtStore"]</h6>
+                        <div class="alert alert-info">
+                            <h6>@Localizer["PaymentInstructions"]:</h6>
+                            <ol class="mb-0">
+                                <li>@Localizer["GoToNearestConvenienceStore"]</li>
+                                <li>@Localizer["TellStaffOnlinePayment"]</li>
+                                <li>@Localizer["ProvideOrderCode"]: <strong>@bookingId</strong></li>
+                                <li>@Localizer["PayAmount"]: <strong>@string.Format("{0:N0} VND", total)</strong></li>
+                                <li>@Localizer["ReceiveReceiptAndWaitConfirmation"]</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Payment Section (hidden by default) -->
+                <div id="card-section" class="mt-3" style="display: none;">
+                    <div class="card p-3">
+                        <h6 class="mb-3">@Localizer["PaymentCardInformation"]</h6>
+                        <form>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">@Localizer["CardType"]</label>
+                                    <select class="form-select" required>
+                                        <option value="">@Localizer["SelectCardType"]</option>
+                                        <option value="visa">Visa</option>
+                                        <option value="mastercard">Mastercard</option>
+                                        <option value="amex">American Express</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">@Localizer["AmountVND"]</label>
+                                    <input type="text" class="form-control" value="@total.ToString("N0")" readonly>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">@Localizer["CardNumber"]</label>
+                                <input type="text" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19"
+                                    required>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">@Localizer["ExpiryDate"]</label>
+                                    <input type="text" class="form-control" placeholder="MM/YY" maxlength="5" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">CVV</label>
+                                    <input type="text" class="form-control" placeholder="123" maxlength="4" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">@Localizer["CardholderName"]</label>
+                                    <input type="text" class="form-control" placeholder="NGUYEN VAN A" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">@Localizer["BillingAddress"]</label>
+                                <textarea class="form-control" rows="2" placeholder="@Localizer["EnterBillingAddress"]"
+                                    required></textarea>
+                            </div>
+                        </form>
+                    </div>
                 </div>
                 <div class="mt-3 text-end">
-                    <a class="btn btn-success" asp-action="Success" asp-route-bookingId="@bookingId">Thanh toán & xác
-                        nhận</a>
+                    <form asp-action="ConfirmPayment" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="bookingId" value="@bookingId" />
+                        <button type="submit" class="btn btn-success">@Localizer["PayAndConfirm"]</button>
+                    </form>
                 </div>
             </div>
         </div>
         <div class="col-lg-4">
             <div class="card p-3">
-                <div class="small text-muted mb-2">Tóm tắt khách sạn</div>
+                <div class="small text-muted mb-2">@Localizer["HotelSummary"]</div>
                 <div class="fw-semibold">@ViewBag.PropertyName</div>
                 <div class="mb-2">@ViewBag.RoomName</div>
-                <div class="small">Nhận phòng: @ci?.ToString("ddd, dd 'tháng' MM yyyy", new
-                                        System.Globalization.CultureInfo("vi-VN"))</div>
-                <div class="small mb-2">Trả phòng: @co?.ToString("ddd, dd 'tháng' MM yyyy", new
-                                        System.Globalization.CultureInfo("vi-VN"))</div>
-                <div class="small mb-2">@nights đêm • @ViewBag.Guests khách • @ViewBag.RoomChildrenCapacity trẻ em</div>
+                <div class="small">@Localizer["CheckIn"]: @ci?.ToString("ddd, dd MMM yyyy",
+                                        System.Globalization.CultureInfo.CurrentCulture)</div>
+                <div class="small mb-2">@Localizer["CheckOut"]: @co?.ToString("ddd, dd MMM yyyy",
+                                        System.Globalization.CultureInfo.CurrentCulture)</div>
+                <div class="small mb-2">@nights @Localizer["Nights"] • @ViewBag.Guests @Localizer["Guests"] •
+                    @ViewBag.RoomChildrenCapacity @Localizer["Children"]</div>
                 <div class="small mb-1">(1x) @ViewBag.RoomName</div>
                 <div class="small mb-1">@((ViewBag.BedSummary ?? "2 giường đơn hoặc 1 giường đôi"))</div>
-                <div class="small mb-2">@((ViewBag.BreakfastIncluded == true) ? "Gồm bữa sáng" : "Không bao gồm bữa sáng")</div>
+                <div class="small mb-2">@((ViewBag.BreakfastIncluded == true) ? Localizer["IncludesBreakfast"] :
+                                        Localizer["DoesNotIncludeBreakfast"])</div>
                 <hr />
+                @if (!string.IsNullOrEmpty(ViewBag.DiscountCode))
+                {
+                    <div class="d-flex justify-content-between">
+                        <div class="fw-semibold">@Localizer["OriginalPrice"]</div>
+                        <div class="fw-bold text-muted text-decoration-line-through">@string.Format("{0:N0} VND",
+                                                    ViewBag.OriginalPrice)</div>
+                </div>
                 <div class="d-flex justify-content-between">
-                    <div class="fw-semibold">Tổng giá</div>
+                    <div class="fw-semibold">@Localizer["Discount"] (@ViewBag.DiscountCode)</div>
+                    <div class="fw-bold text-success">-@string.Format("{0:N0} VND", ViewBag.DiscountAmount)</div>
+                </div>
+                                }
+                <div class="d-flex justify-content-between">
+                    <div class="fw-semibold">@Localizer["TotalPrice"]</div>
                     <div class="fw-bold text-danger">@string.Format("{0:N0} VND", total)</div>
                 </div>
                 <hr />
-                <div class="small text-muted">Tên khách</div>
+                <div class="small text-muted">@Localizer["GuestName"]</div>
                 <div class="mb-2">@ViewBag.GuestName</div>
-                <div class="small text-muted">Chi tiết người liên lạc</div>
+                <div class="small text-muted">@Localizer["ContactDetails"]</div>
                 <div>@ViewBag.ContactFullName</div>
                 <div class="small">@ViewBag.ContactPhone</div>
                 <div class="small mb-2">@ViewBag.ContactEmail</div>
@@ -53,3 +200,104 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const paymentOptions = document.querySelectorAll('.payment-option');
+        const qrSection = document.getElementById('qr-section');
+        const mobileSection = document.getElementById('mobile-section');
+        const storeSection = document.getElementById('store-section');
+        const cardSection = document.getElementById('card-section');
+        const qrCodeImg = document.getElementById('qr-code');
+
+        // Generate random QR code data
+        function generateQRData() {
+            const randomAmount = Math.floor(Math.random() * 1000000) + 100000; // Random amount between 100k-1M
+            const randomBank = ['Vietcombank', 'BIDV', 'Agribank', 'Techcombank', 'MB Bank'][Math.floor(Math.random() * 5)];
+            const randomAccount = Math.floor(Math.random() * 9000000000) + 1000000000; // Random 10-digit account
+
+            return `VietQR|${randomBank}|${randomAccount}|${randomAmount}|Hotel Booking|${new Date().getTime()}`;
+        }
+
+        // Generate QR code using a free QR API
+        function generateQRCode() {
+            const qrData = generateQRData();
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`;
+            qrCodeImg.src = qrUrl;
+        }
+
+        // Hide all payment sections
+        function hideAllSections() {
+            qrSection.style.display = 'none';
+            mobileSection.style.display = 'none';
+            storeSection.style.display = 'none';
+            cardSection.style.display = 'none';
+        }
+
+        // Show specific payment section
+        function showPaymentSection(paymentType) {
+            hideAllSections();
+
+            switch (paymentType) {
+                case 'vietqr':
+                    qrSection.style.display = 'block';
+                    generateQRCode();
+                    break;
+                case 'mobile':
+                    mobileSection.style.display = 'block';
+                    break;
+                case 'store':
+                    storeSection.style.display = 'block';
+                    break;
+                case 'card':
+                    cardSection.style.display = 'block';
+                    break;
+            }
+        }
+
+        paymentOptions.forEach(option => {
+            option.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                // Remove active class from all options
+                paymentOptions.forEach(opt => opt.classList.remove('active'));
+
+                // Add active class to clicked option
+                this.classList.add('active');
+
+                const paymentType = this.getAttribute('data-payment');
+                showPaymentSection(paymentType);
+            });
+        });
+
+        // Show initial payment section if VietQR is already selected
+        const activeOption = document.querySelector('.payment-option.active');
+        if (activeOption) {
+            const paymentType = activeOption.getAttribute('data-payment');
+            showPaymentSection(paymentType);
+        }
+
+        // Format card number input
+        const cardNumberInput = document.querySelector('input[placeholder="1234 5678 9012 3456"]');
+        if (cardNumberInput) {
+            cardNumberInput.addEventListener('input', function (e) {
+                let value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
+                let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+                if (formattedValue.length > 19) formattedValue = formattedValue.substr(0, 19);
+                e.target.value = formattedValue;
+            });
+        }
+
+        // Format expiry date input
+        const expiryInput = document.querySelector('input[placeholder="MM/YY"]');
+        if (expiryInput) {
+            expiryInput.addEventListener('input', function (e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length >= 2) {
+                    value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                }
+                e.target.value = value;
+            });
+        }
+    });
+</script>

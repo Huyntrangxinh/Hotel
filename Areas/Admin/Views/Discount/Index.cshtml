@@ -24,6 +24,7 @@
                     <th>Giảm</th>
                     <th>Thời gian</th>
                     <th>Trạng thái</th>
+                    <th class="text-center" style="width: 170px;">Thao tác</th>
                 </tr>
             </thead>
             <tbody>
@@ -44,6 +45,27 @@
                         </td>
                         <td>@d.StartDate?.ToString("yyyy-MM-dd") - @d.EndDate?.ToString("yyyy-MM-dd")</td>
                         <td>@(d.IsActive ? "Hoạt động" : "Tắt")</td>
+                        <td>
+                            <div class="d-flex gap-2 justify-content-center">
+                                <a class="btn btn-sm btn-outline-primary"
+                                   asp-area="Admin"
+                                   asp-controller="Discount"
+                                   asp-action="Edit"
+                                   asp-route-id="@d.Id">
+                                    Sửa
+                                </a>
+                                <form asp-area="Admin"
+                                      asp-controller="Discount"
+                                      asp-action="Delete"
+                                      method="post"
+                                      onsubmit="return confirm('Bạn chắc chắn muốn xóa mã @d.Code?');">
+                                    <input type="hidden" name="id" value="@d.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        Xóa
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
                     </tr>
                 }
             </tbody>

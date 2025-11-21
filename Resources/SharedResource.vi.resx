@@ -1,0 +1,2649 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Home" xml:space="preserve">
+    <value>Trang chủ</value>
+  </data>
+  <data name="Hotels" xml:space="preserve">
+    <value>Khách sạn</value>
+  </data>
+  <data name="Book" xml:space="preserve">
+    <value>Đặt phòng</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Đăng nhập</value>
+  </data>
+  <data name="Register" xml:space="preserve">
+    <value>Đăng ký</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Tìm kiếm</value>
+  </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>Tìm kiếm khách sạn, địa điểm...</value>
+  </data>
+  <data name="CheckIn" xml:space="preserve">
+    <value>Ngày nhận phòng</value>
+  </data>
+  <data name="CheckOut" xml:space="preserve">
+    <value>Ngày trả phòng</value>
+  </data>
+  <data name="Guests" xml:space="preserve">
+    <value>Số khách</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Giá</value>
+  </data>
+  <data name="BookNow" xml:space="preserve">
+    <value>Đặt ngay</value>
+  </data>
+  <data name="ViewDetails" xml:space="preserve">
+    <value>Xem chi tiết</value>
+  </data>
+  <data name="Contact" xml:space="preserve">
+    <value>Liên hệ</value>
+  </data>
+  <data name="About" xml:space="preserve">
+    <value>Giới thiệu</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Ngôn ngữ</value>
+  </data>
+  <data name="Vietnamese" xml:space="preserve">
+    <value>Tiếng Việt</value>
+  </data>
+  <data name="English" xml:space="preserve">
+    <value>English</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Chào mừng</value>
+  </data>
+  <data name="WelcomeMessage" xml:space="preserve">
+    <value>Chào mừng bạn đến với HotelBooking.com</value>
+  </data>
+  <data name="FindYourPerfectStay" xml:space="preserve">
+    <value>Tìm nơi ở hoàn hảo cho bạn</value>
+  </data>
+  <data name="PopularDestinations" xml:space="preserve">
+    <value>Điểm đến phổ biến</value>
+  </data>
+  <data name="FeaturedHotels" xml:space="preserve">
+    <value>Khách sạn nổi bật</value>
+  </data>
+  <data name="WhyChooseUs" xml:space="preserve">
+    <value>Tại sao chọn chúng tôi</value>
+  </data>
+  <data name="BestPrice" xml:space="preserve">
+    <value>Giá tốt nhất</value>
+  </data>
+  <data name="BestPriceDesc" xml:space="preserve">
+    <value>Chúng tôi đảm bảo giá tốt nhất cho bạn</value>
+  </data>
+  <data name="EasyBooking" xml:space="preserve">
+    <value>Đặt phòng dễ dàng</value>
+  </data>
+  <data name="EasyBookingDesc" xml:space="preserve">
+    <value>Quy trình đặt phòng đơn giản và nhanh chóng</value>
+  </data>
+  <data name="CustomerSupport" xml:space="preserve">
+    <value>Hỗ trợ 24/7</value>
+  </data>
+  <data name="CustomerSupportDesc" xml:space="preserve">
+    <value>Đội ngũ hỗ trợ khách hàng chuyên nghiệp</value>
+  </data>
+  <data name="FooterText" xml:space="preserve">
+    <value>© 2024 HotelBooking.com. Tất cả quyền được bảo lưu.</value>
+  </data>
+  <data name="Flights" xml:space="preserve">
+    <value>Chuyến bay</value>
+  </data>
+  <data name="CarRental" xml:space="preserve">
+    <value>Thuê xe</value>
+  </data>
+  <data name="Help" xml:space="preserve">
+    <value>Trợ giúp</value>
+  </data>
+  <data name="SignIn" xml:space="preserve">
+    <value>Đăng nhập</value>
+  </data>
+  <data name="SignUp" xml:space="preserve">
+    <value>Đăng ký</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Đăng xuất</value>
+  </data>
+  <data name="Profile" xml:space="preserve">
+    <value>Hồ sơ</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Bảng điều khiển</value>
+  </data>
+  <data name="MyBookings" xml:space="preserve">
+    <value>Đặt phòng của tôi</value>
+  </data>
+  <data name="BecomePartner" xml:space="preserve">
+    <value>Trở thành đối tác</value>
+  </data>
+  <data name="ManageProperties" xml:space="preserve">
+    <value>Quản lý khách sạn</value>
+  </data>
+  <data name="AdminPanel" xml:space="preserve">
+    <value>Bảng quản trị</value>
+  </data>
+  <data name="RecentSearches" xml:space="preserve">
+    <value>Tìm kiếm gần đây</value>
+  </data>
+  <data name="HeroTitle" xml:space="preserve">
+    <value>Trang, kế tiếp bạn sẽ du lịch đến đâu?</value>
+  </data>
+  <data name="HeroSubtitle" xml:space="preserve">
+    <value>Tìm ưu đãi Genius đặc biệt tại khắp nơi trên thế giới!</value>
+  </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>Bạn muốn đến đâu?</value>
+  </data>
+  <data name="CheckInLabel" xml:space="preserve">
+    <value>Ngày nhận phòng</value>
+  </data>
+  <data name="CheckOutLabel" xml:space="preserve">
+    <value>Ngày trả phòng</value>
+  </data>
+  <data name="GuestsLabel" xml:space="preserve">
+    <value>Khách</value>
+  </data>
+  <data name="SearchButton" xml:space="preserve">
+    <value>Tìm</value>
+  </data>
+  <data name="OffersTitle" xml:space="preserve">
+    <value>Ưu đãi</value>
+  </data>
+  <data name="ViewAllOffers" xml:space="preserve">
+    <value>Xem tất cả ưu đãi</value>
+  </data>
+  <data name="AIAssistant" xml:space="preserve">
+    <value>Trợ lý AI</value>
+  </data>
+  <data name="NeedHelp" xml:space="preserve">
+    <value>Cần tư vấn? Hãy tìm đến tôi!</value>
+  </data>
+  <data name="NewChat" xml:space="preserve">
+    <value>Đoạn chat mới</value>
+  </data>
+  <data name="ClearChat" xml:space="preserve">
+    <value>Xóa cuộc trò chuyện</value>
+  </data>
+  <data name="ToggleFullscreen" xml:space="preserve">
+    <value>Chế độ toàn màn hình</value>
+  </data>
+  <data name="CloseChat" xml:space="preserve">
+    <value>Đóng chat</value>
+  </data>
+  <data name="ChatWelcome" xml:space="preserve">
+    <value>Xin chào! Tôi có thể giúp bạn tìm khách sạn phù hợp. Bạn muốn đi đâu và khi nào?</value>
+  </data>
+  <data name="TypeMessage" xml:space="preserve">
+    <value>Nhập tin nhắn...</value>
+  </data>
+  <data name="SorryError" xml:space="preserve">
+    <value>Xin lỗi, tôi gặp sự cố. Vui lòng thử lại sau.</value>
+  </data>
+  <data name="APIKeyNotConfigured" xml:space="preserve">
+    <value>API key chưa được cấu hình.</value>
+  </data>
+  <data name="ConnectionError" xml:space="preserve">
+    <value>Có lỗi xảy ra khi kết nối với AI. Vui lòng thử lại sau.</value>
+  </data>
+  <data name="SystemError" xml:space="preserve">
+    <value>Có lỗi xảy ra</value>
+  </data>
+  <data name="Adults" xml:space="preserve">
+    <value>Người lớn</value>
+  </data>
+  <data name="Children" xml:space="preserve">
+    <value>Trẻ em</value>
+  </data>
+  <data name="Rooms" xml:space="preserve">
+    <value>Phòng</value>
+  </data>
+  <data name="YearsOld" xml:space="preserve">
+    <value>tuổi</value>
+  </data>
+  <data name="Done" xml:space="preserve">
+    <value>Xong</value>
+  </data>
+  <data name="ListYourProperty" xml:space="preserve">
+    <value>Đăng chỗ nghỉ của Quý vị</value>
+  </data>
+  <data name="Account" xml:space="preserve">
+    <value>Tài khoản</value>
+  </data>
+  <data name="BookingsAndTrips" xml:space="preserve">
+    <value>Đặt chỗ &amp; Chuyến đi</value>
+  </data>
+  <data name="GeniusLoyaltyProgram" xml:space="preserve">
+    <value>Chương trình khách hàng thân thiết Genius</value>
+  </data>
+  <data name="RewardsAndWallet" xml:space="preserve">
+    <value>Tặng thưởng &amp; Ví</value>
+  </data>
+  <data name="Reviews" xml:space="preserve">
+    <value>Đánh giá</value>
+  </data>
+  <data name="Saved" xml:space="preserve">
+    <value>Đã lưu</value>
+  </data>
+  <data name="YourProperties" xml:space="preserve">
+    <value>Cơ sở lưu trú của bạn</value>
+  </data>
+  <data name="ManageYourProperties" xml:space="preserve">
+    <value>Quản lý cơ sở lưu trú của bạn</value>
+  </data>
+  <data name="LogOut" xml:space="preserve">
+    <value>Đăng xuất</value>
+  </data>
+  <data name="GeniusLevel1" xml:space="preserve">
+    <value>Genius Cấp 1</value>
+  </data>
+  <data name="Accommodation" xml:space="preserve">
+    <value>Lưu trú</value>
+  </data>
+  <data name="Flights" xml:space="preserve">
+    <value>Chuyến bay</value>
+  </data>
+  <data name="CarRental" xml:space="preserve">
+    <value>Thuê xe</value>
+  </data>
+  <data name="Activities" xml:space="preserve">
+    <value>Hoạt động</value>
+  </data>
+  <data name="AirportTaxi" xml:space="preserve">
+    <value>Taxi sân bay</value>
+  </data>
+  <data name="FlightsAndHotels" xml:space="preserve">
+    <value>Chuyến bay + Khách sạn</value>
+  </data>
+  <data name="SelectDate" xml:space="preserve">
+    <value>Chọn ngày</value>
+  </data>
+  <data name="Calendar" xml:space="preserve">
+    <value>Lịch</value>
+  </data>
+  <data name="FlexibleDates" xml:space="preserve">
+    <value>Ngày linh hoạt</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Áp dụng</value>
+  </data>
+  <data name="ExactDate" xml:space="preserve">
+    <value>Ngày chính xác</value>
+  </data>
+  <data name="PlusDays" xml:space="preserve">
+    <value>+ {0} ngày</value>
+  </data>
+  <data name="FeatureInDevelopment" xml:space="preserve">
+    <value>Tính năng đang được phát triển.</value>
+  </data>
+  <data name="MonthYear" xml:space="preserve">
+    <value>tháng {0} năm {1}</value>
+  </data>
+  <data name="DayNames" xml:space="preserve">
+    <value>T2,T3,T4,T5,T6,T7,CN</value>
+  </data>
+  <data name="Offers" xml:space="preserve">
+    <value>Ưu đãi</value>
+  </data>
+  <data name="Home" xml:space="preserve">
+    <value>Trang chủ</value>
+  </data>
+  <data name="Code" xml:space="preserve">
+    <value>Mã</value>
+  </data>
+  <data name="DiscountCodeForYou" xml:space="preserve">
+    <value>Mã giảm giá cho bạn</value>
+  </data>
+  <data name="Discount" xml:space="preserve">
+    <value>Giảm</value>
+  </data>
+  <data name="ValidFrom" xml:space="preserve">
+    <value>Hiệu lực</value>
+  </data>
+  <data name="YourCode" xml:space="preserve">
+    <value>Mã của bạn</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Sao chép</value>
+  </data>
+  <data name="Copied" xml:space="preserve">
+    <value>Đã sao chép!</value>
+  </data>
+  <data name="CopiedShort" xml:space="preserve">
+    <value>Đã chép</value>
+  </data>
+  <data name="ListYourProperty" xml:space="preserve">
+    <value>Đăng chỗ nghỉ</value>
+  </data>
+  <data name="ListYourPropertyTitle" xml:space="preserve">
+    <value>Đăng nhà nghỉ dưỡng của Quý vị trên Booking.com</value>
+  </data>
+  <data name="ListYourPropertySubtitle" xml:space="preserve">
+    <value>Đăng chỗ nghỉ trên một trong những ứng dụng du lịch được tải xuống nhiều nhất để tăng thu nhập nhanh hơn và mở rộng sang các thị trường mới.</value>
+  </data>
+  <data name="FreeRegistration" xml:space="preserve">
+    <value>Đăng ký miễn phí</value>
+  </data>
+  <data name="HostBenefit1" xml:space="preserve">
+    <value>45% host nhận đơn đầu tiên trong 1 tuần</value>
+  </data>
+  <data name="HostBenefit2" xml:space="preserve">
+    <value>Tuỳ chọn: nhận tức thì hoặc yêu cầu đặt phòng</value>
+  </data>
+  <data name="HostBenefit3" xml:space="preserve">
+    <value>Hỗ trợ xử lý thanh toán cho Quý vị</value>
+  </data>
+  <data name="StartNow" xml:space="preserve">
+    <value>Bắt đầu ngay →</value>
+  </data>
+  <data name="AlreadyStarted" xml:space="preserve">
+    <value>Đã bắt đầu đăng ký?</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Tiếp tục</value>
+  </data>
+  <data name="HostSupportTitle" xml:space="preserve">
+    <value>Host an tâm đón khách. Đã có chúng tôi hỗ trợ</value>
+  </data>
+  <data name="CustomizeRules" xml:space="preserve">
+    <value>Tùy chỉnh quy tắc</value>
+  </data>
+  <data name="ManageProperties" xml:space="preserve">
+    <value>Quản lý cơ sở lưu trú</value>
+  </data>
+  <data name="Overview" xml:space="preserve">
+    <value>Tổng quan</value>
+  </data>
+  <data name="YourProperties" xml:space="preserve">
+    <value>Cơ sở lưu trú của bạn</value>
+  </data>
+  <data name="NewRegistration" xml:space="preserve">
+    <value>Đăng ký mới</value>
+  </data>
+  <data name="Draft" xml:space="preserve">
+    <value>Bản nháp</value>
+  </data>
+  <data name="Submitted" xml:space="preserve">
+    <value>Đã gửi</value>
+  </data>
+  <data name="Approved" xml:space="preserve">
+    <value>Đã phê duyệt</value>
+  </data>
+  <data name="NoAddress" xml:space="preserve">
+    <value>Chưa có địa chỉ</value>
+  </data>
+  <data name="AcceptRejectBooking" xml:space="preserve">
+    <value>Chấp nhận / từ chối với Yêu cầu đặt.</value>
+  </data>
+  <data name="ManageExpectations" xml:space="preserve">
+    <value>Quản lý kỳ vọng bằng quy tắc rõ ràng.</value>
+  </data>
+  <data name="KnowMoreAboutGuests" xml:space="preserve">
+    <value>Biết thêm về khách</value>
+  </data>
+  <data name="ChatBeforeAccepting" xml:space="preserve">
+    <value>Trò chuyện trước khi chấp nhận.</value>
+  </data>
+  <data name="ViewTravelHistory" xml:space="preserve">
+    <value>Xem thông tin lịch sử du lịch.</value>
+  </data>
+  <data name="Protected" xml:space="preserve">
+    <value>Được bảo vệ</value>
+  </data>
+  <data name="ProtectionAgainstClaims" xml:space="preserve">
+    <value>Bảo vệ trước yêu cầu bồi thường.</value>
+  </data>
+  <data name="DamageProtectionOptions" xml:space="preserve">
+    <value>Tùy chọn bảo vệ hư hại.</value>
+  </data>
+  <data name="FinancialControlTitle" xml:space="preserve">
+    <value>Kiểm soát tài chính với dịch vụ Thanh toán bởi Booking.com</value>
+  </data>
+  <data name="EasyPayment" xml:space="preserve">
+    <value>Thanh toán dễ dàng</value>
+  </data>
+  <data name="EasyPaymentDesc" xml:space="preserve">
+    <value>Chúng tôi xử lý toàn bộ quy trình thanh toán thay Quý vị, giúp Quý vị có thêm thời gian để phát triển kinh doanh.</value>
+  </data>
+  <data name="MinimizeRisk" xml:space="preserve">
+    <value>Giảm thiểu rủi ro</value>
+  </data>
+  <data name="MinimizeRiskDesc" xml:space="preserve">
+    <value>Giảm rủi ro gian lận &amp; bồi hoàn nhờ quy trình kiểm soát nghiêm ngặt.</value>
+  </data>
+  <data name="DailyPayment" xml:space="preserve">
+    <value>Thanh toán hàng ngày</value>
+  </data>
+  <data name="DailyPaymentDesc" xml:space="preserve">
+    <value>Nhận tiền nhanh hơn! Tùy thị trường, có thể nhận tiền trong vòng 24 giờ sau khi khách trả phòng.</value>
+  </data>
+  <data name="BetterCashFlow" xml:space="preserve">
+    <value>Quản lý dòng tiền tốt hơn</value>
+  </data>
+  <data name="BetterCashFlowDesc" xml:space="preserve">
+    <value>Chọn phương thức và thời gian nhận thanh toán phù hợp theo khu vực.</value>
+  </data>
+  <data name="MultipleAccommodations" xml:space="preserve">
+    <value>Giải pháp cho nhiều chỗ nghỉ</value>
+  </data>
+  <data name="MultipleAccommodationsDesc" xml:space="preserve">
+    <value>Tối ưu thu chi với tính năng hóa đơn theo nhóm và soát chiếu chi tiết.</value>
+  </data>
+  <data name="EarnMoreToday" xml:space="preserve">
+    <value>Kiếm thêm thu nhập ngay hôm nay</value>
+  </data>
+  <data name="EasyStartTitle" xml:space="preserve">
+    <value>Dễ dàng bắt đầu và đón đầu thị trường</value>
+  </data>
+  <data name="EnterPropertyInfo" xml:space="preserve">
+    <value>Nhập thông tin chỗ nghỉ</value>
+  </data>
+  <data name="EnterPropertyInfoDesc" xml:space="preserve">
+    <value>Điền thông tin cơ bản &amp; tải ảnh – chỗ nghỉ của Quý vị đã sẵn sàng hiển thị.</value>
+  </data>
+  <data name="StartReceivingBookings" xml:space="preserve">
+    <value>Bắt đầu nhận đặt chỗ</value>
+  </data>
+  <data name="StartReceivingBookingsDesc" xml:space="preserve">
+    <value>Kích hoạt và nhận đặt chỗ từ hàng triệu khách trên Booking.com.</value>
+  </data>
+  <data name="StandOutMarket" xml:space="preserve">
+    <value>Nổi bật thị trường</value>
+  </data>
+  <data name="StandOutMarketDesc" xml:space="preserve">
+    <value>Tăng hiển thị với công cụ khuyến mãi &amp; phân phối giá thông minh.</value>
+  </data>
+  <data name="StartToday" xml:space="preserve">
+    <value>Bắt đầu ngay hôm nay</value>
+  </data>
+  <data name="GlobalReachTitle" xml:space="preserve">
+    <value>Tiếp cận nguồn khách toàn cầu</value>
+  </data>
+  <data name="GlobalReachMetric1" xml:space="preserve">
+    <value>1,8+ tỉ</value>
+  </data>
+  <data name="GlobalReachMetric1Desc" xml:space="preserve">
+    <value>khách lưu trú tại nghỉ mỗi năm kể từ năm 2010.</value>
+  </data>
+  <data name="GlobalReachMetric2" xml:space="preserve">
+    <value>1/3 đêm nghỉ</value>
+  </data>
+  <data name="GlobalReachMetric2Desc" xml:space="preserve">
+    <value>trên toàn cầu đã đặt qua các nền tảng của chúng tôi (2024).</value>
+  </data>
+  <data name="GlobalReachMetric3" xml:space="preserve">
+    <value>48% số đêm</value>
+  </data>
+  <data name="GlobalReachMetric3Desc" xml:space="preserve">
+    <value>được đặt cho khách quốc tế vào cuối năm 2023.</value>
+  </data>
+  <data name="HostTestimonialsTitle" xml:space="preserve">
+    <value>Chia sẻ từ các host khác</value>
+  </data>
+  <data name="JoinHostsLikeYou" xml:space="preserve">
+    <value>Tham gia cùng các host giống như Quý vị</value>
+  </data>
+  <data name="PropertyRegistration" xml:space="preserve">
+    <value>Đăng ký cơ sở lưu trú</value>
+  </data>
+  <data name="PropertyOverview" xml:space="preserve">
+    <value>Tổng quan về cơ sở lưu trú</value>
+  </data>
+  <data name="PropertyInfo" xml:space="preserve">
+    <value>Thông tin về cơ sở lưu trú</value>
+  </data>
+  <data name="PropertyAddress" xml:space="preserve">
+    <value>Địa chỉ cơ sở lưu trú</value>
+  </data>
+  <data name="PropertyContact" xml:space="preserve">
+    <value>Thông tin liên hệ với cơ sở lưu trú</value>
+  </data>
+  <data name="Payment" xml:space="preserve">
+    <value>Thanh toán</value>
+  </data>
+  <data name="Contract" xml:space="preserve">
+    <value>Hợp đồng</value>
+  </data>
+  <data name="Hotel" xml:space="preserve">
+    <value>Khách sạn</value>
+  </data>
+  <data name="HotelDesc" xml:space="preserve">
+    <value>Cơ sở thương mại cung cấp chỗ ở &amp; dịch vụ.</value>
+  </data>
+  <data name="Apartment" xml:space="preserve">
+    <value>Căn hộ</value>
+  </data>
+  <data name="ApartmentDesc" xml:space="preserve">
+    <value>Căn hộ cho thuê nguyên căn hoặc theo phòng.</value>
+  </data>
+  <data name="Homestay" xml:space="preserve">
+    <value>Homestay</value>
+  </data>
+  <data name="HomestayDesc" xml:space="preserve">
+    <value>Lưu trú nhà dân, trải nghiệm bản địa.</value>
+  </data>
+  <data name="Villa" xml:space="preserve">
+    <value>Biệt thự</value>
+  </data>
+  <data name="VillaDesc" xml:space="preserve">
+    <value>Nhà/biệt thự riêng tư cho nhóm gia đình.</value>
+  </data>
+  <data name="Hostel" xml:space="preserve">
+    <value>Hostel</value>
+  </data>
+  <data name="HostelDesc" xml:space="preserve">
+    <value>Giường/ký túc xá &amp; phòng chung.</value>
+  </data>
+  <data name="GuestHouse" xml:space="preserve">
+    <value>Nhà khách</value>
+  </data>
+  <data name="GuestHouseDesc" xml:space="preserve">
+    <value>Nhà khách/nhà trọ nhỏ, ấm cúng.</value>
+  </data>
+  <data name="Resort" xml:space="preserve">
+    <value>Khu nghỉ dưỡng</value>
+  </data>
+  <data name="ResortDesc" xml:space="preserve">
+    <value>Khu nghỉ tích hợp tiện ích, giải trí.</value>
+  </data>
+  <data name="PaymentInfo" xml:space="preserve">
+    <value>Thông tin thanh toán</value>
+  </data>
+  <data name="PaymentMethod" xml:space="preserve">
+    <value>Phương thức thanh toán</value>
+  </data>
+  <data name="HowToReceivePayment" xml:space="preserve">
+    <value>Bạn muốn nhận thanh toán như thế nào?</value>
+  </data>
+  <data name="ContractInfo" xml:space="preserve">
+    <value>Thông tin hợp đồng</value>
+  </data>
+  <data name="BusinessOwnership" xml:space="preserve">
+    <value>Quyền sở hữu doanh nghiệp</value>
+  </data>
+  <data name="PropertyName" xml:space="preserve">
+    <value>Tên cơ sở lưu trú</value>
+  </data>
+  <data name="PropertyNameLocal" xml:space="preserve">
+    <value>Tên cơ sở lưu trú bằng Ngôn ngữ địa phương</value>
+  </data>
+  <data name="PropertyNameLocalPlaceholder" xml:space="preserve">
+    <value>Nhập tên cơ sở lưu trú bằng hệ thống chữ viết địa phương của bạn.</value>
+  </data>
+  <data name="NoLocalName" xml:space="preserve">
+    <value>Cơ sở lưu trú này không có tên khác trong ngôn ngữ địa phương của tôi</value>
+  </data>
+  <data name="PropertyType" xml:space="preserve">
+    <value>Loại cơ sở lưu trú</value>
+  </data>
+  <data name="Select" xml:space="preserve">
+    <value>Chọn</value>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>Quốc gia</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Vị trí</value>
+  </data>
+  <data name="FindLocation" xml:space="preserve">
+    <value>Tìm vị trí</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Địa chỉ</value>
+  </data>
+  <data name="AddressPlaceholder" xml:space="preserve">
+    <value>Số nhà, đường...</value>
+  </data>
+  <data name="PostalCode" xml:space="preserve">
+    <value>Mã bưu chính</value>
+  </data>
+  <data name="PropertyNamePlaceholder" xml:space="preserve">
+    <value>Nhập tên cơ sở lưu trú của bạn bằng ký tự chữ và số.</value>
+  </data>
+  <data name="SelectCountry" xml:space="preserve">
+    <value>Chọn quốc gia</value>
+  </data>
+  <data name="PropertyPhoneNumber" xml:space="preserve">
+    <value>Số điện thoại cơ sở lưu trú</value>
+  </data>
+  <data name="CountryCode" xml:space="preserve">
+    <value>Mã quốc gia</value>
+  </data>
+  <data name="PhoneNumber" xml:space="preserve">
+    <value>Số điện thoại</value>
+  </data>
+  <data name="EnterNumber" xml:space="preserve">
+    <value>Nhập số</value>
+  </data>
+  <data name="PropertyContactPerson" xml:space="preserve">
+    <value>Người phụ trách cơ sở lưu trú</value>
+  </data>
+  <data name="ContactPersonNotice" xml:space="preserve">
+    <value>Xin vui lòng lưu ý rằng bất kỳ hành động nào được thực hiện bởi Người phụ trách Khách sạn như được nêu và ghi nhận tại đây sẽ được xem là hành động hợp pháp thay mặt cho Khách sạn.</value>
+  </data>
+  <data name="FirstName" xml:space="preserve">
+    <value>Tên</value>
+  </data>
+  <data name="EnterFirstName" xml:space="preserve">
+    <value>Nhập tên</value>
+  </data>
+  <data name="LastName" xml:space="preserve">
+    <value>Họ</value>
+  </data>
+  <data name="EnterLastName" xml:space="preserve">
+    <value>Nhập họ</value>
+  </data>
+  <data name="Position" xml:space="preserve">
+    <value>Vị trí</value>
+  </data>
+  <data name="SelectPosition" xml:space="preserve">
+    <value>Chọn vị trí</value>
+  </data>
+  <data name="AddAnotherNumber" xml:space="preserve">
+    <value>+ Thêm số khác</value>
+  </data>
+  <data name="BackToTera" xml:space="preserve">
+    <value>Quay lại TERA</value>
+  </data>
+  <data name="SaveAndContinue" xml:space="preserve">
+    <value>Lưu và tiếp tục</value>
+  </data>
+  <data name="BankTransfer" xml:space="preserve">
+    <value>Chuyển khoản ngân hàng</value>
+  </data>
+  <data name="BankTransferDescription" xml:space="preserve">
+    <value>Bạn có thể tính phí thanh toán cho nhiều Mã đặt chỗ bằng VCC của Traveloka.</value>
+  </data>
+  <data name="BankName" xml:space="preserve">
+    <value>Tên ngân hàng</value>
+  </data>
+  <data name="BankBranch" xml:space="preserve">
+    <value>Chi nhánh ngân hàng</value>
+  </data>
+  <data name="SelectBank" xml:space="preserve">
+    <value>Chọn ngân hàng</value>
+  </data>
+  <data name="AccountNumber" xml:space="preserve">
+    <value>Số tài khoản</value>
+  </data>
+  <data name="AccountHolderName" xml:space="preserve">
+    <value>Tên chủ tài khoản</value>
+  </data>
+  <data name="PayAtHotel" xml:space="preserve">
+    <value>Thanh toán tại khách sạn</value>
+  </data>
+  <data name="EnablePayAtHotel" xml:space="preserve">
+    <value>Bạn có muốn bật thanh toán tại khách sạn không?</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Có</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>Không</value>
+  </data>
+  <data name="PayAtHotelNotice" xml:space="preserve">
+    <value>Nếu bật Thanh toán tại khách sạn, hình thức thanh toán hoá hồng của bạn cho Traveloka sẽ được cài đặt là Hóa đơn theo mặc định. Bạn có thể thay đổi cài đặt này sau trong TERA.</value>
+  </data>
+  <data name="BackToPreviousPage" xml:space="preserve">
+    <value>Quay lại trang trước</value>
+  </data>
+  <data name="BusinessOwnershipWithTaxCode" xml:space="preserve">
+    <value>Sở hữu doanh nghiệp có Mã số thuế công ty đã đăng ký</value>
+  </data>
+  <data name="IndividualOwnershipWithTaxCode" xml:space="preserve">
+    <value>Sở hữu cá nhân có Mã số thuế cá nhân</value>
+  </data>
+  <data name="LegalEntityInformation" xml:space="preserve">
+    <value>Thông tin pháp nhân</value>
+  </data>
+  <data name="LegalEntityName" xml:space="preserve">
+    <value>Tên pháp nhân hoặc tên cá nhân</value>
+  </data>
+  <data name="LegalEntityAddress" xml:space="preserve">
+    <value>Địa chỉ của pháp nhân hoặc cá nhân</value>
+  </data>
+  <data name="BusinessLicenseOptional" xml:space="preserve">
+    <value>Giấy phép kinh doanh (Tùy chọn)</value>
+  </data>
+  <data name="Upload" xml:space="preserve">
+    <value>Tải lên</value>
+  </data>
+  <data name="CurrentFile" xml:space="preserve">
+    <value>File hiện tại:</value>
+  </data>
+  <data name="ViewFile" xml:space="preserve">
+    <value>Xem file</value>
+  </data>
+  <data name="BusinessLicenseNotice" xml:space="preserve">
+    <value>Ở Việt Nam, giấy phép kinh doanh (Giấy Phép Kinh Doanh) là bắt buộc để xác minh tính hợp pháp của hoạt động kinh doanh.</value>
+  </data>
+  <data name="CompanyTaxInformation" xml:space="preserve">
+    <value>Thông tin thuế công ty</value>
+  </data>
+  <data name="TaxPayerName" xml:space="preserve">
+    <value>Họ tên đầy đủ của người nộp thuế</value>
+  </data>
+  <data name="TaxPayerAddress" xml:space="preserve">
+    <value>Địa chỉ người nộp thuế</value>
+  </data>
+  <data name="SignatoryInformation" xml:space="preserve">
+    <value>Thông tin người ký</value>
+  </data>
+  <data name="CompanyDirector" xml:space="preserve">
+    <value>Giám đốc công ty</value>
+  </data>
+  <data name="OtherAuthorizedPerson" xml:space="preserve">
+    <value>Người được uỷ quyền khác</value>
+  </data>
+  <data name="PropertyOwnerFullName" xml:space="preserve">
+    <value>Họ tên đầy đủ của chủ sở hữu cơ sở lưu trú</value>
+  </data>
+  <data name="Position" xml:space="preserve">
+    <value>Vị trí</value>
+  </data>
+  <data name="PhoneNumber" xml:space="preserve">
+    <value>Số điện thoại</value>
+  </data>
+  <data name="EmailAddress" xml:space="preserve">
+    <value>Địa chỉ email</value>
+  </data>
+  <data name="PropertyOwnerIdCard" xml:space="preserve">
+    <value>Thẻ CCCD của Chủ sở hữu cơ sở lưu trú</value>
+  </data>
+  <data name="FileUploadNotice" xml:space="preserve">
+    <value>Bạn có thể tải lên tệp tin JPG, GIF hoặc PNG (tối đa: 4MB). Đối với giấy tờ chứng minh địa chỉ (POA), vui lòng tải lên tệp PDF.</value>
+  </data>
+  <data name="ContinueReviewContract" xml:space="preserve">
+    <value>Tiếp tục Xem lại hợp đồng</value>
+  </data>
+  <data name="PropertyTypeModal" xml:space="preserve">
+    <value>Loại cơ sở lưu trú</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Hủy</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Lưu</value>
+  </data>
+  <data name="PleaseEnterCity" xml:space="preserve">
+    <value>Vui lòng nhập Thành phố / Tỉnh</value>
+  </data>
+  <data name="PleaseEnterAddress" xml:space="preserve">
+    <value>Vui lòng nhập Địa chỉ</value>
+  </data>
+  <data name="PleaseEnterPropertyPhone" xml:space="preserve">
+    <value>Vui lòng nhập số điện thoại cơ sở</value>
+  </data>
+  <data name="PleaseEnterFirstName" xml:space="preserve">
+    <value>Vui lòng nhập tên</value>
+  </data>
+  <data name="PleaseEnterLastName" xml:space="preserve">
+    <value>Vui lòng nhập họ</value>
+  </data>
+  <data name="PleaseEnterEmail" xml:space="preserve">
+    <value>Vui lòng nhập email</value>
+  </data>
+  <data name="PleaseEnterPhone" xml:space="preserve">
+    <value>Vui lòng nhập số điện thoại</value>
+  </data>
+  <data name="InvalidPhoneFormat" xml:space="preserve">
+    <value>Định dạng số điện thoại không hợp lệ</value>
+  </data>
+  <data name="InvalidEmailFormat" xml:space="preserve">
+    <value>Định dạng email không hợp lệ</value>
+  </data>
+  <data name="PleaseSelectPosition" xml:space="preserve">
+    <value>Vui lòng chọn vị trí</value>
+  </data>
+  <data name="PleaseEnterContactPhone" xml:space="preserve">
+    <value>Vui lòng nhập số điện thoại người phụ trách</value>
+  </data>
+  <data name="PleaseEnterLegalEntityName" xml:space="preserve">
+    <value>Vui lòng nhập Tên pháp nhân</value>
+  </data>
+  <data name="PleaseEnterLegalEntityAddress" xml:space="preserve">
+    <value>Vui lòng nhập Địa chỉ pháp nhân</value>
+  </data>
+  <data name="PleaseEnterTaxpayerName" xml:space="preserve">
+    <value>Vui lòng nhập Tên người nộp thuế</value>
+  </data>
+  <data name="PleaseEnterTaxpayerAddress" xml:space="preserve">
+    <value>Vui lòng nhập Địa chỉ người nộp thuế</value>
+  </data>
+  <data name="PleaseEnterSignatoryName" xml:space="preserve">
+    <value>Vui lòng nhập Họ tên người ký</value>
+  </data>
+  <data name="PleaseEnterSignatoryPosition" xml:space="preserve">
+    <value>Vui lòng nhập Vị trí người ký</value>
+  </data>
+  <data name="ContractSummary" xml:space="preserve">
+    <value>Tóm tắt hợp đồng</value>
+  </data>
+  <data name="BackToRegistration" xml:space="preserve">
+    <value>Quay lại Đăng ký</value>
+  </data>
+  <data name="PropertyInformation" xml:space="preserve">
+    <value>Thông tin về cơ sở lưu trú</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Chỉnh sửa</value>
+  </data>
+  <data name="PropertyName" xml:space="preserve">
+    <value>Tên cơ sở lưu trú</value>
+  </data>
+  <data name="PropertyAddress" xml:space="preserve">
+    <value>Địa chỉ cơ sở lưu trú</value>
+  </data>
+  <data name="LegalAndSignatoryInformation" xml:space="preserve">
+    <value>Thông tin pháp lý và người ký</value>
+  </data>
+  <data name="AuthorizedSignatory" xml:space="preserve">
+    <value>Người ký được ủy quyền</value>
+  </data>
+  <data name="EmailAddress" xml:space="preserve">
+    <value>Địa chỉ email</value>
+  </data>
+  <data name="ContractAgreementPreview" xml:space="preserve">
+    <value>Xem trước hợp đồng</value>
+  </data>
+  <data name="ReadCarefullyBeforeSubmit" xml:space="preserve">
+    <value>Vui lòng đọc kỹ trước khi gửi. Bạn có thể tải bản xem trước để lưu trữ nội bộ.</value>
+  </data>
+  <data name="DownloadPreview" xml:space="preserve">
+    <value>Tải bản xem trước</value>
+  </data>
+  <data name="BackToPreviousPage" xml:space="preserve">
+    <value>Quay lại trang trước</value>
+  </data>
+  <data name="Submit" xml:space="preserve">
+    <value>Gửi</value>
+  </data>
+  <data name="Page" xml:space="preserve">
+    <value>Trang</value>
+  </data>
+  <data name="HotelCooperationAgreement" xml:space="preserve">
+    <value>HỢP ĐỒNG HỢP TÁC KHÁCH SẠN</value>
+  </data>
+  <data name="ContractDate" xml:space="preserve">
+    <value>Hợp đồng này được lập ngày {0} tháng {1} năm {2} tại Thái Nguyên, Việt Nam, giữa:</value>
+  </data>
+  <data name="PartyA" xml:space="preserve">
+    <value>BÊN A: CHỦ CƠ SỞ LƯU TRÚ (SAU ĐÂY GỌI LÀ 'KHÁCH SẠN')</value>
+  </data>
+  <data name="LegalEntityName" xml:space="preserve">
+    <value>Tên pháp nhân:</value>
+  </data>
+  <data name="RegisteredAddress" xml:space="preserve">
+    <value>Địa chỉ đăng ký:</value>
+  </data>
+  <data name="RepresentedBy" xml:space="preserve">
+    <value>Đại diện bởi:</value>
+  </data>
+  <data name="Position" xml:space="preserve">
+    <value>Chức vụ:</value>
+  </data>
+  <data name="PartyB" xml:space="preserve">
+    <value>BÊN B: BOOKING.COM (SAU ĐÂY GỌI LÀ 'NỀN TẢNG')</value>
+  </data>
+  <data name="CompanyName" xml:space="preserve">
+    <value>Tên công ty:</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Địa chỉ:</value>
+  </data>
+  <data name="BookingCompanyAddress" xml:space="preserve">
+    <value>Herengracht 597, 1017 CE Amsterdam, Hà Lan</value>
+  </data>
+  <data name="PartiesAgreement" xml:space="preserve">
+    <value>Sau đây gọi riêng là 'Bên' và gọi chung là 'Các Bên'. Các Bên đồng ý ký kết Hợp đồng này với các điều khoản và điều kiện sau:</value>
+  </data>
+  <data name="TermsAndConditions" xml:space="preserve">
+    <value>CÁC ĐIỀU KHOẢN VÀ ĐIỀU KIỆN</value>
+  </data>
+  <data name="Article1" xml:space="preserve">
+    <value>Điều 1: Phạm vi hợp tác</value>
+  </data>
+  <data name="Article1Content" xml:space="preserve">
+    <value>1.1. Bên B đồng ý cung cấp cho Bên A quyền truy cập vào Hệ thống Quản lý của Nền tảng, cho phép Bên A đăng tải thông tin, hình ảnh, giá phòng, tình trạng phòng trống và các chính sách liên quan của Khách sạn để quảng bá và bán dịch vụ lưu trú cho người dùng cuối ('Khách hàng').\n1.2. Bên A hiểu rằng Bên B chỉ hoạt động như một nền tảng trung gian kết nối Khách sạn với Khách hàng và không chịu trách nhiệm về chất lượng dịch vụ tại cơ sở của Bên A.</value>
+  </data>
+  <data name="Article2" xml:space="preserve">
+    <value>Điều 2: Nghĩa vụ của Khách sạn (Bên A)</value>
+  </data>
+  <data name="Article2Content" xml:space="preserve">
+    <value>2.1. Cung cấp thông tin chính xác: Bên A có trách nhiệm đảm bảo mọi thông tin đăng tải lên Nền tảng là chính xác và được cập nhật liên tục.\n2.2. Tôn trọng đặt phòng: Bên A phải tôn trọng tất cả các đặt phòng được thực hiện bởi Khách hàng qua Nền tảng theo đúng thông tin giá và chính sách đã công bố.\n2.3. Đảm bảo giá tốt nhất (Rate Parity): Bên A cam kết rằng giá phòng được công bố trên Nền tảng sẽ không cao hơn giá được công bố trên bất kỳ kênh phân phối trực tuyến nào khác, bao gồm cả website của chính Khách sạn.</value>
+  </data>
+  <data name="Article3" xml:space="preserve">
+    <value>Điều 3: Phí hoa hồng và Thanh toán</value>
+  </data>
+  <data name="Article3Content" xml:space="preserve">
+    <value>3.1. Bên A đồng ý trả cho Bên B một khoản phí hoa hồng là {0} (mười lăm phần trăm) trên tổng giá trị cuối cùng của mỗi đặt phòng thành công (bao gồm thuế và các loại phí khác mà Khách hàng phải trả).\n3.2. Vào ngày 05 hàng tháng, Bên B sẽ gửi cho Bên A một bản sao kê chi tiết các đặt phòng đã hoàn thành trong tháng trước đó và hóa đơn phí hoa hồng. Bên A có trách nhiệm thanh toán toàn bộ số tiền trên hóa đơn trong vòng 14 (mười bốn) ngày kể từ ngày nhận được hóa đơn.</value>
+  </data>
+  <data name="Article4" xml:space="preserve">
+    <value>Điều 4: Bảo mật Dữ liệu</value>
+  </data>
+  <data name="Article4Content" xml:space="preserve">
+    <value>4.1. Mỗi Bên cam kết tuân thủ các quy định hiện hành về bảo vệ dữ liệu cá nhân. Dữ liệu của Khách hàng do Bên B cung cấp chỉ được Bên A sử dụng cho mục đích hoàn thành đặt phòng.\n4.2. Các Bên đồng ý giữ bí mật các điều khoản của Hợp đồng này và mọi thông tin kinh doanh độc quyền của Bên còn lại.</value>
+  </data>
+  <data name="Article5" xml:space="preserve">
+    <value>Điều 5: Giải quyết tranh chấp</value>
+  </data>
+  <data name="Article5Content" xml:space="preserve">
+    <value>5.1. Mọi tranh chấp phát sinh từ hoặc liên quan đến Hợp đồng này trước hết sẽ được giải quyết thông qua thương lượng hòa giải. \n5.2. Nếu không thể giải quyết qua thương lượng trong vòng 30 ngày, tranh chấp sẽ được đưa ra giải quyết tại Tòa án nhân dân có thẩm quyền tại Thái Nguyên, Việt Nam. Luật áp dụng là luật pháp Việt Nam.</value>
+  </data>
+  <data name="PartyARepresentative" xml:space="preserve">
+    <value>ĐẠI DIỆN BÊN A</value>
+  </data>
+  <data name="SignAndStamp" xml:space="preserve">
+    <value>(Ký, ghi rõ họ tên và đóng dấu nếu có)</value>
+  </data>
+  <data name="PartyBRepresentative" xml:space="preserve">
+    <value>ĐẠI DIỆN BÊN B</value>
+  </data>
+  <data name="ChiefExecutiveOfficer" xml:space="preserve">
+    <value>Giám đốc Điều hành</value>
+  </data>
+  <data name="NotProvided" xml:space="preserve">
+    <value>Chưa cung cấp</value>
+  </data>
+  <data name="RegistrationSuccessful" xml:space="preserve">
+    <value>Đăng ký thành công</value>
+  </data>
+  <data name="RegistrationSubmitted" xml:space="preserve">
+    <value>Đã gửi đăng ký!</value>
+  </data>
+  <data name="RegistrationSubmittedMessage" xml:space="preserve">
+    <value>Hồ sơ đăng ký của bạn đã được gửi đi và đang được chúng tôi xem xét. Chúng tôi sẽ liên hệ với bạn qua email trong thời gian sớm nhất.</value>
+  </data>
+  <data name="RegistrationWaitMessage" xml:space="preserve">
+    <value>Trong thời gian chờ đợi, bạn có thể hoàn tất thông tin cần thiết khác cho cơ sở lưu trú của mình.</value>
+  </data>
+  <data name="ViewPropertyInformation" xml:space="preserve">
+    <value>Xem thông tin cơ sở lưu trú</value>
+  </data>
+  <data name="BackToHomePage" xml:space="preserve">
+    <value>Quay trở lại trang chủ</value>
+  </data>
+  <data name="MyProperties" xml:space="preserve">
+    <value>Cơ sở lưu trú của bạn</value>
+  </data>
+  <data name="ManageAllProperties" xml:space="preserve">
+    <value>Quản lý tất cả cơ sở lưu trú của bạn tại đây</value>
+  </data>
+  <data name="RegisterNewProperty" xml:space="preserve">
+    <value>Đăng ký cơ sở mới</value>
+  </data>
+  <data name="NoPropertiesYet" xml:space="preserve">
+    <value>Chưa có cơ sở lưu trú nào được tạo</value>
+  </data>
+  <data name="StartWithFirstProperty" xml:space="preserve">
+    <value>Hãy bắt đầu bằng cách đăng ký cơ sở lưu trú đầu tiên của bạn.</value>
+  </data>
+  <data name="RegisterNow" xml:space="preserve">
+    <value>Đăng ký ngay</value>
+  </data>
+  <data name="Draft" xml:space="preserve">
+    <value>Bản nháp</value>
+  </data>
+  <data name="Submitted" xml:space="preserve">
+    <value>Đã gửi</value>
+  </data>
+  <data name="UnderReview" xml:space="preserve">
+    <value>Đang xem xét</value>
+  </data>
+  <data name="Approved" xml:space="preserve">
+    <value>Đã phê duyệt</value>
+  </data>
+  <data name="Rejected" xml:space="preserve">
+    <value>Bị từ chối</value>
+  </data>
+  <data name="NoAddressYet" xml:space="preserve">
+    <value>Chưa có địa chỉ</value>
+  </data>
+  <data name="CreatedDate" xml:space="preserve">
+    <value>Tạo ngày</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Tiếp tục</value>
+  </data>
+  <data name="View" xml:space="preserve">
+    <value>Xem</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Chỉnh sửa</value>
+  </data>
+  <data name="DeleteProperty" xml:space="preserve">
+    <value>Xác nhận xóa cơ sở lưu trú</value>
+  </data>
+  <data name="ConfirmDeleteProperty" xml:space="preserve">
+    <value>Bạn có chắc chắn muốn xóa vĩnh viễn cơ sở lưu trú</value>
+  </data>
+  <data name="CannotBeUndone" xml:space="preserve">
+    <value>không? Hành động này không thể được hoàn tác.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Hủy</value>
+  </data>
+  <data name="DeletePermanently" xml:space="preserve">
+    <value>Xóa vĩnh viễn</value>
+  </data>
+  <data name="PropertyDetails" xml:space="preserve">
+    <value>Chi tiết cơ sở lưu trú</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Quay lại</value>
+  </data>
+  <data name="RegistrationStatus" xml:space="preserve">
+    <value>Trạng thái đăng ký</value>
+  </data>
+  <data name="ProfileApproved" xml:space="preserve">
+    <value>Hồ sơ đã được phê duyệt</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="RegistrationSubmitted" xml:space="preserve">
+    <value>Đã gửi đăng ký</value>
+  </data>
+  <data name="RegistrationNumber" xml:space="preserve">
+    <value>Số đăng ký</value>
+  </data>
+  <data name="NeedHelp" xml:space="preserve">
+    <value>Bạn cần trợ giúp?</value>
+  </data>
+  <data name="ContinueRegistration" xml:space="preserve">
+    <value>Tiếp tục đăng ký</value>
+  </data>
+  <data name="EditAndResubmit" xml:space="preserve">
+    <value>Chỉnh sửa và gửi lại</value>
+  </data>
+  <data name="FillPropertyAndRoomInfo" xml:space="preserve">
+    <value>Điền thông tin về Cơ sở lưu trú và Phòng</value>
+  </data>
+  <data name="ManageProperty" xml:space="preserve">
+    <value>Quản lý cơ sở lưu trú</value>
+  </data>
+  <data name="PropertyInformation" xml:space="preserve">
+    <value>Thông tin về cơ sở lưu trú</value>
+  </data>
+  <data name="PropertyName" xml:space="preserve">
+    <value>Tên cơ sở lưu trú</value>
+  </data>
+  <data name="PropertyType" xml:space="preserve">
+    <value>Loại cơ sở lưu trú</value>
+  </data>
+  <data name="PropertyAddress" xml:space="preserve">
+    <value>Địa chỉ cơ sở lưu trú</value>
+  </data>
+  <data name="City" xml:space="preserve">
+    <value>Thành phố</value>
+  </data>
+  <data name="MapWillDisplayHere" xml:space="preserve">
+    <value>Bản đồ sẽ hiển thị tại đây</value>
+  </data>
+  <data name="RejectionReason" xml:space="preserve">
+    <value>Lý do từ chối</value>
+  </data>
+  <data name="PropertyInfoSubmitted" xml:space="preserve">
+    <value>Thông tin cơ sở lưu trú đã được gửi</value>
+  </data>
+  <data name="UnderReview" xml:space="preserve">
+    <value>Đang được xem xét</value>
+  </data>
+  <data name="CheckingInformation" xml:space="preserve">
+    <value>Đang kiểm tra thông tin</value>
+  </data>
+  <data name="ContractApproved" xml:space="preserve">
+    <value>Hợp đồng đã được phê duyệt</value>
+  </data>
+  <data name="ContractRejected" xml:space="preserve">
+    <value>Hợp đồng đã bị từ chối</value>
+  </data>
+  <data name="PropertyApproved" xml:space="preserve">
+    <value>Cơ sở lưu trú đã được chấp thuận</value>
+  </data>
+  <data name="PropertyRejected" xml:space="preserve">
+    <value>Cơ sở lưu trú đã bị từ chối</value>
+  </data>
+  <data name="AboutRegistrationStatus" xml:space="preserve">
+    <value>Giới thiệu về Trạng thái đăng ký</value>
+  </data>
+  <data name="PropertyDetails" xml:space="preserve">
+    <value>Thông tin chi tiết cơ sở lưu trú</value>
+  </data>
+  <data name="RegistrationNumber" xml:space="preserve">
+    <value>Số đăng ký</value>
+  </data>
+  <data name="NeedHelp" xml:space="preserve">
+    <value>Bạn cần trợ giúp?</value>
+  </data>
+  <data name="PropertyIntroduction" xml:space="preserve">
+    <value>Giới thiệu về cơ sở lưu trú</value>
+  </data>
+  <data name="RoomConfiguration" xml:space="preserve">
+    <value>Cấu hình phòng</value>
+  </data>
+  <data name="PriceConfiguration" xml:space="preserve">
+    <value>Cấu hình giá</value>
+  </data>
+  <data name="CheckInInformation" xml:space="preserve">
+    <value>Thông tin làm thủ tục nhận phòng</value>
+  </data>
+  <data name="SetCheckInOutTimes" xml:space="preserve">
+    <value>Thiết lập thời gian làm thủ tục nhận phòng và trả phòng cho chỗ ở của bạn</value>
+  </data>
+  <data name="Reception24Hours" xml:space="preserve">
+    <value>Lễ tân của bạn có mở cửa 24 giờ không?</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Có</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>Không</value>
+  </data>
+  <data name="CheckInTime" xml:space="preserve">
+    <value>Giờ nhận phòng</value>
+  </data>
+  <data name="CheckOutTime" xml:space="preserve">
+    <value>Giờ trả phòng</value>
+  </data>
+  <data name="PropertyPhotos" xml:space="preserve">
+    <value>Ảnh cơ sở lưu trú</value>
+  </data>
+  <data name="ProvideBestPhotos" xml:space="preserve">
+    <value>Cung cấp những bức ảnh đẹp nhất để quảng bá cơ sở lưu trú của bạn và thu hút khách hàng tiềm năng.</value>
+  </data>
+  <data name="ViewPhotoGuidelines" xml:space="preserve">
+    <value>Xem Hướng dẫn về ảnh chụp chỗ ở</value>
+  </data>
+  <data name="PhotoRequirements" xml:space="preserve">
+    <value>Yêu cầu ảnh:</value>
+  </data>
+  <data name="ResolutionMinimum" xml:space="preserve">
+    <value>Độ phân giải: Tối thiểu 800×600 px</value>
+  </data>
+  <data name="SizeMaximum" xml:space="preserve">
+    <value>Kích cỡ: Tối đa 300 KB</value>
+  </data>
+  <data name="OnlyAcceptPhotos" xml:space="preserve">
+    <value>Chỉ chấp nhận ảnh: Ngoại thất / Tòa nhà</value>
+  </data>
+  <data name="ExteriorBuilding" xml:space="preserve">
+    <value>Ngoại thất / Tòa nhà</value>
+  </data>
+  <data name="UploadPhoto" xml:space="preserve">
+    <value>Tải lên ảnh</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>Xem trước</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Xóa</value>
+  </data>
+  <data name="Amenities" xml:space="preserve">
+    <value>Tiện nghi</value>
+  </data>
+  <data name="SelectAtLeast3Amenities" xml:space="preserve">
+    <value>Vui lòng chọn ít nhất 3 tiện nghi</value>
+  </data>
+  <data name="CommonAreas" xml:space="preserve">
+    <value>Khu vực chung</value>
+  </data>
+  <data name="SmokingArea" xml:space="preserve">
+    <value>Khu vực hút thuốc</value>
+  </data>
+  <data name="Elevator" xml:space="preserve">
+    <value>Thang máy</value>
+  </data>
+  <data name="PublicWifiArea" xml:space="preserve">
+    <value>Khu vực Wifi công cộng</value>
+  </data>
+  <data name="ParkingArea" xml:space="preserve">
+    <value>Khu vực đậu xe</value>
+  </data>
+  <data name="FoodAndBeverage" xml:space="preserve">
+    <value>Ẩm thực</value>
+  </data>
+  <data name="Cafe" xml:space="preserve">
+    <value>Quán cà phê</value>
+  </data>
+  <data name="Restaurant" xml:space="preserve">
+    <value>Nhà hàng</value>
+  </data>
+  <data name="Bar" xml:space="preserve">
+    <value>Quán bar</value>
+  </data>
+  <data name="Services" xml:space="preserve">
+    <value>Dịch vụ</value>
+  </data>
+  <data name="FrontDesk" xml:space="preserve">
+    <value>Quầy lễ tân</value>
+  </data>
+  <data name="RoomService" xml:space="preserve">
+    <value>Dịch vụ phòng</value>
+  </data>
+  <data name="LaundryService" xml:space="preserve">
+    <value>Dịch vụ giặt ủi</value>
+  </data>
+  <data name="Security24Hours" xml:space="preserve">
+    <value>Bảo vệ 24 giờ</value>
+  </data>
+  <data name="LuggageStorage" xml:space="preserve">
+    <value>Nơi giữ hành lý</value>
+  </data>
+  <data name="AirportShuttle" xml:space="preserve">
+    <value>Đưa đón sân bay</value>
+  </data>
+  <data name="FreeWifi" xml:space="preserve">
+    <value>Wifi miễn phí</value>
+  </data>
+  <data name="NearbyAmenities" xml:space="preserve">
+    <value>Tiện nghi lân cận</value>
+  </data>
+  <data name="Shops" xml:space="preserve">
+    <value>Cửa hàng</value>
+  </data>
+  <data name="AtmBanking" xml:space="preserve">
+    <value>ATM hoặc Ngân hàng</value>
+  </data>
+  <data name="IndoorAmenities" xml:space="preserve">
+    <value>Tiện nghi trong nhà</value>
+  </data>
+  <data name="SwimmingPool" xml:space="preserve">
+    <value>Hồ bơi</value>
+  </data>
+  <data name="ChildrenPool" xml:space="preserve">
+    <value>Hồ bơi trẻ em</value>
+  </data>
+  <data name="Sauna" xml:space="preserve">
+    <value>Phòng xông hơi</value>
+  </data>
+  <data name="Spa" xml:space="preserve">
+    <value>Spa</value>
+  </data>
+  <data name="MeetingFacilities" xml:space="preserve">
+    <value>Phòng họp</value>
+  </data>
+  <data name="StarRating" xml:space="preserve">
+    <value>Đánh giá sao</value>
+  </data>
+  <data name="SelectStarRating" xml:space="preserve">
+    <value>Hãy chọn đánh giá sao cho chỗ ở của bạn</value>
+  </data>
+  <data name="NoRating" xml:space="preserve">
+    <value>Chưa có đánh giá sao</value>
+  </data>
+  <data name="BackToTera" xml:space="preserve">
+    <value>Quay lại TERA</value>
+  </data>
+  <data name="SaveAndContinue" xml:space="preserve">
+    <value>Lưu và tiếp tục</value>
+  </data>
+  <data name="ClosePreview" xml:space="preserve">
+    <value>Close Preview</value>
+  </data>
+  <data name="AccessibleBathroom" xml:space="preserve">
+    <value>Phòng tắm cho người khuyết tật</value>
+  </data>
+  <data name="AccessibleParking" xml:space="preserve">
+    <value>Bãi đậu xe cho người khuyết tật</value>
+  </data>
+  <data name="Cafe" xml:space="preserve">
+    <value>Quán cà phê</value>
+  </data>
+  <data name="Restaurant" xml:space="preserve">
+    <value>Nhà hàng</value>
+  </data>
+  <data name="Bar" xml:space="preserve">
+    <value>Quán bar</value>
+  </data>
+  <data name="FrontDesk" xml:space="preserve">
+    <value>Quầy lễ tân</value>
+  </data>
+  <data name="RoomService" xml:space="preserve">
+    <value>Dịch vụ phòng</value>
+  </data>
+  <data name="LaundryService" xml:space="preserve">
+    <value>Dịch vụ giặt ủi</value>
+  </data>
+  <data name="Security24Hours" xml:space="preserve">
+    <value>Bảo vệ 24 giờ</value>
+  </data>
+  <data name="LuggageStorage" xml:space="preserve">
+    <value>Nơi giữ hành lý</value>
+  </data>
+  <data name="AirportShuttle" xml:space="preserve">
+    <value>Đưa đón sân bay</value>
+  </data>
+  <data name="FreeWifi" xml:space="preserve">
+    <value>Wifi miễn phí</value>
+  </data>
+  <data name="NearbyAmenities" xml:space="preserve">
+    <value>Tiện nghi lân cận</value>
+  </data>
+  <data name="Shops" xml:space="preserve">
+    <value>Cửa hàng</value>
+  </data>
+  <data name="AtmBanking" xml:space="preserve">
+    <value>ATM hoặc Ngân hàng</value>
+  </data>
+  <data name="IndoorAmenities" xml:space="preserve">
+    <value>Tiện nghi trong nhà</value>
+  </data>
+  <data name="SwimmingPool" xml:space="preserve">
+    <value>Hồ bơi</value>
+  </data>
+  <data name="ChildrenPool" xml:space="preserve">
+    <value>Hồ bơi trẻ em</value>
+  </data>
+  <data name="Sauna" xml:space="preserve">
+    <value>Phòng xông hơi</value>
+  </data>
+  <data name="Spa" xml:space="preserve">
+    <value>Spa</value>
+  </data>
+  <data name="MeetingFacilities" xml:space="preserve">
+    <value>Phòng họp</value>
+  </data>
+  <data name="StarRating" xml:space="preserve">
+    <value>Đánh giá sao</value>
+  </data>
+  <data name="SelectStarRating" xml:space="preserve">
+    <value>Hãy chọn đánh giá sao cho chỗ ở của bạn</value>
+  </data>
+  <data name="NoRating" xml:space="preserve">
+    <value>Chưa có đánh giá sao</value>
+  </data>
+  <data name="BackToTera" xml:space="preserve">
+    <value>Quay lại TERA</value>
+  </data>
+  <data name="SaveAndContinue" xml:space="preserve">
+    <value>Lưu và tiếp tục</value>
+  </data>
+  <data name="FoodAndBeverage" xml:space="preserve">
+    <value>Ẩm thực</value>
+  </data>
+  <data name="Services" xml:space="preserve">
+    <value>Dịch vụ</value>
+  </data>
+  <data name="ExpressCheckIn" xml:space="preserve">
+    <value>Nhận phòng nhanh</value>
+  </data>
+  <data name="ConciergeService" xml:space="preserve">
+    <value>Dịch vụ trợ giúp đặc biệt</value>
+  </data>
+  <data name="ExpressCheckOut" xml:space="preserve">
+    <value>Trả phòng nhanh</value>
+  </data>
+  <data name="RoomService" xml:space="preserve">
+    <value>Dịch vụ phòng</value>
+  </data>
+  <data name="LaundryService" xml:space="preserve">
+    <value>Dịch vụ giặt ủi</value>
+  </data>
+  <data name="Security24Hours" xml:space="preserve">
+    <value>Bảo vệ 24 giờ</value>
+  </data>
+  <data name="LuggageStorage" xml:space="preserve">
+    <value>Nơi giữ hành lý</value>
+  </data>
+  <data name="AirportTransfer" xml:space="preserve">
+    <value>Đưa đón sân bay</value>
+  </data>
+  <data name="FreeWifi" xml:space="preserve">
+    <value>Wifi miễn phí</value>
+  </data>
+  <data name="NearbyAmenities" xml:space="preserve">
+    <value>Tiện nghi lân cận</value>
+  </data>
+  <data name="Shops" xml:space="preserve">
+    <value>Cửa hàng</value>
+  </data>
+  <data name="AtmBanking" xml:space="preserve">
+    <value>ATM hoặc Ngân hàng</value>
+  </data>
+  <data name="IndoorAmenities" xml:space="preserve">
+    <value>Tiện nghi trong nhà</value>
+  </data>
+  <data name="SwimmingPool" xml:space="preserve">
+    <value>Hồ bơi</value>
+  </data>
+  <data name="ChildrenPool" xml:space="preserve">
+    <value>Hồ bơi trẻ em</value>
+  </data>
+  <data name="Sauna" xml:space="preserve">
+    <value>Phòng xông hơi</value>
+  </data>
+  <data name="Spa" xml:space="preserve">
+    <value>Spa</value>
+  </data>
+  <data name="MeetingFacilities" xml:space="preserve">
+    <value>Phòng họp</value>
+  </data>
+  <data name="StarRating" xml:space="preserve">
+    <value>Đánh giá sao</value>
+  </data>
+  <data name="SelectStarRating" xml:space="preserve">
+    <value>Hãy chọn đánh giá sao cho chỗ ở của bạn</value>
+  </data>
+  <data name="NoRating" xml:space="preserve">
+    <value>Chưa có đánh giá sao</value>
+  </data>
+  <data name="Stars" xml:space="preserve">
+    <value>sao</value>
+  </data>
+  <data name="NotAllAmenitiesListed" xml:space="preserve">
+    <value>Không phải tiện nghi nào cũng được liệt kê ở đây. Bạn có thể thêm nhiều tiện nghi khác sau trong TERA.</value>
+  </data>
+  <data name="UploadMorePhotos" xml:space="preserve">
+    <value>Tải lên thêm ảnh</value>
+  </data>
+  <data name="BusinessCenter" xml:space="preserve">
+    <value>Trung tâm thương mại</value>
+  </data>
+  <data name="ChildrenPlayArea" xml:space="preserve">
+    <value>Khu vui chơi trẻ em</value>
+  </data>
+  <data name="FitnessCenter" xml:space="preserve">
+    <value>Phòng tập gym</value>
+  </data>
+  <data name="Spa" xml:space="preserve">
+    <value>Spa</value>
+  </data>
+  <data name="MeetingFacilities" xml:space="preserve">
+    <value>Phòng họp</value>
+  </data>
+  <data name="AccessibleBathroom" xml:space="preserve">
+    <value>Phòng tắm cho người khuyết tật</value>
+  </data>
+  <data name="AccessibleParking" xml:space="preserve">
+    <value>Bãi đậu xe cho người khuyết tật</value>
+  </data>
+  <data name="RoomConfiguration" xml:space="preserve">
+    <value>Cấu hình phòng</value>
+  </data>
+  <data name="RoomType" xml:space="preserve">
+    <value>Loại phòng</value>
+  </data>
+  <data name="CreateRoomTypesDescription" xml:space="preserve">
+    <value>Tạo các loại phòng mà chỗ ở của bạn sẽ cung cấp cho khách.</value>
+  </data>
+  <data name="CreateNewRoom" xml:space="preserve">
+    <value>Tạo phòng mới</value>
+  </data>
+  <data name="BedSetup" xml:space="preserve">
+    <value>Cài đặt giường ngủ</value>
+  </data>
+  <data name="NotConfigured" xml:space="preserve">
+    <value>Chưa cấu hình</value>
+  </data>
+  <data name="OtherConfigurations" xml:space="preserve">
+    <value>Các cấu hình khác</value>
+  </data>
+  <data name="AddRoom" xml:space="preserve">
+    <value>Thêm phòng</value>
+  </data>
+  <data name="MaxAdultOccupancy" xml:space="preserve">
+    <value>Max. {0} adult occupancy</value>
+  </data>
+  <data name="ChildNotAllowed" xml:space="preserve">
+    <value>Child not allowed</value>
+  </data>
+  <data name="ExtraBedNotProvided" xml:space="preserve">
+    <value>Extra bed not provided</value>
+  </data>
+  <data name="NoRoomsYet" xml:space="preserve">
+    <value>Chưa có phòng</value>
+  </data>
+  <data name="ClickToCreateRoom" xml:space="preserve">
+    <value>Hãy nhấp vào nút bên dưới để tạo phòng</value>
+  </data>
+  <data name="RoomData" xml:space="preserve">
+    <value>Dữ liệu phòng</value>
+  </data>
+  <data name="GoBack" xml:space="preserve">
+    <value>Quay lại</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Lưu</value>
+  </data>
+  <data name="RoomInformation" xml:space="preserve">
+    <value>Thông tin phòng</value>
+  </data>
+  <data name="RoomDetails" xml:space="preserve">
+    <value>Chi tiết phòng</value>
+  </data>
+  <data name="BedSetup" xml:space="preserve">
+    <value>Cài đặt giường ngủ</value>
+  </data>
+  <data name="RoomAmenities" xml:space="preserve">
+    <value>Tiện nghi phòng</value>
+  </data>
+  <data name="RoomCapacityAndSecurity" xml:space="preserve">
+    <value>Công suất phòng và Mức bảo hộ giá</value>
+  </data>
+  <data name="RoomCapacitySetup" xml:space="preserve">
+    <value>Cài đặt công suất phòng</value>
+  </data>
+  <data name="SecurityDeposit" xml:space="preserve">
+    <value>Mức bảo hộ</value>
+  </data>
+  <data name="Photos" xml:space="preserve">
+    <value>Ảnh</value>
+  </data>
+  <data name="RoomPhotos" xml:space="preserve">
+    <value>Ảnh phòng</value>
+  </data>
+  <data name="RoomInformationDescription" xml:space="preserve">
+    <value>Nêu rõ tên và loại phòng. Bạn có thể thay đổi cài đặt này sau trong TERA.</value>
+  </data>
+  <data name="RoomType" xml:space="preserve">
+    <value>Loại phòng</value>
+  </data>
+  <data name="SelectRoomType" xml:space="preserve">
+    <value>Chọn loại phòng</value>
+  </data>
+  <data name="RoomName" xml:space="preserve">
+    <value>Tên phòng</value>
+  </data>
+  <data name="EnterRoomName" xml:space="preserve">
+    <value>Nhập tên phòng của bạn bằng ký tự chữ và số.</value>
+  </data>
+  <data name="BedSetupDescription" xml:space="preserve">
+    <value>Nêu rõ số lượng giường có trong phòng này. Bạn có thể thay đổi cài đặt này sau trong TERA.</value>
+  </data>
+  <data name="NumberOfBedrooms" xml:space="preserve">
+    <value>Số lượng phòng ngủ</value>
+  </data>
+  <data name="SingleBedroom" xml:space="preserve">
+    <value>Phòng ngủ đơn</value>
+  </data>
+  <data name="MultipleBedrooms" xml:space="preserve">
+    <value>Nhiều phòng ngủ</value>
+  </data>
+  <data name="BedType" xml:space="preserve">
+    <value>Loại giường</value>
+  </data>
+  <data name="NumberOfBeds" xml:space="preserve">
+    <value>Số lượng giường</value>
+  </data>
+  <data name="EnterNumber" xml:space="preserve">
+    <value>Nhập số</value>
+  </data>
+  <data name="AddBedType" xml:space="preserve">
+    <value>+ Thêm loại giường</value>
+  </data>
+  <data name="BedroomNumber" xml:space="preserve">
+    <value>{0} phòng ngủ</value>
+  </data>
+  <data name="AddDifferentBedType" xml:space="preserve">
+    <value>+ Thêm loại giường khác</value>
+  </data>
+  <data name="AddDifferentBedroom" xml:space="preserve">
+    <value>+ Thêm loại phòng ngủ khác</value>
+  </data>
+  <data name="RoomAmenitiesDescription" xml:space="preserve">
+    <value>Chọn tiện nghi có trong loại phòng này.</value>
+  </data>
+  <data name="SelectAtLeastOneAmenity" xml:space="preserve">
+    <value>Vui lòng chọn <strong>ít nhất 1</strong> tiện nghi.</value>
+  </data>
+  <data name="SelectAllAmenities" xml:space="preserve">
+    <value>Chọn tất cả tiện nghi</value>
+  </data>
+  <data name="NotAllAmenitiesListed" xml:space="preserve">
+    <value>Không phải tiện nghi nào cũng được liệt kê ở đây. Bạn có thể thêm nhiều tiện nghi khác sau trong TERA.</value>
+  </data>
+  <data name="RoomCapacityDescription" xml:space="preserve">
+    <value>Xác định số lượng khách tối đa có thể lưu trú trong phòng này. Bạn có thể thay đổi cài đặt này sau trong TERA.</value>
+  </data>
+  <data name="MaxAdultCapacity" xml:space="preserve">
+    <value>Sức chứa người lớn tối đa</value>
+  </data>
+  <data name="ChildCapacity" xml:space="preserve">
+    <value>Sức chứa trẻ em</value>
+  </data>
+  <data name="ChildCapacityHint" xml:space="preserve">
+    <value>Nếu cho phép, sức chứa trẻ em tối đa sẽ được đặt thành một.</value>
+  </data>
+  <data name="Allow" xml:space="preserve">
+    <value>Cho phép</value>
+  </data>
+  <data name="NotAllow" xml:space="preserve">
+    <value>Không cho phép</value>
+  </data>
+  <data name="ExtraBed" xml:space="preserve">
+    <value>Giường phụ</value>
+  </data>
+  <data name="ExtraBedHint" xml:space="preserve">
+    <value>Nếu cho phép, giường phụ tối đa sẽ được đặt thành một.</value>
+  </data>
+  <data name="RoomDetailsDescription" xml:space="preserve">
+    <value>Nêu rõ các đặc điểm của phòng. Bạn có thể thay đổi cài đặt này sau trong TERA.</value>
+  </data>
+  <data name="RoomSizeUnit" xml:space="preserve">
+    <value>Kích cỡ phòng / đơn vị</value>
+  </data>
+  <data name="RoomSizeHint" xml:space="preserve">
+    <value>Kích thước phòng sẽ được hiển thị cho khách.</value>
+  </data>
+  <data name="Size" xml:space="preserve">
+    <value>Kích cỡ</value>
+  </data>
+  <data name="Unit" xml:space="preserve">
+    <value>Đơn vị</value>
+  </data>
+  <data name="EnterUnit" xml:space="preserve">
+    <value>Nhập đơn vị</value>
+  </data>
+  <data name="Smoking" xml:space="preserve">
+    <value>Hút thuốc</value>
+  </data>
+  <data name="NoSmoking" xml:space="preserve">
+    <value>Cấm hút thuốc</value>
+  </data>
+  <data name="RoomInventory" xml:space="preserve">
+    <value>Quỹ phòng</value>
+  </data>
+  <data name="RoomInventoryHint" xml:space="preserve">
+    <value>Số lượng phòng sẽ được mở để đặt phòng</value>
+  </data>
+  <data name="IntegratedAmenities" xml:space="preserve">
+    <value>Tiện nghi tích hợp</value>
+  </data>
+  <data name="BalconyTerrace" xml:space="preserve">
+    <value>Ban công sân thượng</value>
+  </data>
+  <data name="ConnectingRooms" xml:space="preserve">
+    <value>Phòng thông nhau</value>
+  </data>
+  <data name="PrivatePool" xml:space="preserve">
+    <value>Hồ bơi riêng</value>
+  </data>
+  <data name="AirConditioning" xml:space="preserve">
+    <value>Điều hòa không khí</value>
+  </data>
+  <data name="Desk" xml:space="preserve">
+    <value>Bàn làm việc</value>
+  </data>
+  <data name="Microwave" xml:space="preserve">
+    <value>Lò vi sóng</value>
+  </data>
+  <data name="IroningFacilities" xml:space="preserve">
+    <value>Đồ ủi</value>
+  </data>
+  <data name="TV" xml:space="preserve">
+    <value>Tivi</value>
+  </data>
+  <data name="Minibar" xml:space="preserve">
+    <value>Mini bar</value>
+  </data>
+  <data name="HairDryer" xml:space="preserve">
+    <value>Máy sấy tóc</value>
+  </data>
+  <data name="Wifi" xml:space="preserve">
+    <value>Wifi</value>
+  </data>
+  <data name="WashingMachine" xml:space="preserve">
+    <value>Máy giặt</value>
+  </data>
+  <data name="SharedBathroom" xml:space="preserve">
+    <value>Nhà tắm chung</value>
+  </data>
+  <data name="Refrigerator" xml:space="preserve">
+    <value>Tủ lạnh</value>
+  </data>
+  <data name="CoffeeTeaMaker" xml:space="preserve">
+    <value>Máy pha cà phê/trà</value>
+  </data>
+  <data name="Bathroom" xml:space="preserve">
+    <value>Phòng tắm</value>
+  </data>
+  <data name="Toiletries" xml:space="preserve">
+    <value>Đồ dùng vệ sinh</value>
+  </data>
+  <data name="Bathrobe" xml:space="preserve">
+    <value>Áo choàng tắm</value>
+  </data>
+  <data name="Bathtub" xml:space="preserve">
+    <value>Bồn tắm</value>
+  </data>
+  <data name="Shower" xml:space="preserve">
+    <value>Vòi sen</value>
+  </data>
+  <data name="PrivateBathroom" xml:space="preserve">
+    <value>Nhà tắm riêng</value>
+  </data>
+  <data name="HotWater" xml:space="preserve">
+    <value>Nước nóng</value>
+  </data>
+  <data name="SecurityDeposit" xml:space="preserve">
+    <value>Mức bảo hộ</value>
+  </data>
+  <data name="SecurityDepositDescription" xml:space="preserve">
+    <value>Đặt mức giá tối thiểu cho phòng này. Thao tác này đảm bảo rằng phòng của bạn sẽ không được bán với mức giá thấp hơn mức giá này sau khi đã áp dụng giảm giá, khuyến mãi.</value>
+  </data>
+  <data name="MinimumPrice" xml:space="preserve">
+    <value>Mức giá tối thiểu</value>
+  </data>
+  <data name="EnterPrice" xml:space="preserve">
+    <value>Nhập giá</value>
+  </data>
+  <data name="RoomPhotosDescription" xml:space="preserve">
+    <value>Phòng phải có ít nhất một bức ảnh cho phòng ngủ và một bức ảnh cho phòng tắm. 56% khách truy cập vào trang phòng khách sạn thường bắt đầu bằng việc xem các bức ảnh.</value>
+  </data>
+  <data name="ViewPhotoGuidelines" xml:space="preserve">
+    <value>Xem Hướng dẫn về ảnh chụp chỗ ở.</value>
+  </data>
+  <data name="PhotoRequirements" xml:space="preserve">
+    <value>Yêu cầu về ảnh:</value>
+  </data>
+  <data name="ResolutionRequirement" xml:space="preserve">
+    <value>Độ phân giải: Tối thiểu 800x600 px và tối đa 4096x4096 px</value>
+  </data>
+  <data name="SizeRequirement" xml:space="preserve">
+    <value>Kích cỡ: Tối thiểu 300KB và tối đa 20MB</value>
+  </data>
+  <data name="Bedroom" xml:space="preserve">
+    <value>Bedroom</value>
+  </data>
+  <data name="Bathroom" xml:space="preserve">
+    <value>Bathroom</value>
+  </data>
+  <data name="UploadPhoto" xml:space="preserve">
+    <value>Tải lên ảnh</value>
+  </data>
+  <data name="ThisFieldIsRequired" xml:space="preserve">
+    <value>Đây là phần bắt buộc.</value>
+  </data>
+  <data name="AdditionalPhotos" xml:space="preserve">
+    <value>Ảnh bổ sung</value>
+  </data>
+  <data name="AdditionalPhotosDescription" xml:space="preserve">
+    <value>Thêm ảnh khác để khách có thể thấy rõ hơn về phòng của bạn.</value>
+  </data>
+  <data name="SearchResults" xml:space="preserve">
+    <value>kết quả</value>
+  </data>
+  <data name="FoundAccommodations" xml:space="preserve">
+    <value>tìm thấy {0} chỗ nghỉ</value>
+  </data>
+  <data name="ShowOnMap" xml:space="preserve">
+    <value>Hiển thị trên bản đồ</value>
+  </data>
+  <data name="PriceRange" xml:space="preserve">
+    <value>Khoảng giá</value>
+  </data>
+  <data name="OneRoomOneNight" xml:space="preserve">
+    <value>1 phòng, 1 đêm</value>
+  </data>
+  <data name="Reset" xml:space="preserve">
+    <value>Đặt lại</value>
+  </data>
+  <data name="PromotionsAndDiscounts" xml:space="preserve">
+    <value>Khuyến mãi &amp; Giảm giá</value>
+  </data>
+  <data name="NearBeach" xml:space="preserve">
+    <value>Gần biển</value>
+  </data>
+  <data name="MostPopular" xml:space="preserve">
+    <value>Được yêu thích nhất</value>
+  </data>
+  <data name="PromotionsForYou" xml:space="preserve">
+    <value>Khuyến mãi dành cho bạn</value>
+  </data>
+  <data name="HasBreakfast" xml:space="preserve">
+    <value>Có bữa sáng</value>
+  </data>
+  <data name="HasPool" xml:space="preserve">
+    <value>Có hồ bơi</value>
+  </data>
+  <data name="FamilyFriendly" xml:space="preserve">
+    <value>Phù hợp cho gia đình</value>
+  </data>
+  <data name="CoupleFriendly" xml:space="preserve">
+    <value>Phù hợp cho cặp đôi</value>
+  </data>
+  <data name="GoodValueStars" xml:space="preserve">
+    <value>4-5 sao giá tốt</value>
+  </data>
+  <data name="ComfortableBed" xml:space="preserve">
+    <value>Giường đệm thoải mái</value>
+  </data>
+  <data name="CleanRoom" xml:space="preserve">
+    <value>Phòng sạch sẽ</value>
+  </data>
+  <data name="GoodPrice" xml:space="preserve">
+    <value>Giá tốt</value>
+  </data>
+  <data name="ConvenientLocation" xml:space="preserve">
+    <value>Vị trí thuận tiện</value>
+  </data>
+  <data name="AdditionalBenefits" xml:space="preserve">
+    <value>Quyền lợi bổ sung</value>
+  </data>
+  <data name="MountainView" xml:space="preserve">
+    <value>View núi</value>
+  </data>
+  <data name="HasHeater" xml:space="preserve">
+    <value>Có máy sưởi</value>
+  </data>
+  <data name="StarRating" xml:space="preserve">
+    <value>Đánh giá sao</value>
+  </data>
+  <data name="SortBy" xml:space="preserve">
+    <value>Sắp xếp theo:</value>
+  </data>
+  <data name="OurTopPicks" xml:space="preserve">
+    <value>Lựa chọn hàng đầu của chúng tôi</value>
+  </data>
+  <data name="NoLocationFound" xml:space="preserve">
+    <value>Không tìm thấy địa điểm nào</value>
+  </data>
+  <data name="GuestReviews" xml:space="preserve">
+    <value>Đánh giá từ khách</value>
+  </data>
+  <data name="Rating7Convenient" xml:space="preserve">
+    <value>7+ Thuận tiện</value>
+  </data>
+  <data name="Rating8Impressive" xml:space="preserve">
+    <value>8+ Ấn tượng</value>
+  </data>
+  <data name="Rating9Excellent" xml:space="preserve">
+    <value>9+ Tuyệt hảo</value>
+  </data>
+  <data name="AccommodationType" xml:space="preserve">
+    <value>Loại hình lưu trú</value>
+  </data>
+  <data name="Resort" xml:space="preserve">
+    <value>Resort</value>
+  </data>
+  <data name="Hotel" xml:space="preserve">
+    <value>Khách sạn</value>
+  </data>
+  <data name="Guesthouse" xml:space="preserve">
+    <value>Nhà nghỉ</value>
+  </data>
+  <data name="Apartment" xml:space="preserve">
+    <value>Căn hộ</value>
+  </data>
+  <data name="Villa" xml:space="preserve">
+    <value>Villa</value>
+  </data>
+  <data name="Homestay" xml:space="preserve">
+    <value>Homestay</value>
+  </data>
+  <data name="Hostel" xml:space="preserve">
+    <value>Hostel</value>
+  </data>
+  <data name="MoreFlexibility" xml:space="preserve">
+    <value>Linh hoạt hơn</value>
+  </data>
+  <data name="FreeCancellation" xml:space="preserve">
+    <value>Miễn phí hủy phòng</value>
+  </data>
+  <data name="PayAtHotel" xml:space="preserve">
+    <value>Thanh toán tại khách sạn</value>
+  </data>
+  <data name="Beds" xml:space="preserve">
+    <value>giường</value>
+  </data>
+  <data name="IncludesBreakfast" xml:space="preserve">
+    <value>Bao gồm bữa sáng</value>
+  </data>
+  <data name="DoesNotIncludeBreakfast" xml:space="preserve">
+    <value>Không bao gồm bữa sáng</value>
+  </data>
+  <data name="LimitedRoomsMessage" xml:space="preserve">
+    <value>Chỉ còn vài phòng với giá này trên trang của chúng tôi</value>
+  </data>
+  <data name="Excellent" xml:space="preserve">
+    <value>Tuyệt vời</value>
+  </data>
+  <data name="Reviews" xml:space="preserve">
+    <value>đánh giá</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Địa điểm:</value>
+  </data>
+  <data name="Night" xml:space="preserve">
+    <value>đêm</value>
+  </data>
+  <data name="Adults" xml:space="preserve">
+    <value>người lớn</value>
+  </data>
+  <data name="TaxAndFees" xml:space="preserve">
+    <value>thuế và phí</value>
+  </data>
+  <data name="ViewAvailability" xml:space="preserve">
+    <value>Xem chỗ trống</value>
+  </data>
+  <data name="Homepage" xml:space="preserve">
+    <value>Trang chủ</value>
+  </data>
+  <data name="Hotel" xml:space="preserve">
+    <value>Khách sạn</value>
+  </data>
+  <data name="Overview" xml:space="preserve">
+    <value>Tổng quan</value>
+  </data>
+  <data name="InformationAndPrices" xml:space="preserve">
+    <value>Thông tin &amp; giá</value>
+  </data>
+  <data name="Amenities" xml:space="preserve">
+    <value>Tiện nghi</value>
+  </data>
+  <data name="GeneralRules" xml:space="preserve">
+    <value>Quy tắc chung</value>
+  </data>
+  <data name="GuestReviews" xml:space="preserve">
+    <value>Đánh giá của khách</value>
+  </data>
+  <data name="ExcellentLocation" xml:space="preserve">
+    <value>Vị trí xuất sắc</value>
+  </data>
+  <data name="ShowOnMap" xml:space="preserve">
+    <value>hiển thị bản đồ</value>
+  </data>
+  <data name="WeAlwaysMatchPrices" xml:space="preserve">
+    <value>Chứng Tôi Luôn Khớp Giá!</value>
+  </data>
+  <data name="BookNow" xml:space="preserve">
+    <value>Đặt ngay</value>
+  </data>
+  <data name="ViewAllImages" xml:space="preserve">
+    <value>Xem tất cả hình ảnh</value>
+  </data>
+  <data name="MountainView" xml:space="preserve">
+    <value>Nhìn ra núi</value>
+  </data>
+  <data name="Garden" xml:space="preserve">
+    <value>Sân vườn</value>
+  </data>
+  <data name="SwimmingPool" xml:space="preserve">
+    <value>Hồ bơi</value>
+  </data>
+  <data name="FreeWiFi" xml:space="preserve">
+    <value>WiFi miễn phí</value>
+  </data>
+  <data name="Terrace" xml:space="preserve">
+    <value>Sân hiên</value>
+  </data>
+  <data name="Balcony" xml:space="preserve">
+    <value>Ban công</value>
+  </data>
+  <data name="FreeParking" xml:space="preserve">
+    <value>Chỗ đỗ xe miễn phí</value>
+  </data>
+  <data name="BedInformation" xml:space="preserve">
+    <value>Thông tin giường sẽ cập nhật</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Vị trí</value>
+  </data>
+  <data name="HotelImages" xml:space="preserve">
+    <value>Hình của khách sạn</value>
+  </data>
+  <data name="ExteriorBuilding" xml:space="preserve">
+    <value>Bên ngoài / Tòa nhà</value>
+  </data>
+  <data name="AllImages" xml:space="preserve">
+    <value>Tất cả hình ảnh</value>
+  </data>
+  <data name="Exterior" xml:space="preserve">
+    <value>Bên ngoài</value>
+  </data>
+  <data name="Lobby" xml:space="preserve">
+    <value>Sảnh chờ</value>
+  </data>
+  <data name="Restaurant" xml:space="preserve">
+    <value>Nhà hàng</value>
+  </data>
+  <data name="BarCafeLounge" xml:space="preserve">
+    <value>Quầy bar, cafe và phòng lounge</value>
+  </data>
+  <data name="Rooms" xml:space="preserve">
+    <value>Phòng nghỉ</value>
+  </data>
+  <data name="Amenities" xml:space="preserve">
+    <value>Tiện ích</value>
+  </data>
+  <data name="Bathtub" xml:space="preserve">
+    <value>Bồn tắm</value>
+  </data>
+  <data name="AirConditioning" xml:space="preserve">
+    <value>Điều hòa không khí</value>
+  </data>
+  <data name="Reception24Hours" xml:space="preserve">
+    <value>Lễ tân 24 giờ</value>
+  </data>
+  <data name="EnjoyWorldClassService" xml:space="preserve">
+    <value>Tận hưởng dịch vụ đỉnh cao, đẳng cấp thế giới tại Legacy Yen Tu - MGallery</value>
+  </data>
+  <data name="LocatedInUongBi" xml:space="preserve">
+    <value>Nằm ở thành phố Uông Bí, Legacy Yen Tu - MGallery cung cấp chỗ nghỉ 5 sao với vườn, quầy bar và sân hiên. Nhà hàng, quầy lễ tân 24 giờ, dịch vụ phòng và Wi-Fi miễn phí cũng nằm trong số các tiện nghi.</value>
+  </data>
+  <data name="HotelRoomsDescription" xml:space="preserve">
+    <value>Các phòng nghỉ tại khách sạn có khu vực ghế ngồi. Phòng tắm riêng đi kèm chậu rửa vệ sinh, máy sấy tóc và đồ vệ sinh cá nhân miễn phí.</value>
+  </data>
+  <data name="BreakfastService" xml:space="preserve">
+    <value>Chỗ nghỉ phục vụ bữa sáng tự chọn hàng ngày.</value>
+  </data>
+  <data name="DistanceToHaiPhong" xml:space="preserve">
+    <value>Thành phố Hải Phòng cách Legacy Yen Tu - MGallery 42 km. Sân bay gần nhất là sân bay quốc tế Cát Bi, cách chỗ nghỉ 42 km.</value>
+  </data>
+  <data name="CouplesLoveThisPlace" xml:space="preserve">
+    <value>Các cặp đôi đặc biệt thích địa điểm này — họ cho điểm 9,4 khi đánh giá chuyến đi hai người.</value>
+  </data>
+  <data name="DistanceNote" xml:space="preserve">
+    <value>Các khoảng cách nêu trong mô tả chỗ nghỉ được tính toán bằng Google Maps.</value>
+  </data>
+  <data name="MostPopularAmenities" xml:space="preserve">
+    <value>Các tiện nghi được ưa chuộng nhất</value>
+  </data>
+  <data name="TwoSwimmingPools" xml:space="preserve">
+    <value>2 hồ bơi</value>
+  </data>
+  <data name="AirportShuttle" xml:space="preserve">
+    <value>Xe đưa đón sân bay</value>
+  </data>
+  <data name="NonSmokingRooms" xml:space="preserve">
+    <value>Phòng không hút thuốc</value>
+  </data>
+  <data name="SpaWellnessCenter" xml:space="preserve">
+    <value>Trung tâm Spa &amp; chăm sóc sức khỏe</value>
+  </data>
+  <data name="Restaurant" xml:space="preserve">
+    <value>Nhà hàng</value>
+  </data>
+  <data name="RoomService" xml:space="preserve">
+    <value>Dịch vụ phòng</value>
+  </data>
+  <data name="Bar" xml:space="preserve">
+    <value>Quầy bar</value>
+  </data>
+  <data name="ExcellentBreakfast" xml:space="preserve">
+    <value>Bữa sáng xuất sắc</value>
+  </data>
+  <data name="SelectRoom" xml:space="preserve">
+    <value>Chọn phòng</value>
+  </data>
+  <data name="ViewRoomDetails" xml:space="preserve">
+    <value>Xem chi tiết phòng</value>
+  </data>
+  <data name="StandingShower" xml:space="preserve">
+    <value>Vòi tắm đứng</value>
+  </data>
+  <data name="AirConditioning" xml:space="preserve">
+    <value>Máy lạnh</value>
+  </data>
+  <data name="IncludesBreakfast" xml:space="preserve">
+    <value>Bao gồm bữa sáng</value>
+  </data>
+  <data name="DoesNotIncludeBreakfast" xml:space="preserve">
+    <value>Không bao gồm bữa sáng</value>
+  </data>
+  <data name="ChildPolicyDetails" xml:space="preserve">
+    <value>Chi tiết phí trẻ em tại đây</value>
+  </data>
+  <data name="PayAtHotel" xml:space="preserve">
+    <value>Thanh Toán Tại Khách Sạn</value>
+  </data>
+  <data name="RefundableUpTo1Day" xml:space="preserve">
+    <value>Có thể hoàn tiền | cho đến 1 ngày trước Ngày làm thủ tục nhận phòng</value>
+  </data>
+  <data name="CancellationPolicyApplies" xml:space="preserve">
+    <value>Áp dụng chính sách hủy phòng</value>
+  </data>
+  <data name="IncludesTaxAndFees" xml:space="preserve">
+    <value>Bao gồm thuế và phí</value>
+  </data>
+  <data name="Select" xml:space="preserve">
+    <value>Chọn</value>
+  </data>
+  <data name="ExcellentReviews" xml:space="preserve">
+    <value>Tuyệt vời - 327 đánh giá</value>
+  </data>
+  <data name="ReadAllReviews" xml:space="preserve">
+    <value>Đọc tất cả đánh giá</value>
+  </data>
+  <data name="SelectTopicToReadReviews" xml:space="preserve">
+    <value>Chọn chủ đề để đọc đánh giá:</value>
+  </data>
+  <data name="RefundableUpTo3Days" xml:space="preserve">
+    <value>Có thể hoàn tiền | cho đến 3 ngày trước Ngày làm thủ tục nhận phòng</value>
+  </data>
+  <data name="RefundableUpTo7Days" xml:space="preserve">
+    <value>Có thể hoàn tiền | cho đến 7 ngày trước Ngày làm thủ tục nhận phòng</value>
+  </data>
+  <data name="NonRefundable" xml:space="preserve">
+    <value>Không thể hoàn tiền</value>
+  </data>
+  <data name="Size" xml:space="preserve">
+    <value>Kích thước</value>
+  </data>
+  <data name="Capacity" xml:space="preserve">
+    <value>Sức chứa</value>
+  </data>
+  <data name="Guests" xml:space="preserve">
+    <value>khách</value>
+  </data>
+  <data name="StartingFrom" xml:space="preserve">
+    <value>Khởi điểm từ:</value>
+  </data>
+  <data name="AddRoomOption" xml:space="preserve">
+    <value>Thêm lựa chọn phòng</value>
+  </data>
+  <data name="NoAmenitiesUpdated" xml:space="preserve">
+    <value>Chưa cập nhật tiện nghi.</value>
+  </data>
+  <data name="TerraceBalcony" xml:space="preserve">
+    <value>Ban công sân thượng</value>
+  </data>
+  <data name="PrivatePool" xml:space="preserve">
+    <value>Hồ bơi riêng</value>
+  </data>
+  <data name="WorkDesk" xml:space="preserve">
+    <value>Bàn làm việc</value>
+  </data>
+  <data name="Microwave" xml:space="preserve">
+    <value>Lò vi sóng</value>
+  </data>
+  <data name="IroningFacilities" xml:space="preserve">
+    <value>Đồ ủi</value>
+  </data>
+  <data name="TV" xml:space="preserve">
+    <value>Tivi</value>
+  </data>
+  <data name="MiniBar" xml:space="preserve">
+    <value>Mini bar</value>
+  </data>
+  <data name="HairDryer" xml:space="preserve">
+    <value>Máy sấy tóc</value>
+  </data>
+  <data name="WashingMachine" xml:space="preserve">
+    <value>Máy giặt</value>
+  </data>
+  <data name="SharedBathroom" xml:space="preserve">
+    <value>Nhà tắm chung</value>
+  </data>
+  <data name="Refrigerator" xml:space="preserve">
+    <value>Tủ lạnh</value>
+  </data>
+  <data name="CoffeeTeaMaker" xml:space="preserve">
+    <value>Máy pha cà phê/trà</value>
+  </data>
+  <data name="Toiletries" xml:space="preserve">
+    <value>Đồ dùng vệ sinh</value>
+  </data>
+  <data name="Bathrobe" xml:space="preserve">
+    <value>Áo choàng tắm</value>
+  </data>
+  <data name="Shower" xml:space="preserve">
+    <value>Vòi sen</value>
+  </data>
+  <data name="PrivateBathroom" xml:space="preserve">
+    <value>Nhà tắm riêng</value>
+  </data>
+  <data name="HotWater" xml:space="preserve">
+    <value>Nước nóng</value>
+  </data>
+  <data name="ExcellentReviews" xml:space="preserve">
+    <value>Tuyệt vời · 327 đánh giá</value>
+  </data>
+  <data name="StaffService" xml:space="preserve">
+    <value>Nhân viên phục vụ</value>
+  </data>
+  <data name="Comfort" xml:space="preserve">
+    <value>Thoải mái ↑</value>
+  </data>
+  <data name="ValueForMoney" xml:space="preserve">
+    <value>Đáng giá tiền</value>
+  </data>
+  <data name="Cleanliness" xml:space="preserve">
+    <value>Sạch sẽ ↑</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Địa điểm</value>
+  </data>
+  <data name="SelectTopicToReadReviews" xml:space="preserve">
+    <value>Select topic to read reviews:</value>
+  </data>
+  <data name="WhatDoGuestsLike" xml:space="preserve">
+    <value>Khách lưu trú ở đây thích điều gì?</value>
+  </data>
+  <data name="ReadMore" xml:space="preserve">
+    <value>Tìm hiểu thêm</value>
+  </data>
+  <data name="TranslatedByGoogle" xml:space="preserve">
+    <value>Được dịch bởi Google - Xem bản gốc</value>
+  </data>
+  <data name="Breakfast" xml:space="preserve">
+    <value>Bữa sáng</value>
+  </data>
+  <data name="Dinner" xml:space="preserve">
+    <value>Bữa tối</value>
+  </data>
+  <data name="Room" xml:space="preserve">
+    <value>Phòng</value>
+  </data>
+  <data name="Review1Text" xml:space="preserve">
+    <value>Nếu có thể cho nơi này trên 10 điểm thì tôi sẽ làm. Có lẽ đây là một trong những nơi tuyệt vời nhất mà tôi từng trải nghiệm. Mọi nhân viên ở đây từ nhận phòng đến khu vực ăn uống hết mình để phục vụ khách hàng theo tiêu chuẩn cao nhất. Không cảnh...</value>
+  </data>
+  <data name="Review2Text" xml:space="preserve">
+    <value>Bất động sản tuyệt vời, đồ ăn ngon, phòng đẹp và hồ bơi tuyệt vời. Bạn quản lý cấp cao rất tuyệt vời và chăm sóc bạn chủ đảo. Cũng xin chúc mừng tất cả mọi người ở khu vực nhà hàng/bữa sáng! Rất mong được quay lại lần nữa.</value>
+  </data>
+  <data name="Review3Text" xml:space="preserve">
+    <value>Khách sạn tuyệt vời, leo 10.000 bậc thang để ngắm tượng Phật vàng. Trải nghiệm khó quên với nội thất đẹp, vài tượng thủ công theo phương pháp truyền thống, phòng tắm lát đá cẩm thạch và nhà hàng, quầy bar tuyệt đẹp. Phải ở lại trên đường đi đến...</value>
+  </data>
+  <data name="BookRoom" xml:space="preserve">
+    <value>Đặt phòng</value>
+  </data>
+  <data name="ContactBooking" xml:space="preserve">
+    <value>Liên hệ đặt chỗ</value>
+  </data>
+  <data name="AddContactForConfirmation" xml:space="preserve">
+    <value>Thêm liên hệ để nhận xác nhận đặt chỗ.</value>
+  </data>
+  <data name="FullName" xml:space="preserve">
+    <value>Họ tên</value>
+  </data>
+  <data name="FullNamePlaceholder" xml:space="preserve">
+    <value>như trên CMND (không dấu)</value>
+  </data>
+  <data name="MobilePhone" xml:space="preserve">
+    <value>Điện thoại di động</value>
+  </data>
+  <data name="PhonePlaceholder" xml:space="preserve">
+    <value>VD: +84 8012345678 (Trong đó (+84) là mã quốc gia và 8012345678 là số di động</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="EmailPlaceholder" xml:space="preserve">
+    <value>VD: email@example.com</value>
+  </data>
+  <data name="BookingForMyself" xml:space="preserve">
+    <value>Tôi đặt chỗ cho chính mình</value>
+  </data>
+  <data name="GuestInformation" xml:space="preserve">
+    <value>Thông tin khách hàng</value>
+  </data>
+  <data name="FillCompleteInfo" xml:space="preserve">
+    <value>Vui lòng điền đầy đủ các thông tin để nhận xác nhận đơn hàng</value>
+  </data>
+  <data name="SpecialRequests" xml:space="preserve">
+    <value>Yêu cầu đặc biệt</value>
+  </data>
+  <data name="SpecialRequestsDescription" xml:space="preserve">
+    <value>Bạn cần thêm giường phụ hoặc có yêu cầu đặc biệt? Gửi yêu cầu và khách sạn sẽ cố gắng đáp ứng nguyện vọng của bạn. (Xin lưu ý yêu cầu đặc biệt không được bảo đảm trước và có thể thu phí)</value>
+  </data>
+  <data name="NonSmokingRoom" xml:space="preserve">
+    <value>Phòng không hút thuốc</value>
+  </data>
+  <data name="ConnectingRoom" xml:space="preserve">
+    <value>Phòng liên thông</value>
+  </data>
+  <data name="HighFloor" xml:space="preserve">
+    <value>Tầng lầu</value>
+  </data>
+  <data name="OtherRequests" xml:space="preserve">
+    <value>Yêu cầu khác (tùy chọn)</value>
+  </data>
+  <data name="SpecialRequestsPlaceholder" xml:space="preserve">
+    <value>Nhập yêu cầu đặc biệt của bạn (không bắt buộc)</value>
+  </data>
+  <data name="AccommodationPolicy" xml:space="preserve">
+    <value>Chính sách Chỗ ở</value>
+  </data>
+  <data name="ReadAll" xml:space="preserve">
+    <value>Đọc tất cả</value>
+  </data>
+  <data name="Breakfast" xml:space="preserve">
+    <value>Bữa sáng</value>
+  </data>
+  <data name="BreakfastDescription" xml:space="preserve">
+    <value>Bữa sáng tại cơ sở lưu trú được phục vụ từ 06:30 đến 09:30.</value>
+  </data>
+  <data name="CreateMemories" xml:space="preserve">
+    <value>Tạo nên những ký ức đáng nhớ với các hoạt động này!</value>
+  </data>
+  <data name="TravelInsurance" xml:space="preserve">
+    <value>Bảo hiểm Du lịch Chubb - Hotel Protect</value>
+  </data>
+  <data name="TravelInsuranceDescription" xml:space="preserve">
+    <value>Bảo vệ kỳ nghỉ của Quý khách khi (a) ra đi họp, mất đặt phòng khách sạn, và hơn thế nữa.</value>
+  </data>
+  <data name="Information" xml:space="preserve">
+    <value>Thông tin</value>
+  </data>
+  <data name="AgreeToTerms" xml:space="preserve">
+    <value>Bằng cách tiến hành thanh toán, bạn đã đồng ý với</value>
+  </data>
+  <data name="TermsAndConditions" xml:space="preserve">
+    <value>Điều khoản và Điều kiện</value>
+  </data>
+  <data name="PrivacyPolicy" xml:space="preserve">
+    <value>Chính sách Bảo mật</value>
+  </data>
+  <data name="RefundPolicy" xml:space="preserve">
+    <value>Quy trình Hoàn tiền Lưu trú</value>
+  </data>
+  <data name="CheckIn" xml:space="preserve">
+    <value>Nhận phòng</value>
+  </data>
+  <data name="CheckOut" xml:space="preserve">
+    <value>Trả phòng</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>Từ</value>
+  </data>
+  <data name="Before" xml:space="preserve">
+    <value>Trước</value>
+  </data>
+  <data name="Nights" xml:space="preserve">
+    <value>đêm</value>
+  </data>
+  <data name="Guests" xml:space="preserve">
+    <value>khách</value>
+  </data>
+  <data name="Children" xml:space="preserve">
+    <value>trẻ em</value>
+  </data>
+  <data name="YearsOld" xml:space="preserve">
+    <value>tuổi</value>
+  </data>
+  <data name="ChildFeeDetails" xml:space="preserve">
+    <value>Chi tiết phí trẻ em tại đây</value>
+  </data>
+  <data name="NonRefundable" xml:space="preserve">
+    <value>Đặt phòng này không được hoàn tiền.</value>
+  </data>
+  <data name="NonReschedulable" xml:space="preserve">
+    <value>Non-reschedulable</value>
+  </data>
+  <data name="TaxAndFeesNote" xml:space="preserve">
+    <value>Thuế và phí là do khách được Traveloka chuyển trả cho khách sạn. Mọi thắc mắc về thông tin khác liên quan đến thuế hoặc chi phí khác của Traveloka sẽ được giải đáp</value>
+  </data>
+  <data name="PriceDetails" xml:space="preserve">
+    <value>Chi tiết giá</value>
+  </data>
+  <data name="RoomPrice" xml:space="preserve">
+    <value>Giá phòng</value>
+  </data>
+  <data name="TaxAndFees" xml:space="preserve">
+    <value>Thuế và phí</value>
+  </data>
+  <data name="EnterDiscountCode" xml:space="preserve">
+    <value>Nhập mã giảm giá</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Áp dụng</value>
+  </data>
+  <data name="Applied" xml:space="preserve">
+    <value>Đã áp dụng</value>
+  </data>
+  <data name="Discount" xml:space="preserve">
+    <value>Giảm giá</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Tổng cộng</value>
+  </data>
+  <data name="Room" xml:space="preserve">
+    <value>phòng</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Tiếp tục</value>
+  </data>
+  <data name="ImportantNotes" xml:space="preserve">
+    <value>Lưu ý quan trọng</value>
+  </data>
+  <data name="Smoking" xml:space="preserve">
+    <value>Hút Thuốc</value>
+  </data>
+  <data name="SmokingDescription" xml:space="preserve">
+    <value>Chỉ được phép hút thuốc trong khu vực chỉ định.</value>
+  </data>
+  <data name="Pets" xml:space="preserve">
+    <value>Thú cưng</value>
+  </data>
+  <data name="PetsDescription" xml:space="preserve">
+    <value>Không được mang theo thú cưng.</value>
+  </data>
+  <data name="AdditionalPolicy" xml:space="preserve">
+    <value>Chính Sách Bổ Sung</value>
+  </data>
+  <data name="AdditionalPolicyDescription" xml:space="preserve">
+    <value>TRẺ EM TỪ 0 ĐẾN DƯỚI 6 TUỔI ĐƯỢC Ở MIỄN PHÍ TRÊN GIƯỜNG CÓ SẴN VỚI BỐ MẸ.<br />TRẺ TỪ 6 TUỔI ĐẾN DƯỚI 11 TUỔI Ở CHUNG VỚI BỐ MẸ TRÊN GIƯỜNG CÓ SẴN VỚI PHỤ PHÍ 150.000 VND.<br />TRẺ TỪ 11 TUỔI TRỞ LÊN ĐƯỢC CỘNG NHƯ NGƯỜI LỚN CÓ SET UP GIƯỜNG CÓ PHỤ VỚI PHÍ 300.000 VND.</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Đóng</value>
+  </data>
+  <data name="PleaseEnterDiscountCode" xml:space="preserve">
+    <value>Vui lòng nhập mã giảm giá</value>
+  </data>
+  <data name="DiscountCodeApplied" xml:space="preserve">
+    <value>✓ Áp dụng mã giảm giá {0}% thành công!</value>
+  </data>
+  <data name="InvalidDiscountCode" xml:space="preserve">
+    <value>Mã giảm giá không hợp lệ hoặc đã hết hạn</value>
+  </data>
+  <data name="PleaseSelectCheckInDate" xml:space="preserve">
+    <value>Vui lòng chọn ngày nhận phòng</value>
+  </data>
+  <data name="PleaseSelectCheckOutDate" xml:space="preserve">
+    <value>Vui lòng chọn ngày trả phòng</value>
+  </data>
+  <data name="PleaseEnterGuestCount" xml:space="preserve">
+    <value>Vui lòng nhập số khách</value>
+  </data>
+  <data name="GuestCountRange" xml:space="preserve">
+    <value>Số khách phải từ 1 đến 10</value>
+  </data>
+  <data name="PleaseEnterFullName" xml:space="preserve">
+    <value>Vui lòng nhập họ tên</value>
+  </data>
+  <data name="PleaseEnterPhoneNumber" xml:space="preserve">
+    <value>Vui lòng nhập số điện thoại</value>
+  </data>
+  <data name="InvalidPhoneNumber" xml:space="preserve">
+    <value>Số điện thoại không hợp lệ</value>
+  </data>
+  <data name="PleaseEnterEmail" xml:space="preserve">
+    <value>Vui lòng nhập email</value>
+  </data>
+  <data name="InvalidEmail" xml:space="preserve">
+    <value>Email không hợp lệ</value>
+  </data>
+  <data name="PleaseEnterGuestName" xml:space="preserve">
+    <value>Vui lòng nhập họ tên khách hàng</value>
+  </data>
+  <data name="PleaseAgreeToTerms" xml:space="preserve">
+    <value>Vui lòng đồng ý với điều khoản và điều kiện</value>
+  </data>
+  <data name="Please Select Check In Date" xml:space="preserve">
+    <value>Vui lòng chọn ngày nhận phòng</value>
+  </data>
+  <data name="Please Select Check Out Date" xml:space="preserve">
+    <value>Vui lòng chọn ngày trả phòng</value>
+  </data>
+  <data name="Please Enter Guest Count" xml:space="preserve">
+    <value>Vui lòng nhập số khách</value>
+  </data>
+  <data name="Guest Count Range" xml:space="preserve">
+    <value>Số khách phải từ 1 đến 10</value>
+  </data>
+  <data name="Please Enter Full Name" xml:space="preserve">
+    <value>Vui lòng nhập họ tên</value>
+  </data>
+  <data name="Please Enter Phone Number" xml:space="preserve">
+    <value>Vui lòng nhập số điện thoại</value>
+  </data>
+  <data name="Invalid Phone Number" xml:space="preserve">
+    <value>Số điện thoại không hợp lệ</value>
+  </data>
+  <data name="Please Enter Email" xml:space="preserve">
+    <value>Vui lòng nhập email</value>
+  </data>
+  <data name="Invalid Email" xml:space="preserve">
+    <value>Email không hợp lệ</value>
+  </data>
+  <data name="Please Enter Guest Name" xml:space="preserve">
+    <value>Vui lòng nhập họ tên khách hàng</value>
+  </data>
+  <data name="Please Agree To Terms" xml:space="preserve">
+    <value>Vui lòng đồng ý với điều khoản và điều kiện</value>
+  </data>
+  <data name="Payment" xml:space="preserve">
+    <value>Thanh toán</value>
+  </data>
+  <data name="HowDoYouWantToPay" xml:space="preserve">
+    <value>Bạn muốn thanh toán thế nào?</value>
+  </data>
+  <data name="MobileBanking" xml:space="preserve">
+    <value>Ngân hàng di động</value>
+  </data>
+  <data name="AtTheStore" xml:space="preserve">
+    <value>Tại cửa hàng</value>
+  </data>
+  <data name="PaymentCard" xml:space="preserve">
+    <value>Thẻ thanh toán</value>
+  </data>
+  <data name="ScanQRCodeToPay" xml:space="preserve">
+    <value>Quét mã QR để thanh toán</value>
+  </data>
+  <data name="OpenBankingAppAndScanQR" xml:space="preserve">
+    <value>Mở ứng dụng ngân hàng và quét mã QR để thanh toán</value>
+  </data>
+  <data name="Amount" xml:space="preserve">
+    <value>Số tiền</value>
+  </data>
+  <data name="MobileBankingInformation" xml:space="preserve">
+    <value>Thông tin ngân hàng di động</value>
+  </data>
+  <data name="Bank" xml:space="preserve">
+    <value>Ngân hàng</value>
+  </data>
+  <data name="SelectBank" xml:space="preserve">
+    <value>Chọn ngân hàng</value>
+  </data>
+  <data name="AccountNumber" xml:space="preserve">
+    <value>Số tài khoản</value>
+  </data>
+  <data name="EnterAccountNumber" xml:space="preserve">
+    <value>Nhập số tài khoản</value>
+  </data>
+  <data name="AccountHolderName" xml:space="preserve">
+    <value>Tên chủ tài khoản</value>
+  </data>
+  <data name="EnterAccountHolderName" xml:space="preserve">
+    <value>Nhập tên chủ tài khoản</value>
+  </data>
+  <data name="AmountVND" xml:space="preserve">
+    <value>Số tiền (VND)</value>
+  </data>
+  <data name="Note" xml:space="preserve">
+    <value>Ghi chú</value>
+  </data>
+  <data name="PaymentNoteOptional" xml:space="preserve">
+    <value>Ghi chú thanh toán (tùy chọn)</value>
+  </data>
+  <data name="PayAtStore" xml:space="preserve">
+    <value>Thanh toán tại cửa hàng</value>
+  </data>
+  <data name="PaymentInstructions" xml:space="preserve">
+    <value>Hướng dẫn thanh toán</value>
+  </data>
+  <data name="GoToNearestConvenienceStore" xml:space="preserve">
+    <value>Đến cửa hàng tiện lợi gần nhất (Circle K, FamilyMart, 7-Eleven)</value>
+  </data>
+  <data name="TellStaffOnlinePayment" xml:space="preserve">
+    <value>Báo với nhân viên: "Thanh toán hóa đơn online"</value>
+  </data>
+  <data name="ProvideOrderCode" xml:space="preserve">
+    <value>Cung cấp mã đơn hàng</value>
+  </data>
+  <data name="PayAmount" xml:space="preserve">
+    <value>Thanh toán số tiền</value>
+  </data>
+  <data name="ReceiveReceiptAndWaitConfirmation" xml:space="preserve">
+    <value>Nhận biên lai và chờ xác nhận</value>
+  </data>
+  <data name="PaymentCardInformation" xml:space="preserve">
+    <value>Thông tin thẻ thanh toán</value>
+  </data>
+  <data name="CardType" xml:space="preserve">
+    <value>Loại thẻ</value>
+  </data>
+  <data name="SelectCardType" xml:space="preserve">
+    <value>Chọn loại thẻ</value>
+  </data>
+  <data name="CardNumber" xml:space="preserve">
+    <value>Số thẻ</value>
+  </data>
+  <data name="ExpiryDate" xml:space="preserve">
+    <value>Ngày hết hạn</value>
+  </data>
+  <data name="CardholderName" xml:space="preserve">
+    <value>Tên chủ thẻ</value>
+  </data>
+  <data name="BillingAddress" xml:space="preserve">
+    <value>Địa chỉ thanh toán</value>
+  </data>
+  <data name="EnterBillingAddress" xml:space="preserve">
+    <value>Nhập địa chỉ thanh toán</value>
+  </data>
+  <data name="PayAndConfirm" xml:space="preserve">
+    <value>Thanh toán &amp; xác nhận</value>
+  </data>
+  <data name="HotelSummary" xml:space="preserve">
+    <value>Tóm tắt khách sạn</value>
+  </data>
+  <data name="Nights" xml:space="preserve">
+    <value>đêm</value>
+  </data>
+  <data name="OriginalPrice" xml:space="preserve">
+    <value>Giá gốc</value>
+  </data>
+  <data name="ContactDetails" xml:space="preserve">
+    <value>Chi tiết người liên lạc</value>
+  </data>
+  <data name="BookingSuccessful" xml:space="preserve">
+    <value>Đặt phòng thành công</value>
+  </data>
+  <data name="ThankYouForBooking" xml:space="preserve">
+    <value>Cảm ơn bạn đã đặt phòng. Chúng tôi sẽ gửi email xác nhận đến địa chỉ email của bạn.</value>
+  </data>
+  <data name="BookingID" xml:space="preserve">
+    <value>Mã đặt phòng</value>
+  </data>
+  <data name="NextSteps" xml:space="preserve">
+    <value>Bước tiếp theo</value>
+  </data>
+  <data name="CheckConfirmationEmail" xml:space="preserve">
+    <value>Kiểm tra email xác nhận</value>
+  </data>
+  <data name="StaffWillContactToConfirm" xml:space="preserve">
+    <value>Nhân viên sẽ liên hệ xác nhận</value>
+  </data>
+  <data name="ArriveAtHotelOnBookedDate" xml:space="preserve">
+    <value>Đến khách sạn theo ngày đã đặt</value>
+  </data>
+  <data name="Hotline" xml:space="preserve">
+    <value>Hotline</value>
+  </data>
+  <data name="Support247" xml:space="preserve">
+    <value>24/7 hỗ trợ</value>
+  </data>
+  <data name="BackToHomepage" xml:space="preserve">
+    <value>Về trang chủ</value>
+  </data>
+  <data name="FindOtherHotels" xml:space="preserve">
+    <value>Tìm khách sạn khác</value>
+  </data>
+</root>

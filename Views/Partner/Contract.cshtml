@@ -1,6 +1,7 @@
 @model HotelBooking.ViewModels.PropertyContractViewModel
+@inject IStringLocalizer<HotelBooking.Resources.SharedResource> Localizer
 @{
-    ViewData["Title"] = "Thông tin hợp đồng";
+    ViewData["Title"] = Localizer["ContractInfo"];
 }
 <link rel="stylesheet" href="~/css/site.css" />
 
@@ -12,23 +13,27 @@
             <aside class="col-lg-3">
                 <div class="step-nav card card-slim sticky-top" style="top:12px;">
                     <div class="card-body p-0">
-                        <div class="step-title">Tổng quan về cơ sở lưu trú</div>
+                        <div class="step-title">@Localizer["PropertyOverview"]</div>
                         <ul class="wizard-steps">
-                            <li><a href="@Url.Action("Onboarding", "Partner", new { propertyId = Model.PropertyId })">Thông
-                                    tin về cơ sở lưu trú</a></li>
-                            <li><a href="@Url.Action("Onboarding", "Partner", new { propertyId = Model.PropertyId })">Địa
-                                    chỉ cơ sở lưu trú</a></li>
-                            <li><a href="@Url.Action("Onboarding", "Partner", new { propertyId = Model.PropertyId })">Thông
-                                    tin liên hệ với cơ sở lưu trú</a></li>
+                            <li><a
+                                    href="@Url.Action("Onboarding", "Partner", new { propertyId = Model.PropertyId })">@Localizer["PropertyInfo"]</a>
+                            </li>
+                            <li><a
+                                    href="@Url.Action("Onboarding", "Partner", new { propertyId = Model.PropertyId })">@Localizer["PropertyAddress"]</a>
+                            </li>
+                            <li><a
+                                    href="@Url.Action("Onboarding", "Partner", new { propertyId = Model.PropertyId })">@Localizer["PropertyContact"]</a>
+                            </li>
                         </ul>
-                        <div class="step-title">Thanh toán</div>
+                        <div class="step-title">@Localizer["Payment"]</div>
                         <ul class="wizard-steps">
-                            <li><a href="@Url.Action("Payment", "Partner", new { propertyId = Model.PropertyId })">Thanh
-                                    toán</a></li>
+                            <li><a
+                                    href="@Url.Action("Payment", "Partner", new { propertyId = Model.PropertyId })">@Localizer["Payment"]</a>
+                            </li>
                         </ul>
-                        <div class="step-title">Hợp đồng</div>
+                        <div class="step-title">@Localizer["Contract"]</div>
                         <ul class="wizard-steps">
-                            <li class="active"><a href="#contract-section">Hợp đồng</a></li>
+                            <li class="active"><a href="#contract-section">@Localizer["Contract"]</a></li>
                         </ul>
                     </div>
                 </div>
@@ -42,19 +47,19 @@
                     <!-- (Optional UI) Quyền sở hữu doanh nghiệp – chỉ là trình bày, không đổi logic -->
                     <div id="contract-section" class="panel mb-4">
                         <div class="panel-body">
-                            <h5 class="panel-title">Quyền sở hữu doanh nghiệp</h5>
+                            <h5 class="panel-title">@Localizer["BusinessOwnership"]</h5>
                             <div class="d-flex gap-4 flex-wrap">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="ownerType" id="ownerCompany"
                                         checked>
                                     <label class="form-check-label" for="ownerCompany">
-                                        Sở hữu doanh nghiệp có Mã số thuế công ty đã đăng ký
+                                        @Localizer["BusinessOwnershipWithTaxCode"]
                                     </label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="ownerType" id="ownerPersonal">
                                     <label class="form-check-label" for="ownerPersonal">
-                                        Sở hữu cá nhân có Mã số thuế cá nhân
+                                        @Localizer["IndividualOwnershipWithTaxCode"]
                                     </label>
                                 </div>
                             </div>
@@ -64,39 +69,41 @@
                     <!-- Thông tin pháp nhân -->
                     <div class="panel mb-4">
                         <div class="panel-body">
-                            <h5 class="panel-title">Thông tin pháp nhân</h5>
+                            <h5 class="panel-title">@Localizer["LegalEntityInformation"]</h5>
 
                             <div class="mb-3">
-                                <label asp-for="LegalEntityName" class="form-label"></label>
+                                <label asp-for="LegalEntityName"
+                                    class="form-label">@Localizer["LegalEntityName"]</label>
                                 <input asp-for="LegalEntityName" class="form-control form-control-sm" />
                                 <span asp-validation-for="LegalEntityName" class="text-danger small"></span>
                             </div>
 
                             <div class="mb-3">
-                                <label asp-for="LegalEntityAddress" class="form-label"></label>
+                                <label asp-for="LegalEntityAddress"
+                                    class="form-label">@Localizer["LegalEntityAddress"]</label>
                                 <input asp-for="LegalEntityAddress" class="form-control form-control-sm" />
                                 <span asp-validation-for="LegalEntityAddress" class="text-danger small"></span>
                             </div>
 
                             <div class="mb-0">
-                                <label asp-for="BusinessLicenseFile" class="form-label">Giấy phép kinh doanh (Tùy
-                                    chọn)</label>
+                                <label asp-for="BusinessLicenseFile"
+                                    class="form-label">@Localizer["BusinessLicenseOptional"]</label>
                                 <div class="d-flex gap-2">
                                     <input asp-for="BusinessLicenseFile" type="file"
                                         class="form-control form-control-sm" />
-                                    <button type="button" class="btn btn-primary btn-sm">Tải lên</button>
+                                    <button type="button" class="btn btn-primary btn-sm">@Localizer["Upload"]</button>
                                 </div>
                                 @if (!string.IsNullOrEmpty(Model.ExistingBusinessLicensePath))
                                 {
-                                    <div class="small text-muted mt-1">File hiện tại:
-                                        <a href="@Model.ExistingBusinessLicensePath" target="_blank">Xem file</a>
+                                    <div class="small text-muted mt-1">@Localizer["CurrentFile"]
+                                        <a href="@Model.ExistingBusinessLicensePath"
+                                            target="_blank">@Localizer["ViewFile"]</a>
                                     </div>
                                 }
                                 <div class="alert-soft mt-2">
                                     <i class="bi bi-info-circle me-2"></i>
                                     <span class="small">
-                                        Ở Việt Nam, giấy phép kinh doanh (Giấy Phép Kinh Doanh) là bắt buộc để xác minh
-                                        tính hợp pháp của hoạt động kinh doanh.
+                                        @Localizer["BusinessLicenseNotice"]
                                     </span>
                                 </div>
                             </div>
@@ -106,14 +113,15 @@
                     <!-- Thông tin thuế công ty -->
                     <div class="panel mb-4">
                         <div class="panel-body">
-                            <h5 class="panel-title">Thông tin thuế công ty</h5>
+                            <h5 class="panel-title">@Localizer["CompanyTaxInformation"]</h5>
                             <div class="mb-3">
-                                <label asp-for="TaxPayerName" class="form-label"></label>
+                                <label asp-for="TaxPayerName" class="form-label">@Localizer["TaxPayerName"]</label>
                                 <input asp-for="TaxPayerName" class="form-control form-control-sm" />
                                 <span asp-validation-for="TaxPayerName" class="text-danger small"></span>
                             </div>
                             <div class="mb-0">
-                                <label asp-for="TaxPayerAddress" class="form-label"></label>
+                                <label asp-for="TaxPayerAddress"
+                                    class="form-label">@Localizer["TaxPayerAddress"]</label>
                                 <input asp-for="TaxPayerAddress" class="form-control form-control-sm" />
                                 <span asp-validation-for="TaxPayerAddress" class="text-danger small"></span>
                             </div>
@@ -123,20 +131,21 @@
                     <!-- Thông tin người ký -->
                     <div class="panel mb-5">
                         <div class="panel-body">
-                            <h5 class="panel-title">Thông tin người ký</h5>
+                            <h5 class="panel-title">@Localizer["SignatoryInformation"]</h5>
 
                             <div class="mb-3">
                                 <div class="d-flex gap-4 flex-wrap">
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" asp-for="IsSignatoryDirector"
                                             value="true" id="isDirectorYes" />
-                                        <label class="form-check-label" for="isDirectorYes">Giám đốc công ty</label>
+                                        <label class="form-check-label"
+                                            for="isDirectorYes">@Localizer["CompanyDirector"]</label>
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" asp-for="IsSignatoryDirector"
                                             value="false" id="isDirectorNo" />
-                                        <label class="form-check-label" for="isDirectorNo">Người được uỷ quyền
-                                            khác</label>
+                                        <label class="form-check-label"
+                                            for="isDirectorNo">@Localizer["OtherAuthorizedPerson"]</label>
                                     </div>
                                 </div>
                             </div>
@@ -145,43 +154,46 @@
 
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label asp-for="SignatoryName" class="form-label">Họ tên đầy đủ của chủ sở hữu cơ sở
-                                        lưu trú</label>
+                                    <label asp-for="SignatoryName"
+                                        class="form-label">@Localizer["PropertyOwnerFullName"]</label>
                                     <input asp-for="SignatoryName" class="form-control form-control-sm" />
                                     <span asp-validation-for="SignatoryName" class="text-danger small"></span>
                                 </div>
                                 <div class="col-md-6">
-                                    <label asp-for="SignatoryPosition" class="form-label">Vị trí</label>
+                                    <label asp-for="SignatoryPosition" class="form-label">@Localizer["Position"]</label>
                                     <input asp-for="SignatoryPosition" class="form-control form-control-sm" />
                                     <span asp-validation-for="SignatoryPosition" class="text-danger small"></span>
                                 </div>
                                 <div class="col-md-6">
-                                    <label asp-for="SignatoryPhoneNumber" class="form-label">Số điện thoại</label>
+                                    <label asp-for="SignatoryPhoneNumber"
+                                        class="form-label">@Localizer["PhoneNumber"]</label>
                                     <input asp-for="SignatoryPhoneNumber" class="form-control form-control-sm" />
                                     <span asp-validation-for="SignatoryPhoneNumber" class="text-danger small"></span>
                                 </div>
                                 <div class="col-md-6">
-                                    <label asp-for="SignatoryEmail" class="form-label">Địa chỉ email</label>
+                                    <label asp-for="SignatoryEmail"
+                                        class="form-label">@Localizer["EmailAddress"]</label>
                                     <input asp-for="SignatoryEmail" class="form-control form-control-sm" />
                                     <span asp-validation-for="SignatoryEmail" class="text-danger small"></span>
                                 </div>
                                 <div class="col-12">
-                                    <label asp-for="SignatoryIdCardFile" class="form-label">Thẻ CCCD của Chủ sở hữu cơ
-                                        sở lưu trú</label>
+                                    <label asp-for="SignatoryIdCardFile"
+                                        class="form-label">@Localizer["PropertyOwnerIdCard"]</label>
                                     <div class="d-flex gap-2">
                                         <input asp-for="SignatoryIdCardFile" type="file"
                                             class="form-control form-control-sm" />
-                                        <button type="button" class="btn btn-primary btn-sm">Tải lên</button>
+                                        <button type="button"
+                                            class="btn btn-primary btn-sm">@Localizer["Upload"]</button>
                                     </div>
                                     @if (!string.IsNullOrEmpty(Model.ExistingSignatoryIdCardPath))
                                     {
-                                        <div class="small text-muted mt-1">File hiện tại:
-                                            <a href="@Model.ExistingSignatoryIdCardPath" target="_blank">Xem file</a>
+                                        <div class="small text-muted mt-1">@Localizer["CurrentFile"]
+                                            <a href="@Model.ExistingSignatoryIdCardPath"
+                                                target="_blank">@Localizer["ViewFile"]</a>
                                         </div>
                                     }
                                     <div class="small text-muted mt-1">
-                                        Bạn có thể tải lên tệp tin JPG, GIF hoặc PNG (tối đa: 4MB). Đối với giấy tờ
-                                        chứng minh địa chỉ (POA), vui lòng tải lên tệp PDF.
+                                        @Localizer["FileUploadNotice"]
                                     </div>
                                 </div>
                             </div>
@@ -192,8 +204,9 @@
                     <div class="onb-sticky">
                         <div class="d-flex justify-content-between">
                             <a asp-action="Payment" asp-route-propertyId="@Model.PropertyId"
-                                class="btn btn-outline-secondary btn-sm">Quay lại trang trước</a>
-                            <button type="submit" class="btn btn-warning btn-sm px-4">Tiếp tục Xem lại hợp đồng</button>
+                                class="btn btn-outline-secondary btn-sm">@Localizer["BackToPreviousPage"]</a>
+                            <button type="submit"
+                                class="btn btn-warning btn-sm px-4">@Localizer["ContinueReviewContract"]</button>
                         </div>
                     </div>
 
@@ -239,6 +252,31 @@
     .form-select:focus {
         box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .12);
         border-color: #9bbcff
+    }
+
+    /* Form field spacing */
+    .form-label {
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+
+    .form-control,
+    .form-select {
+        margin-bottom: 16px;
+    }
+
+    .text-danger {
+        margin-top: 4px;
+        margin-bottom: 12px;
+        display: block;
+    }
+
+    .mb-3 {
+        margin-bottom: 1.5rem !important;
+    }
+
+    .mb-0 {
+        margin-bottom: 0 !important;
     }
 
     /* ===== Sidebar (giống Onboarding) ===== */

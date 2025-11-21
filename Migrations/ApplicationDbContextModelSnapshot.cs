@@ -93,6 +93,10 @@ namespace HotelBooking.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("BookingCode")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("CheckIn")
                         .HasColumnType("TEXT");
 
@@ -103,6 +107,15 @@ namespace HotelBooking.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DiscountCode")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("DiscountPercentage")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")

@@ -1,13 +1,14 @@
 @model HotelBooking.ViewModels.PropertyDetailViewModel
+@inject IStringLocalizer<SharedResource> Localizer
 @{
-    ViewData["Title"] = "Chi tiết cơ sở lưu trú";
+    ViewData["Title"] = @Localizer["PropertyDetails"];
 }
 
 <div class="container-xl page-tera" style="max-width:1120px;">
     <!-- Breadcrumb / Back -->
     <div class="d-flex align-items-center gap-2 mt-3 mb-2">
         <a href="@Url.Action("MyProperties", "Partner")" class="text-decoration-none text-primary fw-medium">
-            <i class="bi bi-arrow-left me-1"></i>Quay lại
+            <i class="bi bi-arrow-left me-1"></i>@Localizer["Back"]
         </a>
     </div>
 
@@ -16,17 +17,17 @@
         <div class="d-flex align-items-center gap-2">
             <div class="banner-icon"><i class="bi bi-info-lg"></i></div>
             <div>
-                <div class="banner-title">@(Model.Property.Status == PropertyStatus.Approved ? "Hồ sơ đã được phê duyệt" : "Trạng thái đăng ký")</div>
-                <div class="banner-sub">Trạng thái: <span class="badge-soft">@Model.Property.Status.ToString().ToUpper()</span></div>
+                <div class="banner-title">@(Model.Property.Status == PropertyStatus.Approved ? @Localizer["ProfileApproved"] : @Localizer["RegistrationStatus"])</div>
+                <div class="banner-sub">@Localizer["Status"]: <span class="badge-soft">@Model.Property.Status.ToString().ToUpper()</span></div>
             </div>
         </div>
         <div class="d-none d-md-flex align-items-center gap-3 flex-wrap justify-content-end">
             <div class="text-end small text-muted">
-                Số đăng ký<br/>
+                @Localizer["RegistrationNumber"]<br/>
                 <span class="fw-semibold">REG-@Model.Property.Id.ToString("D6")</span>
             </div>
             <div class="d-flex align-items-center gap-2 ms-2 help-wrap">
-                <small class="text-muted mb-0">Bạn cần trợ giúp?</small>
+                <small class="text-muted mb-0">@Localizer["NeedHelp"]</small>
                 <select class="form-select form-select-sm w-auto" style="min-width:56px">
                     <option>VI</option>
                 </select>
@@ -39,17 +40,17 @@
         <div class="col-lg-4">
             <div class="card card-soft">
                 <div class="card-header header-blue">
-                    <div class="fw-semibold text-white">Trạng thái đăng ký</div>
-                    <small class="text-white-50">Đã gửi đăng ký</small>
+                    <div class="fw-semibold text-white">@Localizer["RegistrationStatus"]</div>
+                    <small class="text-white-50">@Localizer["RegistrationSubmitted"]</small>
                 </div>
                 <div class="card-body py-3">
                     <div class="stepper">
                         @{
                             var steps = new[] {
-                                new { Number = 1, Title = "Đã gửi đăng ký", Desc = "Thông tin cơ sở lưu trú đã được gửi" },
-                                new { Number = 2, Title = "Đang được xem xét", Desc = "Đang kiểm tra thông tin" },
-                                new { Number = 3, Title = Model.Property.Status == PropertyStatus.Rejected ? "Hợp đồng đã bị từ chối" : "Hợp đồng đã được phê duyệt",
-                                      Desc = Model.Property.Status == PropertyStatus.Rejected ? "Cơ sở lưu trú đã bị từ chối" : "Cơ sở lưu trú đã được chấp thuận" }
+                                new { Number = 1, Title = @Localizer["RegistrationSubmitted"], Desc = @Localizer["PropertyInfoSubmitted"] },
+                                new { Number = 2, Title = @Localizer["UnderReview"], Desc = @Localizer["CheckingInformation"] },
+                                new { Number = 3, Title = Model.Property.Status == PropertyStatus.Rejected ? @Localizer["ContractRejected"] : @Localizer["ContractApproved"],
+                                      Desc = Model.Property.Status == PropertyStatus.Rejected ? @Localizer["PropertyRejected"] : @Localizer["PropertyApproved"] }
                             };
                             
                             int currentStep = Model.Property.Status switch {
@@ -99,7 +100,7 @@
                     </div>
 
                     <div class="mt-2">
-                        <a class="text-primary text-decoration-none small" href="#">Giới thiệu về Trạng thái đăng ký</a>
+                        <a class="text-primary text-decoration-none small" href="#">@Localizer["AboutRegistrationStatus"]</a>
                     </div>
                 </div>
             </div>
@@ -116,24 +117,24 @@
                             @if (Model.Property.Status == PropertyStatus.Draft)
                             {
                                 <a href="@Url.Action("Onboarding", "Partner", new { propertyId = Model.Property.Id })" class="btn btn-primary btn-sm">
-                                    <i class="bi bi-pencil me-1"></i>Tiếp tục đăng ký
+                                    <i class="bi bi-pencil me-1"></i>@Localizer["ContinueRegistration"]
                                 </a>
                             }
                             else if (Model.Property.Status == PropertyStatus.Rejected)
                             {
                                 <a href="@Url.Action("Onboarding", "Partner", new { propertyId = Model.Property.Id })" class="btn btn-primary btn-sm">
-                                    <i class="bi bi-pencil me-1"></i>Chỉnh sửa và gửi lại
+                                    <i class="bi bi-pencil me-1"></i>@Localizer["EditAndResubmit"]
                                 </a>
                             }
                             else if (Model.Property.Status == PropertyStatus.Approved)
                             {
                                 <a href="@Url.Action("PropertyData", "Partner", new { propertyId = Model.Property.Id })" class="btn btn-outline-primary btn-sm me-2">
-                                    <i class="bi bi-gear me-1"></i>Điền thông tin về Cơ sở lưu trú và Phòng
+                                    <i class="bi bi-gear me-1"></i>@Localizer["FillPropertyAndRoomInfo"]
                                 </a>
                                 @if (!Model.Property.IsDraft)
                                 {
                                     <a href="@Url.Action("PropertyHub", "Partner", new { propertyId = Model.Property.Id })" class="btn btn-success btn-sm">
-                                        <i class="bi bi-kanban me-1"></i>Quản lý cơ sở lưu trú
+                                        <i class="bi bi-kanban me-1"></i>@Localizer["ManageProperty"]
                                     </a>
                                 }
                             }
@@ -143,27 +144,27 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="box mb-0">
-                                <div class="box-title">Thông tin về cơ sở lưu trú</div>
+                                <div class="box-title">@Localizer["PropertyInformation"]</div>
                                 <div class="info">
                                     <div class="item">
-                                        <label>Tên cơ sở lưu trú</label>
+                                        <label>@Localizer["PropertyName"]</label>
                                         <div>@Model.Property.Name</div>
                                     </div>
                                     <div class="item">
-                                        <label>Loại cơ sở lưu trú</label>
+                                        <label>@Localizer["PropertyType"]</label>
                                         <div>@Model.Property.Type.ToString()</div>
                                     </div>
                                     <div class="item">
-                                        <label>Địa chỉ cơ sở lưu trú</label>
+                                        <label>@Localizer["PropertyAddress"]</label>
                                         <div>
                                             @if (!string.IsNullOrEmpty(Model.Property.AddressLine)) { @Model.Property.AddressLine; }
-                                            else { <span class="text-muted">Chưa có địa chỉ</span>; }
+                                            else { <span class="text-muted">@Localizer["NoAddressYet"]</span>; }
                                         </div>
                                     </div>
                                     @if (!string.IsNullOrEmpty(Model.Property.City))
                                     {
                                         <div class="item">
-                                            <label>Thành phố</label>
+                                            <label>@Localizer["City"]</label>
                                             <div>@Model.Property.City</div>
                                         </div>
                                     }
@@ -175,7 +176,7 @@
                                 <div class="h-100 d-flex align-items-center justify-content-center text-muted text-center">
                                     <div>
                                         <i class="bi bi-geo-alt fs-3 d-block mb-1"></i>
-                                        <div class="small">Bản đồ sẽ hiển thị tại đây</div>
+                                        <div class="small">@Localizer["MapWillDisplayHere"]</div>
                                         @if (!string.IsNullOrEmpty(Model.Property.AddressLine))
                                         {
                                             <div class="small">@Model.Property.AddressLine</div>
@@ -189,7 +190,7 @@
                     @if (Model.Property.Status == PropertyStatus.Rejected && !string.IsNullOrEmpty(Model.Property.RejectionReason))
                     {
                         <div class="alert alert-danger mt-3 mb-0 py-2">
-                            <div class="fw-semibold mb-1"><i class="bi bi-exclamation-triangle me-1"></i>Lý do từ chối</div>
+                            <div class="fw-semibold mb-1"><i class="bi bi-exclamation-triangle me-1"></i>@Localizer["RejectionReason"]</div>
                             <div class="small">@Model.Property.RejectionReason</div>
                         </div>
                     }

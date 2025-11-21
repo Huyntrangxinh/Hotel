@@ -135,6 +135,8 @@ namespace HotelBooking.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        [AllowAnonymous]
+        [HttpGet("/account/access-denied")]
         public IActionResult AccessDenied() => View();
 
         // === External Login with Google ===

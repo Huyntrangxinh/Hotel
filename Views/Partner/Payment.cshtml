@@ -1,7 +1,8 @@
 @using HotelBooking.ViewModels
 @model PropertyPaymentViewModel
+@inject IStringLocalizer<HotelBooking.Resources.SharedResource> Localizer
 @{
-    ViewData["Title"] = "Thông tin thanh toán";
+    ViewData["Title"] = Localizer["PaymentInfo"];
 }
 <link rel="stylesheet" href="~/css/site.css" />
 
@@ -13,23 +14,27 @@
             <aside class="col-lg-3">
                 <div class="step-nav card card-slim sticky-top" style="top:12px;">
                     <div class="card-body p-0">
-                        <div class="step-title">Tổng quan về cơ sở lưu trú</div>
+                        <div class="step-title">@Localizer["PropertyOverview"]</div>
                         <ul class="wizard-steps">
-                            <li><a href="@Url.Action("Onboarding", "Partner", new { propertyId = Model.PropertyId })">Thông
-                                    tin về cơ sở lưu trú</a></li>
-                            <li><a href="@Url.Action("Onboarding", "Partner", new { propertyId = Model.PropertyId })">Địa
-                                    chỉ cơ sở lưu trú</a></li>
-                            <li><a href="@Url.Action("Onboarding", "Partner", new { propertyId = Model.PropertyId })">Thông
-                                    tin liên hệ với cơ sở lưu trú</a></li>
+                            <li><a
+                                    href="@Url.Action("Onboarding", "Partner", new { propertyId = Model.PropertyId })">@Localizer["PropertyInfo"]</a>
+                            </li>
+                            <li><a
+                                    href="@Url.Action("Onboarding", "Partner", new { propertyId = Model.PropertyId })">@Localizer["PropertyAddress"]</a>
+                            </li>
+                            <li><a
+                                    href="@Url.Action("Onboarding", "Partner", new { propertyId = Model.PropertyId })">@Localizer["PropertyContact"]</a>
+                            </li>
                         </ul>
-                        <div class="step-title">Thanh toán</div>
+                        <div class="step-title">@Localizer["Payment"]</div>
                         <ul class="wizard-steps">
-                            <li class="active"><a href="#payment-section">Thanh toán</a></li>
+                            <li class="active"><a href="#payment-section">@Localizer["Payment"]</a></li>
                         </ul>
-                        <div class="step-title">Hợp đồng</div>
+                        <div class="step-title">@Localizer["Contract"]</div>
                         <ul class="wizard-steps">
-                            <li><a href="@Url.Action("Contract", "Partner", new { propertyId = Model.PropertyId })">Hợp
-                                    đồng</a></li>
+                            <li><a
+                                    href="@Url.Action("Contract", "Partner", new { propertyId = Model.PropertyId })">@Localizer["Contract"]</a>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -44,9 +49,9 @@
                     <!-- Phương thức thanh toán -->
                     <div id="payment-section" class="panel mb-4">
                         <div class="panel-body">
-                            <h5 class="panel-title">Phương thức thanh toán</h5>
+                            <h5 class="panel-title">@Localizer["PaymentMethod"]</h5>
 
-                            <div class="mb-3 fw-semibold">Bạn muốn nhận thanh toán như thế nào?</div>
+                            <div class="mb-3 fw-semibold">@Localizer["HowToReceivePayment"]</div>
                             <div class="d-flex gap-4 flex-wrap">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" asp-for="PaymentMethod"
@@ -56,7 +61,7 @@
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" asp-for="PaymentMethod"
                                         value="@PaymentMethodType.BankTransfer" id="payBank" />
-                                    <label class="form-check-label" for="payBank">Chuyển khoản ngân hàng</label>
+                                    <label class="form-check-label" for="payBank">@Localizer["BankTransfer"]</label>
                                 </div>
                             </div>
                             <span asp-validation-for="PaymentMethod" class="text-danger small"></span>
@@ -64,7 +69,7 @@
                             <!-- box mô tả giống ảnh -->
                             <div class="info-box mt-3">
                                 <div class="small text-muted">
-                                    Bạn có thể tính phí thanh toán cho nhiều Mã đặt chỗ bằng VCC của Traveloka.
+                                    @Localizer["BankTransferDescription"]
                                 </div>
                             </div>
 
@@ -72,9 +77,9 @@
                             <div id="bankDetailsSection" class="mt-4" style="display:none;">
                                 <div class="row g-3">
                                     <div class="col-md-6">
-                                        <label asp-for="BankName" class="form-label"></label>
+                                        <label asp-for="BankName" class="form-label">@Localizer["BankName"]</label>
                                         <select asp-for="BankName" class="form-select form-select-sm">
-                                            <option value="">Chọn ngân hàng</option>
+                                            <option value="">@Localizer["SelectBank"]</option>
                                             <option value="Vietcombank">Vietcombank</option>
                                             <option value="Techcombank">Techcombank</option>
                                             <option value="ACB">ACB</option>
@@ -82,17 +87,19 @@
                                         <span asp-validation-for="BankName" class="text-danger small"></span>
                                     </div>
                                     <div class="col-md-6">
-                                        <label asp-for="BankBranch" class="form-label"></label>
+                                        <label asp-for="BankBranch" class="form-label">@Localizer["BankBranch"]</label>
                                         <input asp-for="BankBranch" class="form-control form-control-sm" />
                                         <span asp-validation-for="BankBranch" class="text-danger small"></span>
                                     </div>
                                     <div class="col-md-6">
-                                        <label asp-for="BankAccountNumber" class="form-label"></label>
+                                        <label asp-for="BankAccountNumber"
+                                            class="form-label">@Localizer["AccountNumber"]</label>
                                         <input asp-for="BankAccountNumber" class="form-control form-control-sm" />
                                         <span asp-validation-for="BankAccountNumber" class="text-danger small"></span>
                                     </div>
                                     <div class="col-md-6">
-                                        <label asp-for="BankAccountHolderName" class="form-label"></label>
+                                        <label asp-for="BankAccountHolderName"
+                                            class="form-label">@Localizer["AccountHolderName"]</label>
                                         <input asp-for="BankAccountHolderName" class="form-control form-control-sm" />
                                         <span asp-validation-for="BankAccountHolderName"
                                             class="text-danger small"></span>
@@ -105,18 +112,18 @@
                     <!-- Thanh toán tại khách sạn -->
                     <div class="panel mb-5">
                         <div class="panel-body">
-                            <h5 class="panel-title">Thanh toán tại khách sạn</h5>
-                            <div class="mb-2">Bạn có muốn bật Thanh toán tại khách sạn không?</div>
+                            <h5 class="panel-title">@Localizer["PayAtHotel"]</h5>
+                            <div class="mb-2">@Localizer["EnablePayAtHotel"]</div>
                             <div class="d-flex gap-4 flex-wrap">
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" asp-for="AllowPaymentAtHotel"
                                         id="allowYes" value="true">
-                                    <label class="form-check-label" for="allowYes">Có</label>
+                                    <label class="form-check-label" for="allowYes">@Localizer["Yes"]</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" asp-for="AllowPaymentAtHotel"
                                         id="allowNo" value="false">
-                                    <label class="form-check-label" for="allowNo">Không</label>
+                                    <label class="form-check-label" for="allowNo">@Localizer["No"]</label>
                                 </div>
                             </div>
                             <span asp-validation-for="AllowPaymentAtHotel" class="text-danger small"></span>
@@ -126,9 +133,7 @@
                                 <div class="d-flex">
                                     <i class="bi bi-info-circle me-2"></i>
                                     <div class="small">
-                                        Nếu bật Thanh toán tại khách sạn, hình thức thanh toán hoá hồng của bạn cho
-                                        Traveloka sẽ được cài đặt là Hóa đơn theo mặc định.
-                                        Bạn có thể thay đổi cài đặt này sau trong TERA.
+                                        @Localizer["PayAtHotelNotice"]
                                     </div>
                                 </div>
                             </div>
@@ -139,8 +144,9 @@
                     <div class="onb-sticky">
                         <div class="d-flex justify-content-between">
                             <a asp-action="Onboarding" asp-route-propertyId="@Model.PropertyId"
-                                class="btn btn-outline-secondary btn-sm">Quay lại trang trước</a>
-                            <button type="submit" class="btn btn-warning btn-sm px-4">Lưu và tiếp tục</button>
+                                class="btn btn-outline-secondary btn-sm">@Localizer["BackToPreviousPage"]</a>
+                            <button type="submit"
+                                class="btn btn-warning btn-sm px-4">@Localizer["SaveAndContinue"]</button>
                         </div>
                     </div>
                 </form>
@@ -200,6 +206,31 @@
     .form-select:focus {
         box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .12);
         border-color: #9bbcff
+    }
+
+    /* Form field spacing */
+    .form-label {
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+
+    .form-control,
+    .form-select {
+        margin-bottom: 16px;
+    }
+
+    .text-danger {
+        margin-top: 4px;
+        margin-bottom: 12px;
+        display: block;
+    }
+
+    .mb-3 {
+        margin-bottom: 1.5rem !important;
+    }
+
+    .mb-0 {
+        margin-bottom: 0 !important;
     }
 
     /* ===== Sidebar (giống Onboarding) ===== */

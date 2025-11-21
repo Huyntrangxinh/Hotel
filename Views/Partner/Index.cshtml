@@ -1,5 +1,6 @@
-﻿@{
-    ViewData["Title"] = "Đăng chỗ nghỉ";
+﻿@inject IStringLocalizer<HotelBooking.Resources.SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["ListYourProperty"];
 }
 
 <section class="partner-hero py-5">
@@ -8,32 +9,28 @@
             <!-- Trái: headline -->
             <div class="col-lg-7 text-white">
                 <h1 class="display-4 fw-bold lh-tight">
-                    Đăng <span class="text-accent">nhà nghỉ dưỡng</span><br />
-                    của Quý vị trên <span class="text-accent">Booking.com</span>
+                    @Localizer["ListYourPropertyTitle"]
                 </h1>
                 <p class="lead text-white-50 mt-3">
-                    Đăng chỗ nghỉ trên một trong những ứng dụng du lịch được tải xuống nhiều nhất
-                    để tăng thu nhập nhanh hơn và mở rộng sang các thị trường mới.
+                    @Localizer["ListYourPropertySubtitle"]
                 </p>
             </div>
 
             <!-- Phải: thẻ CTA -->
             <div class="col-lg-5">
                 <div class="cta-card bg-white p-4 rounded-4">
-                    <h4 class="fw-bold mb-3">Đăng ký miễn phí</h4>
+                    <h4 class="fw-bold mb-3">@Localizer["FreeRegistration"]</h4>
                     <ul class="list-unstyled small mb-4">
-                        <li class="d-flex mb-2"><span class="check-badge me-2">✓</span>45% host nhận đơn đầu tiên trong
-                            1 tuần</li>
-                        <li class="d-flex mb-2"><span class="check-badge me-2">✓</span>Tuỳ chọn: nhận tức thì hoặc yêu
-                            cầu đặt phòng</li>
-                        <li class="d-flex"><span class="check-badge me-2">✓</span>Hỗ trợ xử lý thanh toán cho Quý vị
-                        </li>
+                        <li class="d-flex mb-2"><span class="check-badge me-2">✓</span>@Localizer["HostBenefit1"]</li>
+                        <li class="d-flex mb-2"><span class="check-badge me-2">✓</span>@Localizer["HostBenefit2"]</li>
+                        <li class="d-flex"><span class="check-badge me-2">✓</span>@Localizer["HostBenefit3"]</li>
                     </ul>
                     <a asp-controller="Partner" asp-action="RegisterNewProperty"
-                        class="btn btn-bk-primary w-100 mb-2">Bắt đầu ngay →</a>
+                        class="btn btn-bk-primary w-100 mb-2">@Localizer["StartNow"]</a>
                     <div class="small text-muted">
-                        Đã bắt đầu đăng ký?
-                        <a asp-controller="Partner" asp-action="MyProperties" class="link-primary">Tiếp tục</a>
+                        @Localizer["AlreadyStarted"]
+                        <a asp-controller="Partner" asp-action="MyProperties"
+                            class="link-primary">@Localizer["Continue"]</a>
                     </div>
                 </div>
             </div>
@@ -43,30 +40,32 @@
 
 <section class="py-5 bg-white">
     <div class="container">
-        <h2 class="fw-bold mb-4">Host an tâm đón khách. Đã có chúng tôi hỗ trợ</h2>
+        <h2 class="fw-bold mb-4">@Localizer["HostSupportTitle"]</h2>
         <div class="row g-4">
             <div class="col-md-4">
-                <h5 class="fw-bold">Tùy chỉnh quy tắc</h5>
+                <h5 class="fw-bold">@Localizer["CustomizeRules"]</h5>
                 <ul class="list-unstyled small text-muted">
-                    <li class="d-flex mb-2"><i class="bi bi-check2-circle me-2"></i>Chấp nhận / từ chối với Yêu cầu đặt.
+                    <li class="d-flex mb-2"><i class="bi bi-check2-circle me-2"></i>@Localizer["AcceptRejectBooking"]
                     </li>
-                    <li class="d-flex mb-2"><i class="bi bi-check2-circle me-2"></i>Quản lý kỳ vọng bằng quy tắc rõ
-                        ràng.</li>
+                    <li class="d-flex mb-2"><i class="bi bi-check2-circle me-2"></i>@Localizer["ManageExpectations"]
+                    </li>
                 </ul>
             </div>
             <div class="col-md-4">
-                <h5 class="fw-bold">Biết thêm về khách</h5>
+                <h5 class="fw-bold">@Localizer["KnowMoreAboutGuests"]</h5>
                 <ul class="list-unstyled small text-muted">
-                    <li class="d-flex mb-2"><i class="bi bi-check2-circle me-2"></i>Trò chuyện trước khi chấp nhận.</li>
-                    <li class="d-flex mb-2"><i class="bi bi-check2-circle me-2"></i>Xem thông tin lịch sử du lịch.</li>
+                    <li class="d-flex mb-2"><i class="bi bi-check2-circle me-2"></i>@Localizer["ChatBeforeAccepting"]
+                    </li>
+                    <li class="d-flex mb-2"><i class="bi bi-check2-circle me-2"></i>@Localizer["ViewTravelHistory"]</li>
                 </ul>
             </div>
             <div class="col-md-4">
-                <h5 class="fw-bold">Được bảo vệ</h5>
+                <h5 class="fw-bold">@Localizer["Protected"]</h5>
                 <ul class="list-unstyled small text-muted">
-                    <li class="d-flex mb-2"><i class="bi bi-check2-circle me-2"></i>Bảo vệ trước yêu cầu bồi thường.
-                    </li>
-                    <li class="d-flex mb-2"><i class="bi bi-check2-circle me-2"></i>Tùy chọn bảo vệ hư hại.</li>
+                    <li class="d-flex mb-2"><i
+                            class="bi bi-check2-circle me-2"></i>@Localizer["ProtectionAgainstClaims"]</li>
+                    <li class="d-flex mb-2"><i
+                            class="bi bi-check2-circle me-2"></i>@Localizer["DamageProtectionOptions"]</li>
                 </ul>
             </div>
         </div>
@@ -75,44 +74,44 @@
 <section class="section-muted py-5">
 
     <div class="container">
-        <h2 class="fw-bold mb-4">Kiểm soát tài chính với dịch vụ Thanh toán bởi Booking.com</h2>
+        <h2 class="fw-bold mb-4">@Localizer["FinancialControlTitle"]</h2>
         <div class="row g-4">
             <div class="col-md-6 col-lg-4">
-                <h5 class="fw-bold"><i class="bi bi-credit-card me-2 text-success"></i>Thanh toán dễ dàng</h5>
+                <h5 class="fw-bold"><i class="bi bi-credit-card me-2 text-success"></i>@Localizer["EasyPayment"]</h5>
                 <p class="text-muted small mb-0">
-                    Chúng tôi xử lý toàn bộ quy trình thanh toán thay Quý vị, giúp Quý vị có thêm thời gian để phát
-                    triển kinh doanh.
+                    @Localizer["EasyPaymentDesc"]
                 </p>
             </div>
             <div class="col-md-6 col-lg-4">
-                <h5 class="fw-bold"><i class="bi bi-calendar2-check me-2 text-success"></i>Thanh toán hàng ngày</h5>
-                <p class="text-muted small mb-0">
-                    Nhận tiền nhanh hơn! Tùy thị trường, có thể nhận tiền trong vòng 24 giờ sau khi khách trả phòng.
-                </p>
-            </div>
-            <div class="col-md-6 col-lg-4">
-                <h5 class="fw-bold"><i class="bi bi-graph-up-arrow me-2 text-success"></i>Giải pháp cho nhiều chỗ nghỉ
+                <h5 class="fw-bold"><i class="bi bi-calendar2-check me-2 text-success"></i>@Localizer["DailyPayment"]
                 </h5>
                 <p class="text-muted small mb-0">
-                    Tối ưu thu chi với tính năng hóa đơn theo nhóm và soát chiếu chi tiết.
+                    @Localizer["DailyPaymentDesc"]
                 </p>
             </div>
             <div class="col-md-6 col-lg-4">
-                <h5 class="fw-bold"><i class="bi bi-shield-check me-2 text-success"></i>Giảm thiểu rủi ro</h5>
+                <h5 class="fw-bold"><i
+                        class="bi bi-graph-up-arrow me-2 text-success"></i>@Localizer["MultipleAccommodations"]</h5>
                 <p class="text-muted small mb-0">
-                    Giảm rủi ro gian lận & bồi hoàn nhờ quy trình kiểm soát nghiêm ngặt.
+                    @Localizer["MultipleAccommodationsDesc"]
                 </p>
             </div>
             <div class="col-md-6 col-lg-4">
-                <h5 class="fw-bold"><i class="bi bi-cash-coin me-2 text-success"></i>Quản lý dòng tiền tốt hơn</h5>
+                <h5 class="fw-bold"><i class="bi bi-shield-check me-2 text-success"></i>@Localizer["MinimizeRisk"]</h5>
                 <p class="text-muted small mb-0">
-                    Chọn phương thức và thời gian nhận thanh toán phù hợp theo khu vực.
+                    @Localizer["MinimizeRiskDesc"]
+                </p>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <h5 class="fw-bold"><i class="bi bi-cash-coin me-2 text-success"></i>@Localizer["BetterCashFlow"]</h5>
+                <p class="text-muted small mb-0">
+                    @Localizer["BetterCashFlowDesc"]
                 </p>
             </div>
         </div>
 
-        <a asp-controller="Partner" asp-action="RegisterNewProperty" class="btn btn-bk-outline btn-bk-pill mt-4">Kiếm
-            thêm thu nhập ngay hôm nay</a>
+        <a asp-controller="Partner" asp-action="RegisterNewProperty"
+            class="btn btn-bk-outline btn-bk-pill mt-4">@Localizer["EarnMoreToday"]</a>
 
 
 
@@ -120,32 +119,32 @@
 </section>
 <section class="py-5 bg-white">
     <div class="container">
-        <h2 class="fw-bold mb-4">Dễ dàng bắt đầu và đón đầu thị trường</h2>
+        <h2 class="fw-bold mb-4">@Localizer["EasyStartTitle"]</h2>
         <div class="row g-4">
             <div class="col-md-4">
                 <div class="step-card p-4 h-100">
                     <div class="step-icon"><i class="bi bi-house-add"></i></div>
-                    <h5 class="fw-bold mt-3">Nhập thông tin chỗ nghỉ</h5>
+                    <h5 class="fw-bold mt-3">@Localizer["EnterPropertyInfo"]</h5>
                     <p class="text-muted small mb-0">
-                        Điền thông tin cơ bản & tải ảnh – chỗ nghỉ của Quý vị đã sẵn sàng hiển thị.
+                        @Localizer["EnterPropertyInfoDesc"]
                     </p>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="step-card p-4 h-100">
                     <div class="step-icon"><i class="bi bi-rocket-takeoff"></i></div>
-                    <h5 class="fw-bold mt-3">Bắt đầu nhận đặt chỗ</h5>
+                    <h5 class="fw-bold mt-3">@Localizer["StartReceivingBookings"]</h5>
                     <p class="text-muted small mb-0">
-                        Kích hoạt và nhận đặt chỗ từ hàng triệu khách trên Booking.com.
+                        @Localizer["StartReceivingBookingsDesc"]
                     </p>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="step-card p-4 h-100">
                     <div class="step-icon"><i class="bi bi-binoculars"></i></div>
-                    <h5 class="fw-bold mt-3">Nổi bật thị trường</h5>
+                    <h5 class="fw-bold mt-3">@Localizer["StandOutMarket"]</h5>
                     <p class="text-muted small mb-0">
-                        Tăng hiển thị với công cụ khuyến mãi & phân phối giá thông minh.
+                        @Localizer["StandOutMarketDesc"]
                     </p>
                 </div>
             </div>
@@ -153,7 +152,7 @@
 
 
         <a asp-controller="Partner" asp-action="RegisterNewProperty"
-            class="btn btn-bk-primary btn-bk-pill btn-bk-lg mt-4">Bắt đầu ngay hôm nay</a>
+            class="btn btn-bk-primary btn-bk-pill btn-bk-lg mt-4">@Localizer["StartToday"]</a>
 
     </div>
 
@@ -161,24 +160,24 @@
 </section>
 <section class="py-5 section-muted">
     <div class="container">
-        <h2 class="fw-bold mb-4">Tiếp cận nguồn khách toàn cầu</h2>
+        <h2 class="fw-bold mb-4">@Localizer["GlobalReachTitle"]</h2>
         <div class="row g-4">
             <div class="col-md-4">
                 <div class="metric">
-                    <div class="metric-value">1,8+ tỉ</div>
-                    <div class="metric-note">khách lưu trú tại nghỉ mỗi năm kể từ năm 2010.</div>
+                    <div class="metric-value">@Localizer["GlobalReachMetric1"]</div>
+                    <div class="metric-note">@Localizer["GlobalReachMetric1Desc"]</div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="metric">
-                    <div class="metric-value">1/3 đêm nghỉ</div>
-                    <div class="metric-note">trên toàn cầu đã đặt qua các nền tảng của chúng tôi (2024).</div>
+                    <div class="metric-value">@Localizer["GlobalReachMetric2"]</div>
+                    <div class="metric-note">@Localizer["GlobalReachMetric2Desc"]</div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="metric">
-                    <div class="metric-value">48% số đêm</div>
-                    <div class="metric-note">được đặt cho khách quốc tế vào cuối năm 2023.</div>
+                    <div class="metric-value">@Localizer["GlobalReachMetric3"]</div>
+                    <div class="metric-note">@Localizer["GlobalReachMetric3Desc"]</div>
                 </div>
             </div>
         </div>
@@ -186,7 +185,7 @@
 </section>
 <section class="section-muted py-5" id="testimonials">
     <div class="container">
-        <h2 class="fw-bold mb-4">Chia sẻ từ các host khác</h2>
+        <h2 class="fw-bold mb-4">@Localizer["HostTestimonialsTitle"]</h2>
 
         <div class="row g-4">
             <!-- Card 1 -->
@@ -292,8 +291,8 @@
         </div>
 
         <div class="text-center mt-3">
-            <a asp-controller="Partner" asp-action="RegisterNewProperty" class="btn btn-accent rounded-pill px-4">Tham
-                gia cùng các host giống như Quý vị</a>
+            <a asp-controller="Partner" asp-action="RegisterNewProperty"
+                class="btn btn-accent rounded-pill px-4">@Localizer["JoinHostsLikeYou"]</a>
         </div>
     </div>
 </section>

@@ -1,4 +1,5 @@
 @model HotelBooking.Models.Discount
+@inject IStringLocalizer<HotelBooking.Resources.SharedResource> Localizer
 @{
     ViewData["Title"] = Model.Title;
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -50,8 +51,8 @@
     <div class="mx-auto p-3 max-w-5xl">
         <nav aria-label="breadcrumb" class="promo-breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
-                <li class="breadcrumb-item"><a href="/Promo">Ưu đãi</a></li>
+                <li class="breadcrumb-item"><a href="/">@Localizer["Home"]</a></li>
+                <li class="breadcrumb-item"><a href="/Promo">@Localizer["Offers"]</a></li>
                 <li class="breadcrumb-item active" aria-current="page">@Model.Title</li>
             </ol>
         </nav>
@@ -74,7 +75,7 @@
 
         <!-- Main Content Area -->
         <div class="bg-[#e6f4ff] p-6 rounded-xl">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Mã giảm giá cho bạn</h2>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">@Localizer["DiscountCodeForYou"]</h2>
 
             <!-- Coupon Card -->
             <div class="bg-white rounded-xl shadow-md flex flex-col md:flex-row items-center coupon-card">
@@ -92,15 +93,15 @@
                             <h3 class="text-lg font-bold text-gray-900">
                                 @if (Model.DiscountPercent.HasValue)
                                 {
-                                    <span>Giảm @Model.DiscountPercent%</span>
+                                    <span>@Localizer["Discount"] @Model.DiscountPercent%</span>
                                 }
                                 else if (Model.DiscountAmount.HasValue)
                                 {
-                                    <span>Giảm @String.Format("{0:N0}", Model.DiscountAmount) VND</span>
+                                    <span>@Localizer["Discount"] @String.Format("{0:N0}", Model.DiscountAmount) VND</span>
                                 }
                             </h3>
                             <p class="text-sm text-gray-500">
-                                Hiệu lực: @Model.StartDate?.ToString("dd/MM/yyyy") -
+                                @Localizer["ValidFrom"]: @Model.StartDate?.ToString("dd/MM/yyyy") -
                                 @Model.EndDate?.ToString("dd/MM/yyyy")
                             </p>
                         </div>
@@ -114,17 +115,17 @@
 
                 <!-- Right Side: Code & Copy Button -->
                 <div class="p-6 text-center w-full md:w-auto md:min-w-[250px]">
-                    <p class="text-sm text-gray-500 mb-1">Mã của bạn</p>
+                    <p class="text-sm text-gray-500 mb-1">@Localizer["YourCode"]</p>
                     <input id="promoCode"
                         class="font-bold text-2xl text-center text-gray-800 bg-transparent w-full border-none focus:ring-0 p-0"
                         value="@Model.Code" readonly />
                     <button id="copyBtn"
                         class="bg-blue-500 text-white font-bold py-2 px-6 rounded-lg mt-3 w-full hover:bg-blue-600 copy-button"
                         onclick="copyCode()">
-                        Sao chép
+                        @Localizer["Copy"]
                     </button>
                     <div id="copySuccess" class="text-green-600 text-sm font-semibold mt-2" style="display: none;">
-                        Đã sao chép!
+                        @Localizer["Copied"]
                     </div>
                 </div>
             </div>
@@ -165,13 +166,13 @@
             }
 
             function showSuccess() {
-                copyBtn.innerHTML = 'Đã chép';
+                copyBtn.innerHTML = '@Localizer["CopiedShort"]';
                 copyBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
                 copyBtn.classList.add('bg-green-500');
                 successMessage.style.display = 'block';
 
                 setTimeout(() => {
-                    copyBtn.innerHTML = 'Sao chép';
+                    copyBtn.innerHTML = '@Localizer["Copy"]';
                     copyBtn.classList.remove('bg-green-500');
                     copyBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
                     successMessage.style.display = 'none';

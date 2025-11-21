@@ -1,5 +1,6 @@
-﻿@{
-    ViewData["Title"] = "Trang chủ";
+﻿@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["Home"];
 }
 
 <style>
@@ -275,8 +276,8 @@
 <!-- HERO + SEARCH -->
 <section class="py-5" style="background:#003580; color:#fff;">
     <div class="container">
-        <h1 class="fw-bold display-5 mb-2">Trang, kế tiếp bạn sẽ du lịch đến đâu?</h1>
-        <p class="fs-5 mb-4">Tìm ưu đãi Genius đặc biệt tại khắp nơi trên thế giới!</p>
+        <h1 class="fw-bold display-5 mb-2">@Localizer["HeroTitle"]</h1>
+        <p class="fs-5 mb-4">@Localizer["HeroSubtitle"]</p>
 
         <div class="search-box">
             <form class="search-form" method="get" action="/Public/Search">
@@ -288,14 +289,14 @@
                 <!-- Destination -->
                 <div class="search-input-group position-relative">
                     <i class="bi bi-search"></i>
-                    <input id="destinationInput" name="destination" placeholder="Bạn muốn đến đâu?" autocomplete="off" />
+                    <input id="destinationInput" name="destination" placeholder="@Localizer["SearchPlaceholder"]" autocomplete="off" />
                     <div id="destinationDropdown" class="bg-white border rounded-3 shadow-sm position-absolute w-100 d-none" style="z-index:1050; max-height:360px; overflow-y:auto; top:100%; left:0; margin-top: 4px;"></div>
                 </div>
 
                 <!-- Date Range -->
                 <div class="search-input-group position-relative">
                     <i class="bi bi-calendar3"></i>
-                    <div class="date-display" id="dateDisplay">Chọn ngày</div>
+                    <div class="date-display" id="dateDisplay">@Localizer["SelectDate"]</div>
                     <input name="checkin" type="hidden" id="checkinInput" />
                     <input name="checkout" type="hidden" id="checkoutInput" />
 
@@ -303,16 +304,16 @@
                     <div id="datePickerDropdown" class="date-picker-dropdown d-none">
                         <div class="date-picker-header">
                             <div>
-                                <span id="selectedDateRange">Chọn ngày</span>
+                                <span id="selectedDateRange">@Localizer["SelectDate"]</span>
                             </div>
                             <div>
-                                <span id="selectedGuestsHeader">2 người lớn • 0 trẻ em • 1 phòng</span>
+                                <span id="selectedGuestsHeader">2 @Html.Raw(Localizer["Adults"]) • 0 @Html.Raw(Localizer["Children"]) • 1 @Html.Raw(Localizer["Rooms"])</span>
                             </div>
                         </div>
 
                         <div class="date-picker-tabs">
-                            <button type="button" class="date-tab active" data-tab="calendar">Lịch</button>
-                            <button type="button" class="date-tab" data-tab="flexible">Ngày linh hoạt</button>
+                            <button type="button" class="date-tab active" data-tab="calendar">@Localizer["Calendar"]</button>
+                            <button type="button" class="date-tab" data-tab="flexible">@Localizer["FlexibleDates"]</button>
                         </div>
 
                         <div id="calendarTab" class="tab-content">
@@ -335,12 +336,12 @@
                         </div>
 
                         <div id="flexibleTab" class="tab-content d-none">
-                             <p class="text-muted small">Tính năng đang được phát triển.</p>
+                             <p class="text-muted small">@Localizer["FeatureInDevelopment"]</p>
                         </div>
 
                         <!-- Apply button -->
                         <div class="date-picker-apply" style="margin-top: 15px; text-align: right;">
-                            <button type="button" id="applyDateBtn" class="btn btn-primary" style="padding: 8px 20px; font-size: 14px;">Áp dụng</button>
+                            <button type="button" id="applyDateBtn" class="btn btn-primary" style="padding: 8px 20px; font-size: 14px;">@Localizer["Apply"]</button>
                         </div>
                     </div>
                 </div>
@@ -348,12 +349,12 @@
                 <!-- Guests & Rooms -->
                 <div class="search-input-group position-relative">
                     <i class="bi bi-person"></i>
-                    <div class="guests-display" id="guestText">2 người lớn · 0 trẻ em · 1 phòng</div>
+                    <div class="guests-display" id="guestText">2 @Html.Raw(Localizer["Adults"]) · 0 @Html.Raw(Localizer["Children"]) · 1 @Html.Raw(Localizer["Rooms"])</div>
 
                     <!-- Guest Dropdown -->
                     <div id="guestDropdown" class="bg-white border rounded-3 shadow-sm position-absolute d-none" style="z-index:1050; padding:16px; top:100%; left:0; margin-top: 4px;">
                         <div class="d-flex justify-content-between align-items-center py-2">
-                            <div><div class="fw-semibold">Người lớn</div></div>
+                            <div><div class="fw-semibold">@Html.Raw(Localizer["Adults"])</div></div>
                             <div class="d-flex align-items-center gap-3">
                                 <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle" data-type="adults" data-change="-1" style="width:32px; height:32px;">−</button>
                                 <span id="adultsCount" class="fw-semibold" style="width:20px; text-align:center;">2</span>
@@ -363,8 +364,8 @@
 
                         <div class="d-flex justify-content-between align-items-center py-2">
                             <div>
-                                <div class="fw-semibold">Trẻ em</div>
-                                <div class="small text-muted">0-17 tuổi</div>
+                                <div class="fw-semibold">@Html.Raw(Localizer["Children"])</div>
+                                <div class="small text-muted">0-17 @Html.Raw(Localizer["YearsOld"])</div>
                             </div>
                             <div class="d-flex align-items-center gap-3">
                                 <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle" data-type="children" data-change="-1" style="width:32px; height:32px;">−</button>
@@ -374,7 +375,7 @@
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center py-2">
-                            <div><div class="fw-semibold">Phòng</div></div>
+                            <div><div class="fw-semibold">@Html.Raw(Localizer["Rooms"])</div></div>
                             <div class="d-flex align-items-center gap-3">
                                 <button type="button" class="btn btn-outline-secondary btn-sm rounded-circle" data-type="rooms" data-change="-1" style="width:32px; height:32px;">−</button>
                                 <span id="roomsCount" class="fw-semibold" style="width:20px; text-align:center;">1</span>
@@ -382,12 +383,12 @@
                             </div>
                         </div>
                         <hr class="my-2">
-                        <button type="button" id="closeGuestDropdownBtn" class="btn btn-link w-100 mt-1">Xong</button>
+                        <button type="button" id="closeGuestDropdownBtn" class="btn btn-link w-100 mt-1">@Html.Raw(Localizer["Done"])</button>
                     </div>
                 </div>
 
                 <!-- Search Button -->
-                <button type="submit" class="search-btn">Tìm</button>
+                <button type="submit" class="search-btn">@Localizer["SearchButton"]</button>
             </form>
         </div>
     </div>
@@ -396,8 +397,8 @@
 <!-- DEALS from DB - carousel style -->
 <section class="container my-4">
     <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="section-title mb-0">Ưu đãi</h5>
-        <a asp-controller="Promo" asp-action="Index" class="btn btn-outline-primary btn-sm">Xem tất cả ưu đãi</a>
+        <h5 class="section-title mb-0">@Localizer["OffersTitle"]</h5>
+        <a asp-controller="Promo" asp-action="Index" class="btn btn-outline-primary btn-sm">@Localizer["ViewAllOffers"]</a>
     </div>
     <div id="dealsCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-inner">
@@ -453,11 +454,11 @@
 
 <!-- FEATURED -->
 <section class="container my-4">
-    <h5 class="section-title mb-3">Lưu trú độc đáo hàng đầu</h5>
+    <h5 class="section-title mb-3">@Localizer["FeaturedHotels"]</h5>
     <div class="row g-3">
         <div class="col-12 col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm">
-                <img src="~/img/nb.jpg" class="card-img-top object-fit-cover" style="height:220px;" alt="Phong cảnh Ninh Bình">
+                <img src="~/img/Ninhbinh.png" class="card-img-top object-fit-cover" style="height:220px;" alt="Phong cảnh Ninh Bình">
                 <div class="card-body">
                     <h6 class="fw-bold mb-1">Ninh Bình</h6>
                     <small class="text-muted">Phong cảnh thiên nhiên</small>
@@ -466,7 +467,7 @@
         </div>
         <div class="col-12 col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm">
-                <img src="~/img/dn.jpg" class="card-img-top object-fit-cover" style="height:220px;" alt="Bãi biển Đà Nẵng">
+                <img src="~/img/DaNang.webp" class="card-img-top object-fit-cover" style="height:220px;" alt="Bãi biển Đà Nẵng">
                 <div class="card-body">
                     <h6 class="fw-bold mb-1">Đà Nẵng</h6>
                     <small class="text-muted">Biển & ẩm thực</small>
@@ -475,7 +476,7 @@
         </div>
         <div class="col-12 col-md-6 col-lg-4">
             <div class="card h-100 shadow-sm">
-                <img src="~/img/dl.jpg" class="card-img-top object-fit-cover" style="height:220px;" alt="Đồi thông Đà Lạt">
+                <img src="~/img/DaLat.jpg" class="card-img-top object-fit-cover" style="height:220px;" alt="Đồi thông Đà Lạt">
                 <div class="card-body">
                     <h6 class="fw-bold mb-1">Đà Lạt</h6>
                     <small class="text-muted">Không khí se lạnh</small>
@@ -548,7 +549,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         let html = '';
         if (items.length > 0) {
-            html += '<div class="p-3 border-bottom text-dark"><strong>Tìm kiếm gần đây</strong></div>';
+            html += '<div class="p-3 border-bottom text-dark"><strong>@Localizer["RecentSearches"]</strong></div>';
             items.forEach(x => {
                 const checkinDate = x.checkin ? new Date(x.checkin) : null;
                 const checkoutDate = x.checkout ? new Date(x.checkout) : null;
@@ -570,9 +571,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // --- LOCALIZATION DATA ---
+    const localizationData = {
+        dayNames: '@Html.Raw(Localizer["DayNames"])'.split(','),
+        monthYear: '@Html.Raw(Localizer["MonthYear"])',
+        selectDate: '@Html.Raw(Localizer["SelectDate"])'
+    };
+
     // --- GUEST SELECTION LOGIC ---
     function updateGuestText() {
-        const text = `${guests.adults} người lớn · ${guests.children} trẻ em · ${guests.rooms} phòng`;
+        const text = `${guests.adults} @Html.Raw(Localizer["Adults"]) · ${guests.children} @Html.Raw(Localizer["Children"]) · ${guests.rooms} @Html.Raw(Localizer["Rooms"])`;
         guestText.textContent = text;
         document.getElementById('selectedGuestsHeader').textContent = text;
         
@@ -592,10 +600,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const renderMonth = (containerId, date) => {
             const calContainer = document.getElementById(containerId);
             const m = date.getMonth(); const y = date.getFullYear();
-            document.getElementById(containerId.replace('calendar', 'month')).textContent = `tháng ${m + 1} năm ${y}`;
+            document.getElementById(containerId.replace('calendar', 'month')).textContent = localizationData.monthYear.replace('{0}', m + 1).replace('{1}', y);
             
             calContainer.innerHTML = '';
-            const dayHeaders = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+            const dayHeaders = localizationData.dayNames;
             calContainer.innerHTML += dayHeaders.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
             
             const firstDayOfMonth = (new Date(y, m, 1).getDay() + 6) % 7; // 0=Mon

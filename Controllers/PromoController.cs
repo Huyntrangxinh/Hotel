@@ -2,13 +2,21 @@ using HotelBooking.Data;
 using HotelBooking.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
+using HotelBooking.Resources;
 
 namespace HotelBooking.Controllers
 {
     public class PromoController : Controller
     {
         private readonly ApplicationDbContext _db;
-        public PromoController(ApplicationDbContext db) { _db = db; }
+        private readonly IStringLocalizer<SharedResource> _localizer;
+        
+        public PromoController(ApplicationDbContext db, IStringLocalizer<SharedResource> localizer) 
+        { 
+            _db = db; 
+            _localizer = localizer;
+        }
 
         [HttpGet("/Promo")]
         public async Task<IActionResult> Index()

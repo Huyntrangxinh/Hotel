@@ -1,6 +1,7 @@
 @model HotelBooking.ViewModels.PropertyDataViewModel
+@inject IStringLocalizer<SharedResource> Localizer
 @{
-    ViewData["Title"] = "Thông tin chi tiết cơ sở lưu trú";
+    ViewData["Title"] = @Localizer["PropertyDetails"];
 }
 
 <div class="container-xl ui-compact" style="max-width:1080px;">
@@ -10,10 +11,10 @@
             <div class="header-container">
                 <div class="header-left">
                     <h5 class="mb-1 fw-semibold">@Model.PropertyName</h5>
-                    <small class="text-muted">Số đăng ký: @Model.RegistrationNumber</small>
+                    <small class="text-muted">@Localizer["RegistrationNumber"]: @Model.RegistrationNumber</small>
                 </div>
                 <div class="header-right">
-                    <small class="text-muted">Bạn cần trợ giúp?</small>
+                    <small class="text-muted">@Localizer["NeedHelp"]</small>
                     <select class="form-select form-select-sm">
                         <option selected>VI</option>
                     </select>
@@ -28,15 +29,15 @@
             <div class="nav nav-tabs tabs-tera" id="propertyTabs" role="tablist">
                 <button class="nav-link @(Model.CurrentTab == "property" ? "active" : "")" id="property-tab"
                     data-bs-toggle="tab" data-bs-target="#property" type="button" role="tab">
-                    <i class="bi bi-building me-2"></i>Giới thiệu về cơ sở lưu trú
+                    <i class="bi bi-building me-2"></i>@Localizer["PropertyIntroduction"]
                 </button>
                 <button class="nav-link @(Model.CurrentTab == "rooms" ? "active" : "")" id="rooms-tab"
                     data-bs-toggle="tab" data-bs-target="#rooms" type="button" role="tab">
-                    <i class="bi bi-bed me-2"></i>Cấu hình phòng
+                    <i class="bi bi-bed me-2"></i>@Localizer["RoomConfiguration"]
                 </button>
                 <button class="nav-link @(Model.CurrentTab == "pricing" ? "active" : "")" id="pricing-tab"
                     data-bs-toggle="tab" data-bs-target="#pricing" type="button" role="tab">
-                    <i class="bi bi-tag me-2"></i>Cấu hình giá
+                    <i class="bi bi-tag me-2"></i>@Localizer["PriceConfiguration"]
                 </button>
             </div>
         </div>
@@ -52,33 +53,32 @@
                 <!-- Check-in/Check-out -->
                 <div class="card card-slim mb-3">
                     <div class="card-header py-2">
-                        <h6 class="mb-0">Thông tin làm thủ tục nhận phòng</h6>
-                        <small class="text-muted">Thiết lập thời gian làm thủ tục nhận phòng và trả phòng cho chỗ ở của
-                            bạn</small>
+                        <h6 class="mb-0">@Localizer["CheckInInformation"]</h6>
+                        <small class="text-muted">@Localizer["SetCheckInOutTimes"]</small>
                     </div>
                     <div class="card-body py-3">
                         <div class="row g-3 align-items-end">
                             <div class="col-md-6">
-                                <label class="form-label mb-1">Lễ tân của bạn có mở cửa 24 giờ không?</label>
+                                <label class="form-label mb-1">@Localizer["Reception24Hours"]</label>
                                 <div class="d-flex gap-3">
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" asp-for="IsReception24Hours"
                                             value="true" id="reception24h-yes">
-                                        <label class="form-check-label" for="reception24h-yes">Có</label>
+                                        <label class="form-check-label" for="reception24h-yes">@Localizer["Yes"]</label>
                                     </div>
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" asp-for="IsReception24Hours"
                                             value="false" id="reception24h-no">
-                                        <label class="form-check-label" for="reception24h-no">Không</label>
+                                        <label class="form-check-label" for="reception24h-no">@Localizer["No"]</label>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-3">
-                                <label asp-for="CheckInTime" class="form-label mb-1">Giờ nhận phòng</label>
+                                <label asp-for="CheckInTime" class="form-label mb-1">@Localizer["CheckInTime"]</label>
                                 <input asp-for="CheckInTime" type="time" class="form-control form-control-sm" />
                             </div>
                             <div class="col-md-3">
-                                <label asp-for="CheckOutTime" class="form-label mb-1">Giờ trả phòng</label>
+                                <label asp-for="CheckOutTime" class="form-label mb-1">@Localizer["CheckOutTime"]</label>
                                 <input asp-for="CheckOutTime" type="time" class="form-control form-control-sm" />
                             </div>
                         </div>
@@ -88,10 +88,8 @@
                 <!-- Photos -->
                 <div class="card card-slim mb-3">
                     <div class="card-header py-2">
-                        <h6 class="mb-0"><i class="bi bi-camera me-2"></i>Ảnh cơ sở lưu trú</h6>
-                        <small class="text-muted">Cung cấp những bức ảnh đẹp nhất để quảng bá cơ sở lưu trú của bạn và
-                            thu hút khách hàng tiềm năng. <a href="#" class="text-primary">Xem Hướng dẫn về ảnh chụp chỗ
-                                ở</a>.</small>
+                        <h6 class="mb-0"><i class="bi bi-camera me-2"></i>@Localizer["PropertyPhotos"]</h6>
+                        <small class="text-muted">@Localizer["ProvideBestPhotos"] <a href="#" class="text-primary">@Localizer["ViewPhotoGuidelines"]</a>.</small>
                     </div>
 
                     <div class="card-body py-3">
@@ -99,14 +97,11 @@
                             <!-- yêu cầu ảnh -->
                             <div class="col-md-5">
                                 <div class="photo-requirements">
-                                    <h6 class="mb-2">Yêu cầu ảnh:</h6>
+                                    <h6 class="mb-2">@Localizer["PhotoRequirements"]</h6>
                                     <ul class="list-unstyled mb-0">
-                                        <li><i class="bi bi-check-circle text-success me-2"></i>Độ phân giải: Tối thiểu
-                                            800×600 px</li>
-                                        <li><i class="bi bi-check-circle text-success me-2"></i>Kích cỡ: Tối đa 300
-                                            KB</li>
-                                        <li><i class="bi bi-check-circle text-success me-2"></i>Chỉ chấp nhận ảnh: Ngoại
-                                            thất / Tòa nhà</li>
+                                        <li><i class="bi bi-check-circle text-success me-2"></i>@Localizer["ResolutionMinimum"]</li>
+                                        <li><i class="bi bi-check-circle text-success me-2"></i>@Localizer["SizeMaximum"]</li>
+                                        <li><i class="bi bi-check-circle text-success me-2"></i>@Localizer["OnlyAcceptPhotos"]</li>
                                     </ul>
                                 </div>
                             </div>
@@ -117,22 +112,22 @@
                                 <div class="photo-tile large mb-3" id="mainPhotoTile">
                                     <div class="upload-placeholder text-center" id="mainPhotoPlaceholder">
                                         <i class="bi bi-camera mb-2" style="font-size:28px;"></i>
-                                        <div class="title">Ngoại thất / Tòa nhà</div>
-                                        <a href="#" class="upload-link" data-upload-trigger> Tải lên ảnh</a>
+                                        <div class="title">@Localizer["ExteriorBuilding"]</div>
+                                        <a href="#" class="upload-link" data-upload-trigger> @Localizer["UploadPhoto"]</a>
                                     </div>
 
                                     <img id="mainPhotoImg" alt="Main preview" class="d-none">
                                     <div class="tile-overlay d-none">
-                                        <a href="#" class="preview-link">Xem trước</a>
+                                        <a href="#" class="preview-link">@Localizer["Preview"]</a>
                                         <span class="divider"></span>
-                                        <a href="#" class="delete-link text-danger">Xóa</a>
+                                        <a href="#" class="delete-link text-danger">@Localizer["Delete"]</a>
                                     </div>
                                 </div>
 
                                 <!-- Dropdown của ảnh chính (khóa cứng Exterior) -->
                                 <div class="mb-3">
                                     <select class="form-select form-select-sm" id="mainPhotoCategory" disabled>
-                                        <option value="exterior" selected>Ngoại thất / Tòa nhà</option>
+                                        <option value="exterior" selected>@Localizer["ExteriorBuilding"]</option>
                                     </select>
                                 </div>
 
@@ -169,8 +164,7 @@
 
                                 <small class="mt-2" id="imageDimensions"></small>
 
-                                <button type="button" class="btn-close-preview mt-3" data-bs-dismiss="modal">Close
-                                    Preview</button>
+                                <button type="button" class="btn-close-preview mt-3" data-bs-dismiss="modal">@Localizer["ClosePreview"]</button>
 
                             </div>
                         </div>
@@ -180,207 +174,203 @@
                 <!-- Amenities -->
                 <div class="card card-slim mb-3">
                     <div class="card-header py-2">
-                        <h6 class="mb-0">Tiện nghi</h6>
-                        <small class="text-muted">Vui lòng chọn ít nhất 3 tiện nghi</small>
+                        <h6 class="mb-0">@Localizer["Amenities"]</h6>
+                        <small class="text-muted">@Localizer["SelectAtLeast3Amenities"]</small>
                     </div>
 
 
 
                     <div class="card-body py-3">
+                    <div class="d-flex justify-content-end mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="amenitiesSelectAll">
+                            <label class="form-check-label fw-semibold" for="amenitiesSelectAll">Chọn tất cả tiện nghi</label>
+                        </div>
+                    </div>
                         <!-- vỏ bọc + khung cuộn -->
                         <div class="amenities-wrap">
                             <div class="amenities-container">
                                 <!-- Khu vực chung -->
-                                <h6 class="amenity-category-title"><i class="bi bi-building me-2"></i>Khu vực chung</h6>
+                                <h6 class="amenity-category-title"><i class="bi bi-building me-2"></i>@Localizer["CommonAreas"]</h6>
                                 <div class="amenities-grid">
                                     <div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="HasSmokingArea"
                                                 id="smoking">
-                                            <label class="form-check-label" for="smoking">Khu vực hút thuốc</label>
+                                            <label class="form-check-label" for="smoking">@Localizer["SmokingArea"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox"
                                                 asp-for="HasAccessibleBathroom" id="accessible-bathroom">
-                                            <label class="form-check-label" for="accessible-bathroom">Phòng tắm cho
-                                                người khuyết tật</label>
+                                            <label class="form-check-label" for="accessible-bathroom">@Localizer["AccessibleBathroom"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="HasElevator"
                                                 id="elevator">
-                                            <label class="form-check-label" for="elevator">Thang máy</label>
+                                            <label class="form-check-label" for="elevator">@Localizer["Elevator"]</label>
                                         </div>
                                     </div>
                                     <div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="HasPublicWifi"
                                                 id="wifi">
-                                            <label class="form-check-label" for="wifi">Khu vực Wifi công cộng</label>
+                                            <label class="form-check-label" for="wifi">@Localizer["PublicWifiArea"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox"
                                                 asp-for="HasAccessibleParking" id="accessible-parking">
-                                            <label class="form-check-label" for="accessible-parking">Bãi đậu xe cho
-                                                người khuyết tật</label>
+                                            <label class="form-check-label" for="accessible-parking">@Localizer["AccessibleParking"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="HasParkingArea"
                                                 id="parking">
-                                            <label class="form-check-label" for="parking">Khu vực đậu xe</label>
+                                            <label class="form-check-label" for="parking">@Localizer["ParkingArea"]</label>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Ẩm thực -->
-                                <h6 class="amenity-category-title mt-3"><i class="bi bi-cup-straw me-2"></i>Ẩm thực</h6>
+                                <h6 class="amenity-category-title mt-3"><i class="bi bi-cup-straw me-2"></i>@Localizer["FoodAndBeverage"]</h6>
                                 <div class="amenities-grid">
                                     <div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="HasCafe" id="cafe">
-                                            <label class="form-check-label" for="cafe">Quán cà phê</label>
+                                            <label class="form-check-label" for="cafe">@Localizer["Cafe"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="HasRestaurant"
                                                 id="restaurant">
-                                            <label class="form-check-label" for="restaurant">Nhà hàng</label>
+                                            <label class="form-check-label" for="restaurant">@Localizer["Restaurant"]</label>
                                         </div>
                                     </div>
                                     <div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="HasBar" id="bar">
-                                            <label class="form-check-label" for="bar">Quán bar</label>
+                                            <label class="form-check-label" for="bar">@Localizer["Bar"]</label>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Dịch vụ -->
-                                <h6 class="amenity-category-title mt-3"><i class="bi bi-gear me-2"></i>Dịch vụ</h6>
+                                <h6 class="amenity-category-title mt-3"><i class="bi bi-gear me-2"></i>@Localizer["Services"]</h6>
                                 <div class="amenities-grid">
                                     <div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="HasFrontDesk"
                                                 id="front-desk">
-                                            <label class="form-check-label" for="front-desk">Quầy lễ tân</label>
+                                            <label class="form-check-label" for="front-desk">@Localizer["FrontDesk"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="HasExpressCheckIn"
                                                 id="express-checkin">
-                                            <label class="form-check-label" for="express-checkin">Nhận phòng
-                                                nhanh</label>
+                                            <label class="form-check-label" for="express-checkin">@Localizer["ExpressCheckIn"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="HasConcierge"
                                                 id="concierge">
-                                            <label class="form-check-label" for="concierge">Dịch vụ trợ giúp đặc
-                                                biệt</label>
+                                            <label class="form-check-label" for="concierge">@Localizer["ConciergeService"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="HasExpressCheckOut"
                                                 id="express-checkout">
-                                            <label class="form-check-label" for="express-checkout">Trả phòng
-                                                nhanh</label>
+                                            <label class="form-check-label" for="express-checkout">@Localizer["ExpressCheckOut"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" id="room-service"
                                                 name="HasRoomService">
-                                            <label class="form-check-label" for="room-service">Dịch vụ phòng</label>
+                                            <label class="form-check-label" for="room-service">@Localizer["RoomService"]</label>
                                         </div>
                                     </div>
                                     <div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="HasLaundryService"
                                                 id="laundry">
-                                            <label class="form-check-label" for="laundry">Dịch vụ giặt ủi</label>
+                                            <label class="form-check-label" for="laundry">@Localizer["LaundryService"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="Has24HourSecurity"
                                                 id="security">
-                                            <label class="form-check-label" for="security">Bảo vệ 24 giờ</label>
+                                            <label class="form-check-label" for="security">@Localizer["Security24Hours"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="HasLuggageStorage"
                                                 id="luggage">
-                                            <label class="form-check-label" for="luggage">Nơi giữ hành lý</label>
+                                            <label class="form-check-label" for="luggage">@Localizer["LuggageStorage"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" asp-for="HasAirportTransfer"
                                                 id="airport">
-                                            <label class="form-check-label" for="airport">Đưa đón sân bay</label>
+                                            <label class="form-check-label" for="airport">@Localizer["AirportTransfer"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" id="free-wifi"
                                                 name="HasFreeWifi">
-                                            <label class="form-check-label" for="free-wifi">Wifi miễn phí</label>
+                                            <label class="form-check-label" for="free-wifi">@Localizer["FreeWifi"]</label>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Tiện nghi lân cận -->
-                                <h6 class="amenity-category-title mt-3"><i class="bi bi-geo-alt me-2"></i>Tiện nghi lân
-                                    cận</h6>
+                                <h6 class="amenity-category-title mt-3"><i class="bi bi-geo-alt me-2"></i>@Localizer["NearbyAmenities"]</h6>
                                 <div class="amenities-grid">
                                     <div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" id="shops" name="HasShops">
-                                            <label class="form-check-label" for="shops">Cửa hàng</label>
+                                            <label class="form-check-label" for="shops">@Localizer["Shops"]</label>
                                         </div>
                                     </div>
                                     <div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" id="atm-banking"
                                                 name="HasAtmBanking">
-                                            <label class="form-check-label" for="atm-banking">ATM hoặc Ngân hàng</label>
+                                            <label class="form-check-label" for="atm-banking">@Localizer["AtmBanking"]</label>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Tiện nghi trong nhà -->
-                                <h6 class="amenity-category-title mt-3"><i class="bi bi-house me-2"></i>Tiện nghi trong
-                                    nhà</h6>
+                                <h6 class="amenity-category-title mt-3"><i class="bi bi-house me-2"></i>@Localizer["IndoorAmenities"]</h6>
                                 <div class="amenities-grid">
                                     <div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" id="swimming-pool"
                                                 name="HasSwimmingPool">
-                                            <label class="form-check-label" for="swimming-pool">Hồ bơi</label>
+                                            <label class="form-check-label" for="swimming-pool">@Localizer["SwimmingPool"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" id="children-pool"
                                                 name="HasChildrenPool">
-                                            <label class="form-check-label" for="children-pool">Hồ bơi trẻ em</label>
+                                            <label class="form-check-label" for="children-pool">@Localizer["ChildrenPool"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" id="business-center"
                                                 name="HasBusinessCenter">
-                                            <label class="form-check-label" for="business-center">Trung tâm thương
-                                                mại</label>
+                                            <label class="form-check-label" for="business-center">@Localizer["BusinessCenter"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" id="sauna" name="HasSauna">
-                                            <label class="form-check-label" for="sauna">Phòng xông hơi</label>
+                                            <label class="form-check-label" for="sauna">@Localizer["Sauna"]</label>
                                         </div>
                                     </div>
                                     <div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" id="children-play-area"
                                                 name="HasChildrenPlayArea">
-                                            <label class="form-check-label" for="children-play-area">Khu vui chơi trẻ
-                                                em</label>
+                                            <label class="form-check-label" for="children-play-area">@Localizer["ChildrenPlayArea"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" id="spa" name="HasSpa">
-                                            <label class="form-check-label" for="spa">Spa</label>
+                                            <label class="form-check-label" for="spa">@Localizer["Spa"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" id="fitness-center"
                                                 name="HasFitnessCenter">
-                                            <label class="form-check-label" for="fitness-center">Trung tâm thể
-                                                dục</label>
+                                            <label class="form-check-label" for="fitness-center">@Localizer["FitnessCenter"]</label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input" type="checkbox" id="meeting-facilities"
                                                 name="HasMeetingFacilities">
-                                            <label class="form-check-label" for="meeting-facilities">Phòng họp</label>
+                                            <label class="form-check-label" for="meeting-facilities">@Localizer["MeetingFacilities"]</label>
                                         </div>
                                     </div>
                                 </div>
@@ -389,9 +379,7 @@
                             <div class="amenity-note mt-3">
                                 <div class="amenity-note-content">
                                     <i class="bi bi-info-circle me-2"></i>
-                                    <small class="text-muted">Không phải tiện nghi nào cũng được liệt kê ở đây. Bạn có
-                                        thể
-                                        thêm nhiều tiện nghi khác sau trong TERA.</small>
+                                    <small class="text-muted">@Localizer["NotAllAmenitiesListed"]</small>
                                 </div>
                             </div>
                         </div>
@@ -401,13 +389,13 @@
                 <!-- Star Rating -->
                 <div class="card card-slim mb-5">
                     <div class="card-header py-2">
-                        <h6 class="mb-0">Đánh giá sao</h6>
-                        <small class="text-muted">Hãy chọn đánh giá sao cho chỗ ở của bạn</small>
+                        <h6 class="mb-0">@Localizer["StarRating"]</h6>
+                        <small class="text-muted">@Localizer["SelectStarRating"]</small>
                     </div>
                     <div class="card-body py-3">
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="radio" asp-for="StarRating" value="" id="no-rating">
-                            <label class="form-check-label" for="no-rating">Chưa có đánh giá sao</label>
+                            <label class="form-check-label" for="no-rating">@Localizer["NoRating"]</label>
                         </div>
                         <div class="row g-2">
                             @for (int i = 1; i <= 5; i++)
@@ -425,7 +413,7 @@
                                             {
                                                 <i class="bi bi-star text-muted small"></i>
                                             }
-                                            <small>(@i sao)</small>
+                                            <small>(@i @Localizer["Stars"])</small>
                                         </label>
                                     </div>
                                 </div>
@@ -436,10 +424,9 @@
 
                 <!-- Sticky Action Bar -->
                 <div class="action-bar d-flex justify-content-between align-items-center">
-                    <a href="@Url.Action("MyProperties", "Partner")" class="btn btn-outline-secondary btn-sm">← Quay lại
-                        TERA</a>
+                    <a href="@Url.Action("MyProperties", "Partner")" class="btn btn-outline-secondary btn-sm">← @Localizer["BackToTera"]</a>
                     <button type="submit" class="btn btn-warning btn-sm px-3"
-                        style="background-color: #FF5E20; border-color: #FF5E20;">✔ Lưu và tiếp tục</button>
+                        style="background-color: #FF5E20; border-color: #FF5E20;">✔ @Localizer["SaveAndContinue"]</button>
                 </div>
             </form>
         </div>
@@ -454,17 +441,15 @@
                             <div class="col-lg-4">
                                 <h5 class="mb-2 fw-bold d-flex align-items-center">
                                     <i class="bi bi-building me-2" style="font-size: 1.5rem;"></i>
-                                    Loại phòng
+                                    @Localizer["RoomType"]
                                 </h5>
-                                <small class="text-muted d-block" style="font-size: .95rem;">Tạo các loại phòng mà chỗ ở của
-                                    bạn sẽ cung cấp cho
-                                    khách.</small>
+                                <small class="text-muted d-block" style="font-size: .95rem;">@Localizer["CreateRoomTypesDescription"]</small>
                             </div>
                             <div class="col-lg-8">
                                 <div class="d-flex justify-content-end mb-2">
                                     <a class="btn btn-primary btn-sm"
                                         href="@Url.Action("RoomData", "Partner", new { propertyId = Model.PropertyId })">
-                                        <i class="bi bi-plus-lg me-1"></i> Tạo phòng mới
+                                        <i class="bi bi-plus-lg me-1"></i> @Localizer["CreateNewRoom"]
                                     </a>
                                 </div>
                                 <div class="d-flex flex-column gap-2">
@@ -500,7 +485,7 @@
                                                 <div class="room-config mb-2">
                                                     <div class="d-flex align-items-center mb-2">
                                                         <i class="bi bi-bed text-primary me-2"></i>
-                                                        <span class="fw-medium">Cài đặt giường ngủ</span>
+                                                        <span class="fw-medium">@Localizer["BedSetup"]</span>
                                                     </div>
                                                     <div class="ms-4">
                                                         @if (r.Beds != null && r.Beds.Any())
@@ -520,7 +505,7 @@
                                                         }
                                                         else
                                                         {
-                                                            <span class="text-muted small">Chưa cấu hình</span>
+                                                            <span class="text-muted small">@Localizer["NotConfigured"]</span>
                                                         }
                                                     </div>
                                                 </div>
@@ -529,7 +514,7 @@
                                                 <div class="room-config">
                                                     <div class="d-flex align-items-center mb-2">
                                                         <i class="bi bi-list-ul text-primary me-2"></i>
-                                                        <span class="fw-medium">Các cấu hình khác</span>
+                                                        <span class="fw-medium">@Localizer["OtherConfigurations"]</span>
                                                     </div>
                                                     <div class="ms-4">
                                                         <div class="mb-1">
@@ -568,7 +553,7 @@
                                     <div class="mt-2">
                                         <a class="btn btn-outline-primary w-100"
                                             href="@Url.Action("RoomData", "Partner", new { propertyId = Model.PropertyId })">
-                                            <i class="bi bi-plus-lg me-1"></i> Thêm phòng
+                                            <i class="bi bi-plus-lg me-1"></i> @Localizer["AddRoom"]
                                         </a>
                                     </div>
                                 </div>
@@ -585,11 +570,11 @@
                             <i class="bi bi-lamp"></i>
                             <i class="bi bi-sofa ms-2"></i>
                         </div>
-                        <h6 class="mb-1">Chưa có phòng</h6>
-                        <small class="text-muted d-block mb-3">Hãy nhấp vào nút bên dưới để tạo phòng</small>
+                        <h6 class="mb-1">@Localizer["NoRoomsYet"]</h6>
+                        <small class="text-muted d-block mb-3">@Localizer["ClickToCreateRoom"]</small>
                         <a class="btn btn-primary btn-sm"
                             href="@Url.Action("RoomData", "Partner", new { propertyId = Model.PropertyId })">
-                            <i class="bi bi-plus-lg me-1"></i> Tạo phòng mới
+                            <i class="bi bi-plus-lg me-1"></i> @Localizer["CreateNewRoom"]
                         </a>
                     </div>
                 </div>
@@ -805,7 +790,7 @@
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h6 class="modal-title fw-semibold"><i class="bi bi-plus-lg me-2"></i>Tạo phòng mới</h6>
+                    <h6 class="modal-title fw-semibold"><i class="bi bi-plus-lg me-2"></i>@Localizer["CreateNewRoom"]</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
@@ -865,6 +850,7 @@
 
     @section Scripts {
         <partial name="_ValidationScriptsPartial" />
+        <script src="~/js/property-photos.js"></script>
         <script>
             // Format price inputs to vi-VN grouping and sync hidden numeric values
             document.addEventListener('input', function (e) {
@@ -926,490 +912,50 @@
             }
 
             document.addEventListener('DOMContentLoaded', () => {
-                // Elements
-                const fileInput = document.getElementById('photoUpload');
-                const mainTile = document.getElementById('mainPhotoTile');
-                const grid = document.getElementById('galleryGrid');
-                const mainImg = document.getElementById('mainPhotoImg');
-                const catHidden = document.getElementById('photoCategories');
-
-                // Modal
-                const modalEl = document.getElementById('photoPreviewModal');
-                const modalImg = document.getElementById('modalImagePreview');
-                const modalThumbs = document.getElementById('modalThumbnailsContainer');
-                const dimsLabel = document.getElementById('imageDimensions');
-
-                // State
-                let photos = []; // [{id?, url?, file?, preview, category}]
-                let currentPreviewIndex = 0;
-                let deletedUrls = [];
-                const LOCAL_KEY = `pd_photos_@Model.PropertyId`;
-
-                // ========== Helpers ==========
-                const VN_CAT = {
-                    exterior: 'Ngoại thất / Tòa nhà',
-                    others: 'Others', lobby: 'Lobby', swimming_pool: 'Swimming Pool',
-                    entertainment: 'Entertainment Facility', sport: 'Sport Facility',
-                    hygiene: 'Hygiene Facility', bedroom: 'Bedroom', bathroom: 'Bathroom',
-                    functional_hall: 'Functional Hall'
-                };
-                const catOptionsHtml = Object.entries(VN_CAT)
-                    .filter(([k]) => k !== 'exterior')
-                    .map(([val, label]) => `<option value="${val}">${label}</option>`).join('');
-
-                // Function to set main tile UI state
-                function setMainEmptyUI(isEmpty) {
-                    const overlay = mainTile.querySelector('.tile-overlay');
-                    const placeholder = mainTile.querySelector('.upload-placeholder');
-                    const moreZone = grid.querySelector('.upload-drop-zone');
-
-                    if (isEmpty) {
-                        mainTile.classList.add('empty');
-                        mainTile.classList.remove('has-photo');
-                        mainImg.classList.add('d-none');
-                        overlay.classList.add('d-none');
-                        placeholder.classList.remove('d-none');
-                        if (moreZone) moreZone.classList.add('d-none');
-                    } else {
-                        mainTile.classList.remove('empty');
-                        mainTile.classList.add('has-photo');
-                        mainImg.classList.remove('d-none');
-                        overlay.classList.remove('d-none');
-                        placeholder.classList.add('d-none');
-                        if (moreZone) moreZone.classList.remove('d-none');
-                    }
-                }
-
-                // Image validation function
-                function validateImage(file) {
-                    return new Promise((resolve, reject) => {
-                        // Check file size (maximum 300KB)
-                        const maxSizeKB = 300;
-                        const fileSizeKB = file.size / 1024;
-
-                        if (fileSizeKB > maxSizeKB) {
-                            reject(`Kích cỡ ảnh phải tối đa ${maxSizeKB} KB. Ảnh hiện tại: ${fileSizeKB.toFixed(1)} KB`);
-                            return;
-                        }
-
-                        // Check if it's an image
-                        if (!file.type.startsWith('image/')) {
-                            reject('File phải là ảnh');
-                            return;
-                        }
-
-                        // Check resolution
-                        const img = new Image();
-                        img.onload = function () {
-                            const width = this.naturalWidth;
-                            const height = this.naturalHeight;
-
-                            if (width < 800 || height < 600) {
-                                reject(`Độ phân giải ảnh phải tối thiểu 800×600 px. Ảnh hiện tại: ${width}×${height} px`);
-                                return;
-                            }
-
-                            resolve(true);
-                        };
-
-                        img.onerror = function () {
-                            reject('Không thể đọc ảnh');
-                        };
-
-                        img.src = URL.createObjectURL(file);
-                    });
-                }
-
-                function showError(message) {
-                    // Remove any existing error alerts first
-                    const existingAlerts = document.querySelectorAll('.alert-danger');
-                    existingAlerts.forEach(alert => alert.remove());
-
-                    // Create error alert
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'alert alert-danger alert-dismissible fade show';
-                    alertDiv.innerHTML = `
-                                                                                                                                                                                                                                                   <i class="bi bi-exclamation-triangle me-2"></i>
-                                                                                                                                                                                                                                                   <strong>Ảnh không hợp lệ:</strong> ${message}
-                                                                                                                                                                                                                                                   <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                                                                                                                                                                                                                               `;
-
-                    // Insert right after the photo section card
-                    const photoCards = document.querySelectorAll('.card');
-                    let photoCard = null;
-
-                    // Find the photo card by looking for the camera icon
-                    photoCards.forEach(card => {
-                        if (card.querySelector('.bi-camera')) {
-                            photoCard = card;
-                        }
-                    });
-
-                    if (photoCard && photoCard.nextElementSibling) {
-                        photoCard.parentNode.insertBefore(alertDiv, photoCard.nextElementSibling);
-                    } else if (photoCard) {
-                        // Insert after the photo card
-                        photoCard.insertAdjacentElement('afterend', alertDiv);
-                    } else {
-                        // Fallback: insert at the beginning of the main content
-                        const mainContent = document.querySelector('.container-fluid .row .col-lg-8');
-                        if (mainContent) {
-                            mainContent.insertBefore(alertDiv, mainContent.firstElementChild);
-                        }
-                    }
-
-                    // Auto remove after 5 seconds
-                    setTimeout(() => {
-                        if (alertDiv.parentNode) {
-                            alertDiv.remove();
-                        }
-                    }, 5000);
-                }
-
-                function rebuildHiddenInputs() {
-                    // update JSON categories
-                    catHidden.value = JSON.stringify(photos.map(p => p.category));
-                    // recreate hidden file inputs for model binder
-                    const form = document.querySelector('form');
-                    [...form.querySelectorAll('input[name^="PropertyPhotos"]')].forEach(i => i.remove());
-                    let manifest = [];
-                    let newIndex = 0;
-                    
-                    // Debug: Log photos array
-                    console.log('=== DEBUG REBUILD HIDDEN INPUTS ===');
-                    console.log('Photos array:', photos);
-                    
-                    // Collect all new files first
-                    const newFiles = photos.filter(p => p.file).map(p => p.file);
-                    console.log(`Found ${newFiles.length} new files to upload`);
-                    
-                    if (newFiles.length > 0) {
-                        // Create a single input with all files
-                        const inp = document.createElement('input');
-                        inp.type = 'file';
-                        inp.name = `PropertyPhotos`;
-                        inp.style.display = 'none';
-                        inp.multiple = true;
-                        
-                        // Create a new FileList with all files
-                        const fileList = new DataTransfer();
-                        newFiles.forEach(file => {
-                            fileList.items.add(file);
-                            console.log(`Adding file to DataTransfer: ${file.name}`);
-                        });
-                        inp.files = fileList.files;
-                        
-                        console.log(`Input created with ${inp.files.length} files`);
-                        form.appendChild(inp);
-                    }
-                    
-                    // Build manifest
-                    photos.forEach((p, order) => {
-                        if (p.file) {
-                            manifest.push({ newIndex: newIndex, category: p.category, order: order });
-                            newIndex++;
-                        } else if (p.preview) {
-                            console.log(`Adding existing photo to manifest: ${p.preview}`);
-                            manifest.push({ url: p.preview, category: p.category, order: order });
-                        }
-                    });
-                    
-                    console.log('Final manifest:', manifest);
-                    console.log('Total new files:', newIndex);
-                    
-                    document.getElementById('photoManifest').value = JSON.stringify(manifest);
-                    document.getElementById('deletedPhotoUrls').value = JSON.stringify(deletedUrls);
-                    // Also cache to localStorage so quay lại/đổi tab không mất
-                    try {
-                        const cache = photos.map(p => ({ preview: p.preview, category: p.category }));
-                        localStorage.setItem(LOCAL_KEY, JSON.stringify(cache));
-                    } catch { /* ignore quota errors */ }
-                }
-
-                function renderGrid() {
-                    // Clear existing thumbnails and upload buttons
-                    [...grid.querySelectorAll('.tile-wrap, .upload-drop-zone')].forEach(n => n.remove());
-
-                    const additionalPhotos = photos.slice(1); // Skip first photo (main)
-                    const totalItems = additionalPhotos.length;
-
-                    // Logic hiển thị button upload - CHỈ DÙNG BUTTON NHỎ
-
-                    // Render ảnh
-                    additionalPhotos.forEach((p, idx0) => {
-                        const wrap = document.createElement('div');
-                        wrap.className = 'tile-wrap';
-                        const globalIdx = idx0 + 1; // actual index in photos array
-                        wrap.innerHTML = `
-                                                                                                                                <div class="photo-tile">
-                                                                                                                                    <img src="${p.preview}" alt="photo ${globalIdx}">
-                                                                                                                                    <div class="tile-overlay">
-                                                                                                                                        <a href="#" class="js-preview" data-idx="${globalIdx}">Xem trước</a>
-                                                                                                                                        <span class="divider"></span>
-                                                                                                                                        <a href="#" class="js-remove text-danger" data-idx="${globalIdx}">Xóa</a>
-                                                                                                                                    </div>
-                                                                                                                                </div>
-                                                                                                                                <select class="form-select form-select-sm photo-cat" data-idx="${globalIdx}">
-                                                                                                                                    ${catOptionsHtml}
-                                                                                                                                </select>
-                                                                                                                            `;
-                        grid.appendChild(wrap);
-                        wrap.querySelector('.photo-cat').value = p.category;
-                    });
-
-                    // LUÔN thêm button nhỏ vào grid
-                    const uploadWrap = document.createElement('div');
-                    uploadWrap.className = 'tile-wrap';
-                    uploadWrap.innerHTML = `
-                                                                                                                            <div class="upload-drop-zone grid-item" data-upload-trigger>
-                                                                                                                                <i class="bi bi-camera mb-2"></i>
-                                                                                                                                <div class="text">Tải lên thêm ảnh</div>
-                                                                                                                            </div>
-                                                                                                                        `;
-                    grid.appendChild(uploadWrap);
-
-                    // Main photo = first upload
-                    if (photos.length) {
-                        mainImg.src = photos[0].preview;
-                        setMainEmptyUI(false);
-                    } else {
-                        mainImg.src = '';
-                        setMainEmptyUI(true);
-                    }
-
-                    rebuildHiddenInputs();
-                }
-
-                function addFiles(fileList) {
-                    console.log('=== DEBUG ADD FILES ===');
-                    console.log('FileList:', fileList);
-                    console.log('FileList length:', fileList.length);
-                    
-                    [...fileList].forEach((file, index) => {
-                        console.log(`Processing file ${index}:`, file.name, file.type, file.size);
-                        
-                        if (!file.type.startsWith('image/')) {
-                            showError('File phải là ảnh');
-                            return;
-                        }
-
-                        // Validate image before adding
-                        validateImage(file)
-                            .then(() => {
-                                const reader = new FileReader();
-                                reader.onload = e => {
-                                    // First photo gets 'exterior' category, others get 'others'
-                                    const category = photos.length === 0 ? 'exterior' : 'others';
-                                    console.log(`Adding photo with category: ${category}`);
-                                    photos.push({ file, preview: e.target.result, category });
-                                    console.log('Photos array after adding:', photos);
-                                    renderGrid();
-                                };
-                                reader.readAsDataURL(file);
-                            })
-                            .catch(error => {
-                                showError(error);
-                            });
-                    });
-                }
-
-                // ========== Events ==========
-                // Upload triggers
-                mainTile.querySelector('.upload-link').addEventListener('click', e => {
-                    e.preventDefault();
-                    fileInput.click();
-                });
-
-                mainTile.querySelector('.delete-link').addEventListener('click', e => {
-                    e.preventDefault();
-                    if (photos.length > 0) {
-                        // Xóa ảnh đầu tiên (ảnh chính)
-                        photos.splice(0, 1);
-                        // Đẩy ảnh tiếp theo lên làm ảnh chính nếu có
-                        if (photos.length > 0) {
-                            // Ảnh đầu tiên mới sẽ có category 'exterior'
-                            photos[0].category = 'exterior';
-                        }
-                        renderGrid();
-                        rebuildHiddenInputs();
-                    }
-                });
-
-
-
-                // select files
-                fileInput.addEventListener('change', e => addFiles(e.target.files));
-
-                // drag & drop for grid (button nhỏ)
-                grid.addEventListener('dragover', e => {
-                    e.preventDefault();
-                    const uploadZone = e.target.closest('.upload-drop-zone');
-                    if (uploadZone) uploadZone.classList.add('dragover');
-                });
-
-                grid.addEventListener('dragenter', e => {
-                    e.preventDefault();
-                    const uploadZone = e.target.closest('.upload-drop-zone');
-                    if (uploadZone) uploadZone.classList.add('dragover');
-                });
-
-                grid.addEventListener('dragleave', e => {
-                    e.preventDefault();
-                    const uploadZone = e.target.closest('.upload-drop-zone');
-                    if (uploadZone) uploadZone.classList.remove('dragover');
-                });
-
-                grid.addEventListener('drop', e => {
-                    e.preventDefault();
-                    const uploadZone = e.target.closest('.upload-drop-zone');
-                    if (uploadZone) {
-                        uploadZone.classList.remove('dragover');
-                        addFiles(e.dataTransfer.files);
-                    }
-                });
-
-                // delegate actions on grid
-                grid.addEventListener('click', e => {
-                    const pv = e.target.closest('.js-preview');
-                    const rm = e.target.closest('.js-remove');
-                    const uploadBtn = e.target.closest('[data-upload-trigger]');
-
-                    if (pv) {
-                        e.preventDefault();
-                        currentPreviewIndex = +pv.dataset.idx || 0;
-                        openPreview(currentPreviewIndex);
-                    }
-                    if (rm) {
-                        e.preventDefault();
-                        const i = +rm.dataset.idx;
-                        const removed = photos[i];
-                        if (removed && removed.preview && !removed.file) {
-                            deletedUrls.push(removed.preview);
-                        }
-                        photos.splice(i, 1);
-                        renderGrid();
-                    }
-                    if (uploadBtn) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        fileInput.click();
-                    }
-                });
-                grid.addEventListener('change', e => {
-                    const sel = e.target.closest('.photo-cat');
-                    if (sel) {
-                        const i = +sel.dataset.idx;
-                        photos[i].category = sel.value;
-                        rebuildHiddenInputs();
-                    }
-                });
-
-                // Main tile "Xem trước"
-                mainTile.querySelector('.preview-link').addEventListener('click', e => {
-                    e.preventDefault();
-                    if (!photos.length) return;
-                    openPreview(0);
-                });
-
-                // Modal preview
-                function openPreview(idx) {
-                    if (!photos[idx]) return;
-                    setModalImage(idx);
-                    new bootstrap.Modal(modalEl).show();
-                }
-
-                function setModalImage(idx) {
-                    modalImg.src = photos[idx].preview;
-                    const im = new Image();
-                    im.onload = () => dimsLabel.textContent = `${im.naturalWidth} × ${im.naturalHeight}`;
-                    im.src = photos[idx].preview;
-                }
-
-                // Load saved photos if available
-                function loadSavedPhotos() {
-                    const savedCategoriesJson = '@Html.Raw(Model.PhotoCategoriesJson ?? "")';
+                // Initialize Property Photos Manager
+                if (window.PropertyPhotos) {
+                    const savedCategoriesJson = '@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.PhotoCategoriesJson ?? ""))';
                     const savedUrlsJson = document.getElementById('existingPhotoUrlsJson')?.value || '[]';
-                    try {
-                        const cats = savedCategoriesJson ? JSON.parse(savedCategoriesJson) : [];
-                        const urls = savedUrlsJson ? JSON.parse(savedUrlsJson) : [];
-                        if (urls.length > 0) {
-                            photos = urls.map((u, i) => ({ file: null, preview: u, category: cats[i] || (i === 0 ? 'exterior' : 'others') }));
-                            renderGrid();
-                        } else if (cats.length > 0) {
-                            photos = cats.map((c, i) => ({ file: null, preview: '', category: c }));
-                            renderGrid();
-                        } else {
-                            // Load from localStorage draft cache if available
-                            const cached = localStorage.getItem(LOCAL_KEY);
-                            if (cached) {
-                                const arr = JSON.parse(cached);
-                                photos = (arr || []).map((x, i) => ({ file: null, preview: x.preview, category: x.category || (i === 0 ? 'exterior' : 'others') }));
-                                renderGrid();
-                            }
-                        }
-                    } catch (e) { console.error('Error loading saved photos', e); }
+                    const uploadMorePhotosText = '@Localizer["UploadMorePhotos"]';
+                    window.PropertyPhotos.init(@Model.PropertyId, savedCategoriesJson, savedUrlsJson, uploadMorePhotosText);
+                }
+            });
+            document.addEventListener('DOMContentLoaded', function () {
+                const selectAllAmenities = document.getElementById('amenitiesSelectAll');
+                const amenityCheckboxes = document.querySelectorAll('.amenities-container input[type="checkbox"]');
+
+                if (!selectAllAmenities || amenityCheckboxes.length === 0) {
+                    return;
                 }
 
-                // init
-                setMainEmptyUI(true);
-                renderGrid();
-                loadSavedPhotos();
+                const updateSelectAllState = () => {
+                    const total = amenityCheckboxes.length;
+                    const checked = Array.from(amenityCheckboxes).filter(cb => cb.checked).length;
 
-                // Override form submit to handle files properly
-                const formEl = document.querySelector('form');
-                if (formEl) {
-                    formEl.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        
-                        console.log('=== FORM SUBMIT OVERRIDE ===');
-                        
-                        // Create FormData manually
-                        const formData = new FormData();
-                        
-                        // Add all form fields except files
-                        const formElements = formEl.querySelectorAll('input:not([type="file"]), select, textarea');
-                        formElements.forEach(el => {
-                            if (el.name && el.value) {
-                                formData.append(el.name, el.value);
-                                console.log(`Added field: ${el.name} = ${el.value}`);
-                            }
-                        });
-                        
-                        // Add files manually
-                        const newFiles = photos.filter(p => p.file).map(p => p.file);
-                        console.log(`Adding ${newFiles.length} files to FormData`);
-                        newFiles.forEach((file, index) => {
-                            formData.append('PropertyPhotos', file);
-                            console.log(`Added file ${index}: ${file.name}`);
-                        });
-                        
-                        // Add manifest and other hidden fields
-                        formData.append('PhotoManifestJson', document.getElementById('photoManifest').value);
-                        formData.append('DeletedPhotoUrlsJson', document.getElementById('deletedPhotoUrls').value);
-                        formData.append('PhotoCategoriesJson', document.getElementById('photoCategories').value);
-                        
-                        console.log('FormData created, submitting...');
-                        
-                        // Submit via fetch
-                        fetch(formEl.action, {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                            }
-                        })
-                        .then(response => {
-                            if (response.ok) {
-                                window.location.href = response.url;
-                            } else {
-                                console.error('Submit failed:', response.status);
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Submit error:', error);
-                        });
+                    if (checked === 0) {
+                        selectAllAmenities.checked = false;
+                        selectAllAmenities.indeterminate = false;
+                    } else if (checked === total) {
+                        selectAllAmenities.checked = true;
+                        selectAllAmenities.indeterminate = false;
+                    } else {
+                        selectAllAmenities.checked = false;
+                        selectAllAmenities.indeterminate = true;
+                    }
+                };
+
+                selectAllAmenities.addEventListener('change', () => {
+                    amenityCheckboxes.forEach(cb => {
+                        cb.checked = selectAllAmenities.checked;
                     });
-                }
+                    selectAllAmenities.indeterminate = false;
+                });
+
+                amenityCheckboxes.forEach(cb => {
+                    cb.addEventListener('change', updateSelectAllState);
+                });
+
+                updateSelectAllState();
             });
         </script>
     }

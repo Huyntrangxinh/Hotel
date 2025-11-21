@@ -10,11 +10,11 @@ namespace HotelBooking.ViewModels
 
         // Thông tin pháp nhân
         [Display(Name = "Tên pháp nhân hoặc tên cá nhân")]
-        [Required(ErrorMessage = "Vui lòng nhập Tên pháp nhân.")]
+        [Required(ErrorMessage = "Please Enter Legal Entity Name")]
         public string LegalEntityName { get; set; } = string.Empty;
 
         [Display(Name = "Địa chỉ của pháp nhân hoặc cá nhân")]
-        [Required(ErrorMessage = "Vui lòng nhập Địa chỉ pháp nhân.")]
+        [Required(ErrorMessage = "Please Enter Legal Entity Address")]
         public string LegalEntityAddress { get; set; } = string.Empty;
 
         [Display(Name = "Giấy phép kinh doanh (Tùy chọn)")]
@@ -23,11 +23,11 @@ namespace HotelBooking.ViewModels
 
         // Thông tin thuế
         [Display(Name = "Họ tên đầy đủ của người nộp thuế")]
-        [Required(ErrorMessage = "Vui lòng nhập Tên người nộp thuế.")]
+        [Required(ErrorMessage = "Please Enter Taxpayer Name")]
         public string TaxPayerName { get; set; } = string.Empty;
 
         [Display(Name = "Địa chỉ người nộp thuế")]
-        [Required(ErrorMessage = "Vui lòng nhập Địa chỉ người nộp thuế.")]
+        [Required(ErrorMessage = "Please Enter Taxpayer Address")]
         public string TaxPayerAddress { get; set; } = string.Empty;
 
         // Thông tin người ký
@@ -35,21 +35,21 @@ namespace HotelBooking.ViewModels
         public bool IsSignatoryDirector { get; set; } = true;
 
         [Display(Name = "Họ tên đầy đủ")]
-        [Required(ErrorMessage = "Vui lòng nhập Họ tên người ký.")]
+        [Required(ErrorMessage = "Please Enter Signatory Name")]
         public string SignatoryName { get; set; } = string.Empty;
 
         [Display(Name = "Vị trí")]
-        [Required(ErrorMessage = "Vui lòng nhập Vị trí người ký.")]
+        [Required(ErrorMessage = "Please Enter Signatory Position")]
         public string SignatoryPosition { get; set; } = string.Empty;
 
         [Display(Name = "Số điện thoại")]
-        [Required(ErrorMessage = "Vui lòng nhập Số điện thoại.")]
-        [Phone(ErrorMessage = "Định dạng số điện thoại không hợp lệ.")]
+        [Required(ErrorMessage = "Please Enter Phone")]
+        [Phone(ErrorMessage = "Invalid Phone Format")]
         public string SignatoryPhoneNumber { get; set; } = string.Empty;
 
         [Display(Name = "Địa chỉ email")]
-        [Required(ErrorMessage = "Vui lòng nhập Email.")]
-        [EmailAddress(ErrorMessage = "Định dạng email không hợp lệ.")]
+        [Required(ErrorMessage = "Please Enter Email")]
+        [EmailAddress(ErrorMessage = "Invalid Email Format")]
         public string SignatoryEmail { get; set; } = string.Empty;
 
         [Display(Name = "Thẻ CCCD của chủ sở hữu cơ sở lưu trú")]

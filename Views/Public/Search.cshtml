@@ -1,12 +1,14 @@
 @model HotelBooking.ViewModels.PublicSearchResultsViewModel
+@inject IStringLocalizer<SharedResource> Localizer
 <!DOCTYPE html>
 <html lang="vi">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@(string.IsNullOrWhiteSpace(Model?.Destination) ? (Model?.Properties.FirstOrDefault()?.City + ": kết quả") :
-                (Model.Destination + ": kết quả")) - Booking.com</title>
+    <title>@(string.IsNullOrWhiteSpace(Model?.Destination) ? (Model?.Properties.FirstOrDefault()?.City + ": " +
+                Localizer["SearchResults"]) :
+                (Model.Destination + ": " + Localizer["SearchResults"])) - Booking.com</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         :root {
@@ -514,6 +516,23 @@
             color: white;
         }
 
+        .heart-btn i.bi-heart-fill {
+            display: none;
+        }
+
+        .heart-btn.saved {
+            background: rgba(220, 38, 38, 0.85);
+        }
+
+        .heart-btn.saved i.bi-heart {
+            display: none;
+        }
+
+        .heart-btn.saved i.bi-heart-fill {
+            display: inline-block;
+            color: #fff;
+        }
+
         .hotel-details {
             display: flex;
             flex-direction: column;
@@ -929,23 +948,22 @@
             Model.Destination;
         }
         <div class="breadcrumb">
-            <a href="/">Trang chủ</a> > <a href="#">Việt Nam</a> > <strong>@dest</strong>
+            <a href="/">@Localizer["Homepage"]</a> > <a href="#">Việt Nam</a> > <strong>@dest</strong>
         </div>
 
-        <h1 class="page-title">@dest: tìm thấy @Model.Properties.Count() chỗ nghỉ</h1>
+        <h1 class="page-title">@dest: @Localizer["FoundAccommodations", Model.Properties.Count()]</h1>
 
         <aside class="sidebar">
             <div class="filter-card map-section">
-                <button class="map-toggle"><i class="bi bi-geo-alt-fill"></i> Hiển thị trên bản đồ</button>
+                <button class="map-toggle"><i class="bi bi-geo-alt-fill"></i> @Localizer["ShowOnMap"]</button>
             </div>
 
             <div class="filter-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <div style="font-weight: 700; font-size: 16px;">Khoảng giá <br><span class="mini">1 phòng, 1
-                            đêm</span></div>
+                    <div style="font-weight: 700; font-size: 16px;">@Localizer["PriceRange"] <br><span
+                            class="mini">@Localizer["OneRoomOneNight"]</span></div>
                     <a href="#"
-                        style="font-size: 14px; text-decoration: none; color: var(--booking-blue-light); font-weight: 500;">Đặt
-                        lại</a>
+                        style="font-size: 14px; text-decoration: none; color: var(--booking-blue-light); font-weight: 500;">@Localizer["Reset"]</a>
                 </div>
                 <div style="padding: 10px 0;">
                     <div style="position: relative; height: 20px; display: flex; align-items: center;">
@@ -973,39 +991,40 @@
 
             <div class="filter-card">
                 <div class="filter-header" onclick="toggleFilter(this)">
-                    Khuyến mãi & Giảm giá <i class="bi bi-chevron-up chevron"></i>
+                    @Localizer["PromotionsAndDiscounts"] <i class="bi bi-chevron-up chevron"></i>
                 </div>
                 <div class="filter-content">
                     <div class="filter-list" id="promoFilterList">
-                        <label class="filter-item"><input type="checkbox" name="filter" value="near_beach"> Gần
-                            biển</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="popular"> Được yêu thích
-                            nhất</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="promotion"> Khuyến mãi
-                            dành cho bạn</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="breakfast"> Có bữa
-                            sáng</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="pool"> Có hồ bơi</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="family"> Phù hợp cho gia
-                            đình</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="couple"> Phù hợp cho cặp
-                            đôi</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="star_4_5"> 4-5 sao giá
-                            tốt</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="comfortable_bed"> Giường
-                            đệm thoải mái</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="clean_room"> Phòng sạch
-                            sẽ</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="good_price"> Giá
-                            tốt</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="convenient_location"> Vị
-                            trí thuận tiện</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="near_beach">
+                            @Localizer["NearBeach"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="popular">
+                            @Localizer["MostPopular"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="promotion">
+                            @Localizer["PromotionsForYou"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="breakfast">
+                            @Localizer["HasBreakfast"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="pool">
+                            @Localizer["HasPool"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="family">
+                            @Localizer["FamilyFriendly"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="couple">
+                            @Localizer["CoupleFriendly"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="star_4_5">
+                            @Localizer["GoodValueStars"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="comfortable_bed">
+                            @Localizer["ComfortableBed"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="clean_room">
+                            @Localizer["CleanRoom"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="good_price">
+                            @Localizer["GoodPrice"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="convenient_location">
+                            @Localizer["ConvenientLocation"]</label>
                         <label class="filter-item"><input type="checkbox" name="filter" value="additional_benefits">
-                            Quyền lợi bổ sung</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="mountain_view"> View
-                            núi</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="heater"> Có máy
-                            sưởi</label>
+                            @Localizer["AdditionalBenefits"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="mountain_view">
+                            @Localizer["MountainView"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="heater">
+                            @Localizer["HasHeater"]</label>
                     </div>
                 </div>
             </div>
@@ -1013,7 +1032,7 @@
             <!-- Các bộ lọc khác giữ nguyên -->
             <div class="filter-card">
                 <div class="filter-header" onclick="toggleFilter(this)">
-                    Đánh giá sao <i class="bi bi-chevron-up chevron"></i>
+                    @Localizer["StarRating"] <i class="bi bi-chevron-up chevron"></i>
                 </div>
                 <div class="filter-content">
                     <div class="filter-list">
@@ -1028,39 +1047,39 @@
 
             <div class="filter-card">
                 <div class="filter-header" onclick="toggleFilter(this)">
-                    Đánh giá từ khách <i class="bi bi-chevron-up chevron"></i>
+                    @Localizer["GuestReviews"] <i class="bi bi-chevron-up chevron"></i>
                 </div>
                 <div class="filter-content">
                     <div class="filter-list">
-                        <label class="filter-item"><input type="checkbox" name="filter" value="rating_7"> ✈️ 7+ Thuận
-                            tiện</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="rating_8"> ✈️ 8+ Ấn
-                            tượng</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="rating_9"> ✈️ 9+ Tuyệt
-                            hảo</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="rating_7"> ✈️
+                            @Localizer["Rating7Convenient"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="rating_8"> ✈️
+                            @Localizer["Rating8Impressive"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="rating_9"> ✈️
+                            @Localizer["Rating9Excellent"]</label>
                     </div>
                 </div>
             </div>
             <div class="filter-card">
                 <div class="filter-header" onclick="toggleFilter(this)">
-                    Loại hình lưu trú <i class="bi bi-chevron-up chevron"></i>
+                    @Localizer["AccommodationType"] <i class="bi bi-chevron-up chevron"></i>
                 </div>
                 <div class="filter-content">
                     <div class="filter-list">
                         <label class="filter-item"><input type="checkbox" name="filter" value="type_resort">
-                            Resort</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="type_hotel"> Khách
-                            sạn</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="type_guesthouse"> Nhà
-                            nghỉ</label>
-                        <label class="filter-item"><input type="checkbox" name="filter" value="type_apartment"> Căn
-                            hộ</label>
+                            @Localizer["Resort"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="type_hotel">
+                            @Localizer["Hotel"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="type_guesthouse">
+                            @Localizer["Guesthouse"]</label>
+                        <label class="filter-item"><input type="checkbox" name="filter" value="type_apartment">
+                            @Localizer["Apartment"]</label>
                         <label class="filter-item"><input type="checkbox" name="filter" value="type_villa">
-                            Villa</label>
+                            @Localizer["Villa"]</label>
                         <label class="filter-item"><input type="checkbox" name="filter" value="type_homestay">
-                            Homestay</label>
+                            @Localizer["Homestay"]</label>
                         <label class="filter-item"><input type="checkbox" name="filter" value="type_hostel">
-                            Hostel</label>
+                            @Localizer["Hostel"]</label>
                         <!-- Ryokan chưa có enum riêng, tạm ánh xạ vào Nhà nghỉ/GuestHouse nếu cần -->
                     </div>
                 </div>
@@ -1069,18 +1088,18 @@
             <!-- Linh hoạt hơn -->
             <div class="filter-card">
                 <div class="filter-header" onclick="toggleFilter(this)">
-                    Linh hoạt hơn <i class="bi bi-chevron-up chevron"></i>
+                    @Localizer["MoreFlexibility"] <i class="bi bi-chevron-up chevron"></i>
                 </div>
                 <div class="filter-content">
                     <div class="filter-list">
                         <label class="filter-item">
                             <input type="checkbox" name="filter" value="flexible_free_cancellation">
-                            <span>Miễn phí hủy phòng</span>
+                            <span>@Localizer["FreeCancellation"]</span>
                             <i class="bi bi-file-check text-muted ms-2"></i>
                         </label>
                         <label class="filter-item">
                             <input type="checkbox" name="filter" value="flexible_pay_at_hotel">
-                            <span>Thanh toán tại khách sạn</span>
+                            <span>@Localizer["PayAtHotel"]</span>
                             <i class="bi bi-clock text-muted ms-2"></i>
                         </label>
                     </div>
@@ -1091,7 +1110,7 @@
 
         <section class="results-area">
             <div class="sort-bar">
-                Sắp xếp theo: <strong>Lựa chọn hàng đầu của chúng tôi</strong>
+                @Localizer["SortBy"] <strong>@Localizer["OurTopPicks"]</strong>
             </div>
 
             <!-- CHỖ NÀY ĐÃ ĐƯỢC THAY ĐỔI -->
@@ -1467,7 +1486,7 @@
             ].filter(city => city.toLowerCase().includes(query.toLowerCase()));
 
             if (suggestions.length === 0) {
-                dropdown.innerHTML = '<div class="p-3 text-muted">Không tìm thấy địa điểm nào</div>';
+                dropdown.innerHTML = '<div class="p-3 text-muted">@Localizer["NoLocationFound"]</div>';
             } else {
                 let html = '<div class="p-2 fw-bold border-bottom">Gợi ý</div>';
 
@@ -1698,6 +1717,87 @@
             document.querySelectorAll('input[name="filter"]').forEach(checkbox => {
                 checkbox.addEventListener('change', handleFilterChange);
             });
+
+            initHeartButtons();
+        });
+
+        const SAVED_PROPERTIES_KEY = 'hb_saved_properties';
+
+        function readSavedProperties() {
+            if (typeof window === 'undefined' || !window.localStorage) {
+                return [];
+            }
+            try {
+                return JSON.parse(localStorage.getItem(SAVED_PROPERTIES_KEY) || '[]');
+            } catch (error) {
+                console.warn('Cannot parse saved properties', error);
+                return [];
+            }
+        }
+
+        function writeSavedProperties(list) {
+            if (typeof window === 'undefined' || !window.localStorage) {
+                return;
+            }
+            localStorage.setItem(SAVED_PROPERTIES_KEY, JSON.stringify(list));
+        }
+
+        function syncHeartStates() {
+            const saved = readSavedProperties();
+            const savedIds = new Set(saved.map(item => item.id));
+            document.querySelectorAll('.heart-btn[data-property-id]').forEach(btn => {
+                if (savedIds.has(btn.dataset.propertyId)) {
+                    btn.classList.add('saved');
+                } else {
+                    btn.classList.remove('saved');
+                }
+            });
+        }
+
+        function toggleSavedProperty(button) {
+            const id = button.dataset.propertyId;
+            if (!id) return;
+
+            const saved = readSavedProperties();
+            const index = saved.findIndex(item => item.id === id);
+
+            if (index >= 0) {
+                saved.splice(index, 1);
+                button.classList.remove('saved');
+            } else {
+                const property = {
+                    id,
+                    name: button.dataset.propertyName || '',
+                    city: button.dataset.propertyCity || '',
+                    address: button.dataset.propertyAddress || '',
+                    price: Number(button.dataset.propertyPrice || 0),
+                    image: button.dataset.propertyImage || '',
+                    url: button.dataset.propertyUrl || window.location.href
+                };
+                saved.unshift(property);
+                if (saved.length > 50) {
+                    saved.pop();
+                }
+                button.classList.add('saved');
+            }
+
+            writeSavedProperties(saved);
+            window.dispatchEvent(new CustomEvent('savedPropertiesChanged'));
+        }
+
+        function initHeartButtons() {
+            document.querySelectorAll('.heart-btn[data-property-id]').forEach(btn => {
+                btn.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    toggleSavedProperty(btn);
+                });
+            });
+            syncHeartStates();
+        }
+
+        window.addEventListener('savedPropertiesChanged', () => {
+            syncHeartStates();
         });
     </script>
 

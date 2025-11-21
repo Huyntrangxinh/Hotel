@@ -1,22 +1,23 @@
 @model HotelBooking.ViewModels.Rooms.RoomCreateViewModel
+@inject IStringLocalizer<SharedResource> Localizer
 
 <div class="step-nav card card-slim sticky-top" style="top:12px;">
     <div class="card-body p-0">
-        <div class="step-title">Dữ liệu phòng</div>
+        <div class="step-title">@Localizer["RoomData"]</div>
         <ul class="wizard-steps">
-            <li class="active"><a href="#sec-info">Thông tin phòng</a></li>
-            <li><a href="#sec-detail">Chi tiết phòng</a></li>
-            <li><a href="#sec-bed">Cài đặt giường ngủ</a></li>
-            <li><a href="#sec-amenities">Tiện nghi phòng</a></li>
+            <li class="active"><a href="#sec-info">@Localizer["RoomInformation"]</a></li>
+            <li><a href="#sec-detail">@Localizer["RoomDetails"]</a></li>
+            <li><a href="#sec-bed">@Localizer["BedSetup"]</a></li>
+            <li><a href="#sec-amenities">@Localizer["RoomAmenities"]</a></li>
         </ul>
-        <div class="step-title">Công suất phòng và Mức bảo hộ giá</div>
+        <div class="step-title">@Localizer["RoomCapacityAndSecurity"]</div>
         <ul class="wizard-steps">
-            <li><a href="#sec-capacity">Cài đặt công suất phòng</a></li>
-            <li><a href="#sec-security">Mức bảo hộ</a></li>
+            <li><a href="#sec-capacity">@Localizer["RoomCapacitySetup"]</a></li>
+            <li><a href="#sec-security">@Localizer["SecurityDeposit"]</a></li>
         </ul>
-        <div class="step-title">Ảnh</div>
+        <div class="step-title">@Localizer["Photos"]</div>
         <ul class="wizard-steps">
-            <li><a href="#sec-photos">Ảnh phòng</a></li>
+            <li><a href="#sec-photos">@Localizer["RoomPhotos"]</a></li>
         </ul>
     </div>
 </div>

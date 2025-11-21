@@ -1,0 +1,55 @@
+@using Microsoft.AspNetCore.Localization
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+
+@{
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var currentCulture = requestCulture?.RequestCulture?.UICulture?.Name ?? "vi-VN";
+}
+
+<div class="language-switcher">
+    <div class="dropdown">
+        <button class="btn btn-outline-primary dropdown-toggle" type="button" id="languageDropdown"
+            data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-globe"></i> @Localizer["Language"]
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+            <li>
+                <a class="dropdown-item @(currentCulture == "vi-VN" ? "active" : "")"
+                    href="@Url.Action("SetLanguage", "Language", new { culture = "vi-VN", returnUrl = Context.Request.Path + Context.Request.QueryString })">
+                    🇻🇳 @Localizer["Vietnamese"]
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item @(currentCulture == "en-US" ? "active" : "")"
+                    href="@Url.Action("SetLanguage", "Language", new { culture = "en-US", returnUrl = Context.Request.Path + Context.Request.QueryString })">
+                    🇺🇸 @Localizer["English"]
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<style>
+    .language-switcher {
+        position: relative;
+        margin-left: 10px;
+        /* Thêm khoảng cách */
+    }
+
+    .language-switcher .dropdown-item.active {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .language-switcher .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .language-switcher .dropdown-item {
+        padding: 8px 16px;
+        /* Thêm padding cho dropdown items */
+        margin: 2px 0;
+        /* Thêm margin giữa các items */
+    }
+</style>

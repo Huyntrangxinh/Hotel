@@ -16,15 +16,16 @@
         </div>
         <div class="center">
             <button id="btnPrev" class="btn btn-outline-primary btn-sm"><i class="bi bi-chevron-left"></i></button>
-            <div class="range-pill">16 tháng @month, @year – 15 tháng @(month==12?1:month+1)</div>
+            <div class="range-pill">16 tháng @month, @year – 15 tháng @(month == 12 ? 1 : month + 1)</div>
             <button id="btnNext" class="btn btn-outline-primary btn-sm"><i class="bi bi-chevron-right"></i></button>
         </div>
         <div class="right">
             <a class="btn btn-outline-secondary btn-sm"
-               href="@Url.Action("PropertyData", "Partner", new { propertyId = propertyId, tab = "pricing" })">
+                href="@Url.Action("PropertyData", "Partner", new { propertyId = propertyId, tab = "pricing" })">
                 <i class="bi bi-arrow-left me-1"></i> Quay lại
             </a>
-            <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-gear me-1"></i> Cài đặt tình trạng trống</button>
+            <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-gear me-1"></i> Cài đặt tình trạng
+                trống</button>
             <button id="btnSave" class="btn btn-primary btn-sm"><i class="bi bi-save me-1"></i> Lưu thay đổi</button>
         </div>
     </div>
@@ -90,13 +91,50 @@
     }
 
     .calendar-toolbar {
-        display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 8px;
     }
-    .calendar-toolbar .left .title { font-weight: 700; font-size: 18px; }
-    .calendar-toolbar .left .subtitle { color:#6c757d; font-size: 12px; }
-    .calendar-toolbar .center { display:flex; align-items:center; gap:8px; justify-content:center; }
-    .range-pill { background:#f1f3f5; padding:6px 10px; border-radius:999px; font-size:12px; color:#495057; }
-    .calendar-toolbar .right { display:flex; gap:8px; justify-content:flex-end; }
+
+    .calendar-toolbar .left .title {
+        font-weight: 700;
+        font-size: 18px;
+    }
+
+    .calendar-toolbar .left .subtitle {
+        color: #6c757d;
+        font-size: 12px;
+    }
+
+    .calendar-toolbar .center {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .range-pill {
+        background: #f1f3f5;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        color: #495057;
+    }
+
+    .calendar-toolbar .right {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+
+    /* Hover effect for remaining rooms */
+    .room-cell .small.text-primary:hover {
+        background-color: #e3f2fd;
+        border-radius: 4px;
+        padding: 2px 4px;
+        transition: all 0.2s ease;
+    }
 </style>
 
 <script>
@@ -124,12 +162,12 @@
         grid.innerHTML = '';
 
         // Header (weekday + date like Booking matrix)
-        const weekdays = ['CN','T2','T3','T4','T5','T6','T7'];
+        const weekdays = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
         grid.appendChild(cell('header room-cell fw-semibold', 'Phòng'));
         for (let d = 1; d <= daysInMonth; d++) {
             const dt = new Date(y, m - 1, d);
             const wd = dt.getDay();
-            const label = `<div class='small text-muted'>${weekdays[wd]}</div><div>${String(d).padStart(2,'0')}/${m}</div>`;
+            const label = `<div class='small text-muted'>${weekdays[wd]}</div><div>${String(d).padStart(2, '0')}/${m}</div>`;
             const el = cell('header day-cell text-center', label);
             if (wd === 0 || wd === 6) el.style.background = '#eef6ff';
             grid.appendChild(el);
@@ -141,7 +179,7 @@
             const wrap = document.createElement('div');
             wrap.className = 'day-cell';
             const qty = document.createElement('input');
-            qty.type = 'number'; qty.min = '0'; qty.className='form-control form-control-sm'; qty.value = 1;
+            qty.type = 'number'; qty.min = '0'; qty.className = 'form-control form-control-sm'; qty.value = 1;
             wrap.appendChild(qty);
             grid.appendChild(wrap);
         }
@@ -152,8 +190,38 @@
             rateMap.set(`${r.roomId}|${r.date.substring(0, 10)}`, r);
         }
 
+        // Get room quantities from API data
+        const roomQuantities = data.roomQuantities || {};
+        console.log('Full API data:', data);
+        console.log('Room quantities from API:', roomQuantities);
+        console.log('Rooms from API:', rooms);
+
         for (const room of rooms) {
-            grid.appendChild(cell('room-cell', room.name));
+            // Get quantities for this room
+            const roomQty = roomQuantities[room.id] || { original: room.quantity, remaining: room.quantity };
+            const originalQuantity = roomQty.original || room.quantity || 0;
+            const remainingQuantity = roomQty.remaining || room.quantity || 0;
+
+            console.log(`Room ${room.id}:`, {
+                roomId: room.id,
+                roomName: room.name,
+                originalQuantity,
+                remainingQuantity,
+                roomQty,
+                roomQuantity: room.quantity
+            });
+
+            // Room name with quantity info and remaining rooms
+            const roomInfo = `
+                <div class="fw-semibold">${room.name}</div>
+                <div class="small text-muted">Quỹ phòng: ${originalQuantity}</div>
+                <div class="small text-primary" style="cursor: pointer;" 
+                     title="Xem tất cả đặt phòng" 
+                     onclick="window.open('@Url.Action("AllBookings", "Partner")?propertyId=${propertyId}', '_blank')">
+                    Còn lại: ${remainingQuantity} phòng
+                </div>
+            `;
+            grid.appendChild(cell('room-cell', roomInfo));
             for (let d = 1; d <= daysInMonth; d++) {
                 const cur = new Date(y, m - 1, d);
                 const key = `${room.id}|${cur.toISOString().slice(0, 10)}`;

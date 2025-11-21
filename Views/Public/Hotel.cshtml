@@ -1,7 +1,8 @@
 @model HotelBooking.ViewModels.PublicHotelViewModel
 @using System.Linq
+@inject IStringLocalizer<SharedResource> Localizer
 @{
-    ViewData["Title"] = Model?.Property?.Name ?? "Khách sạn";
+    ViewData["Title"] = Model?.Property?.Name ?? Localizer["Hotel"];
     Layout = "_Layout";
 }
 
@@ -730,6 +731,9 @@
             padding: 10px 18px;
             font-weight: 700;
             border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
         }
 
         @@media (max-width: 992px) {
@@ -1349,8 +1353,8 @@
         <!-- Breadcrumbs -->
         <nav aria-label="breadcrumb" class="breadcrumb-bar">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="#">Trang chủ</a></li>
-                <li class="breadcrumb-item"><a href="#">Khách sạn</a></li>
+                <li class="breadcrumb-item"><a href="#">@Localizer["Homepage"]</a></li>
+                <li class="breadcrumb-item"><a href="#">@Localizer["Hotel"]</a></li>
             <li class="breadcrumb-item"><a href="#">@Model.Property.CountryCode</a></li>
             <li class="breadcrumb-item"><a href="#">@Model.Property.City</a></li>
             <li class="breadcrumb-item active" aria-current="page">@Model.Property.Name</li>
@@ -1359,11 +1363,11 @@
 
         <!-- Navigation tabs -->
         <ul class="nav nav-tabs hotel-nav-tabs">
-            <li class="nav-item"><a class="nav-link active" href="#">Tổng quan</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Thông tin & giá</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Tiện nghi</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Quy tắc chung</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Đánh giá của khách (327)</a></li>
+            <li class="nav-item"><a class="nav-link active" href="#">@Localizer["Overview"]</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">@Localizer["InformationAndPrices"]</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">@Localizer["Amenities"]</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">@Localizer["GeneralRules"]</a></li>
+            <li class="nav-item"><a class="nav-link" href="#">@Localizer["GuestReviews"] (327)</a></li>
             <li class="nav-item ms-auto"><a class="nav-link" href="#"><i class="bi bi-heart"></i></a></li>
             <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-share"></i></a></li>
         </ul>
@@ -1383,15 +1387,15 @@
                 <div class="hotel-address">
                 <i class="bi bi-geo-alt"></i> @Model.Property.AddressLine, @Model.Property.PostalCode
                 @Model.Property.City, @Model.Property.CountryCode
-                    - <a href="#">Vị trí xuất sắc - hiển thị bản đồ</a>
+                    - <a href="#">@Localizer["ExcellentLocation"] - @Localizer["ShowOnMap"]</a>
                 </div>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <div class="text-end me-3">
                     <div class="mb-1">
-                        <span class="badge bg-info text-white">Chứng Tôi Luôn Khớp Giá!</span>
+                        <span class="badge bg-info text-white">@Localizer["WeAlwaysMatchPrices"]</span>
                     </div>
-                    <button class="btn btn-primary fw-bold px-4">Đặt ngay</button>
+                    <button class="btn btn-primary fw-bold px-4">@Localizer["BookNow"]</button>
                 </div>
             </div>
         </div>
@@ -1408,10 +1412,13 @@
 
                 <!-- 6 ảnh nhỏ bên phải -->
                 <div class="gallery-grid">
-                    @if (Model.PhotoUrls.Count > 6)
+                    @{
+                        var photoCount = Model.PhotoUrls?.Count ?? 0;
+                    }
+                    @if (photoCount > 6)
                     {
                         @* Hiển thị 5 ảnh đầu + 1 ảnh cuối với overlay *@
-                        @for (int i = 1; i <= 5; i++)
+                        @for (int i = 1; i <= 5 && i < photoCount; i++)
                         {
                             <div class="gallery-item" onclick="openFullGallery()">
                                 <img src="@Model.PhotoUrls[i]" alt="Hotel photo @i" class="hotel-photo-thumb">
@@ -1419,7 +1426,7 @@
                             }
                         @* Ảnh cuối với overlay "Xem tất cả" *@
                         <div class="gallery-item view-all" onclick="openFullGallery()">
-                            <img src="@Model.PhotoUrls[Model.PhotoUrls.Count - 1]" alt="View all photos"
+                            <img src="@Model.PhotoUrls[photoCount - 1]" alt="View all photos"
                                 class="hotel-photo-thumb">
                             <div class="photo-overlay-permanent">
                                 <div class="overlay-content">
@@ -1430,7 +1437,7 @@
                                         <circle cx="8.5" cy="8.5" r="1.5"></circle>
                                         <polyline points="21 15 16 10 5 21"></polyline>
                                     </svg>
-                                    <div>Xem tất cả hình ảnh</div>
+                                    <div>@Localizer["ViewAllImages"]</div>
                                 </div>
                             </div>
                         </div>
@@ -1438,7 +1445,7 @@
                     else
                     {
                         @* Hiển thị tất cả ảnh (≤ 6) *@
-                        @for (int i = 1; i < Model.PhotoUrls.Count; i++)
+                        @for (int i = 1; i < photoCount; i++)
                         {
                             <div class="gallery-item" onclick="openFullGallery()">
                                 <img src="@Model.PhotoUrls[i]" alt="Hotel photo @i" class="hotel-photo-thumb">
@@ -1446,9 +1453,9 @@
                             }
                     }
                     @* Tạo placeholder cho các ô trống nếu cần *@
-                    @if (Model.PhotoUrls.Count <= 6)
+                    @if (photoCount <= 6)
                     {
-                        @for (int i = Model.PhotoUrls.Count; i <= 6; i++)
+                        @for (int i = photoCount; i <= 6; i++)
                         {
                             <div class="gallery-item">
                                 <div class="d-flex align-items-center justify-content-center bg-light border rounded h-100">
@@ -1464,114 +1471,108 @@
                 <div class="amenities-grid mb-4">
                     <div class="amenity-item">
                         <i class="bi bi-water"></i>
-                        <span>Nhìn ra núi</span>
+                        <span>@Localizer["MountainView"]</span>
                     </div>
                     <div class="amenity-item">
                         <i class="bi bi-tree"></i>
-                        <span>Sân vườn</span>
+                        <span>@Localizer["Garden"]</span>
                     </div>
                     <div class="amenity-item">
                         <i class="bi bi-water"></i>
-                        <span>Hồ bơi</span>
+                        <span>@Localizer["SwimmingPool"]</span>
                     </div>
                     <div class="amenity-item">
                         <i class="bi bi-wifi"></i>
-                        <span>WiFi miễn phí</span>
+                        <span>@Localizer["FreeWiFi"]</span>
                     </div>
                     <div class="amenity-item">
                         <i class="bi bi-door-open"></i>
-                        <span>Sân hiên</span>
+                        <span>@Localizer["Terrace"]</span>
                     </div>
                     <div class="amenity-item">
                         <i class="bi bi-people"></i>
-                        <span>Ban công</span>
+                        <span>@Localizer["Balcony"]</span>
                     </div>
                     <div class="amenity-item">
                         <i class="bi bi-p-circle"></i>
-                        <span>Chỗ đỗ xe miễn phí</span>
+                        <span>@Localizer["FreeParking"]</span>
                     </div>
                     <div class="amenity-item">
                         <i class="bi bi-droplet"></i>
-                        <span>Bồn tắm</span>
+                        <span>@Localizer["Bathtub"]</span>
                     </div>
                     <div class="amenity-item">
                         <i class="bi bi-snow"></i>
-                        <span>Điều hòa không khí</span>
+                        <span>@Localizer["AirConditioning"]</span>
                     </div>
                     <div class="amenity-item">
                         <i class="bi bi-clock"></i>
-                        <span>Lễ tân 24 giờ</span>
+                        <span>@Localizer["Reception24Hours"]</span>
                     </div>
                 </div>
 
                 <!-- Hotel Description -->
                 <div class="content-section">
-                    <div class="section-title">Tận hưởng dịch vụ đỉnh cao, đẳng cấp thế giới tại Legacy Yen Tu -
-                        MGallery</div>
-                    <p>Nằm ở thành phố Uông Bí, Legacy Yen Tu - MGallery cung cấp chỗ nghỉ 5 sao với vườn, quầy bar và
-                        sân hiên. Nhà hàng, quầy lễ tân 24 giờ, dịch vụ phòng và Wi-Fi miễn phí cũng nằm trong số các
-                        tiện nghi tại khách sạn này.</p>
+                    <div class="section-title">@Localizer["EnjoyWorldClassService"]</div>
+                    <p>@Localizer["LocatedInUongBi"]</p>
 
-                    <p>Các phòng nghỉ tại khách sạn có khu vực ghế ngồi. Phòng tắm riêng đi kèm chậu rửa vệ sinh, máy
-                        sấy tóc và đồ vệ sinh cá nhân miễn phí. Phòng cũng có máy điều hòa và ban làm việc.</p>
+                    <p>@Localizer["HotelRoomsDescription"]</p>
 
-                    <p>Chỗ nghỉ phục vụ bữa sáng tự chọn hàng ngày.</p>
+                    <p>@Localizer["BreakfastService"]</p>
 
-                    <p>Thành phố Hải Phòng cách Legacy Yen Tu - MGallery 42 km. Sân bay gần nhất là sân bay quốc tế Cát
-                        Bi, cách khách sạn 49 km.</p>
+                    <p>@Localizer["DistanceToHaiPhong"]</p>
 
-                    <p>Các cặp đôi đặc biệt thích địa điểm này — họ cho điểm 9,4 khi đánh giá chuyến đi hai người.</p>
+                    <p>@Localizer["CouplesLoveThisPlace"]</p>
 
-                    <p style="font-size: 0.8rem; color: var(--booking-text-light);">Các khoảng cách nêu trong mô tả chỗ
-                        nghỉ được tính toán bằng © OpenStreetMap</p>
+                    <p style="font-size: 0.8rem; color: var(--booking-text-light);">@Localizer["DistanceNote"]</p>
 
                     <div class="mt-4">
-                        <div class="section-title">Các tiện nghi được ưa chuộng nhất</div>
+                        <div class="section-title">@Localizer["MostPopularAmenities"]</div>
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="amenity-item mb-2">
                                     <i class="bi bi-water text-info"></i>
-                                    <span>2 hồ bơi</span>
+                                    <span>@Localizer["TwoSwimmingPools"]</span>
                                 </div>
                                 <div class="amenity-item mb-2">
                                     <i class="bi bi-tree text-success"></i>
-                                    <span>Xe đưa đón sân bay</span>
+                                    <span>@Localizer["AirportShuttle"]</span>
                                 </div>
                                 <div class="amenity-item mb-2">
                                     <i class="bi bi-ban text-danger"></i>
-                                    <span>Phòng không hút thuốc</span>
+                                    <span>@Localizer["NonSmokingRooms"]</span>
                                 </div>
                                 <div class="amenity-item mb-2">
                                     <i class="bi bi-p-circle text-primary"></i>
-                                    <span>Chỗ đỗ xe miễn phí</span>
+                                    <span>@Localizer["FreeParking"]</span>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="amenity-item mb-2">
                                     <i class="bi bi-heart-pulse text-danger"></i>
-                                    <span>Trung tâm Spa & chăm sóc sức khỏe</span>
+                                    <span>@Localizer["SpaWellnessCenter"]</span>
                                 </div>
                                 <div class="amenity-item mb-2">
                                     <i class="bi bi-wifi text-primary"></i>
-                                    <span>WiFi miễn phí</span>
+                                    <span>@Localizer["FreeWiFi"]</span>
                                 </div>
                                 <div class="amenity-item mb-2">
                                     <i class="bi bi-cup-straw text-warning"></i>
-                                    <span>Nhà hàng</span>
+                                    <span>@Localizer["Restaurant"]</span>
                                 </div>
                                 <div class="amenity-item mb-2">
                                     <i class="bi bi-door-open text-success"></i>
-                                    <span>Dịch vụ phòng</span>
+                                    <span>@Localizer["RoomService"]</span>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="amenity-item mb-2">
                                     <i class="bi bi-cup text-warning"></i>
-                                    <span>Quầy bar</span>
+                                    <span>@Localizer["Bar"]</span>
                                 </div>
                                 <div class="amenity-item mb-2">
                                     <i class="bi bi-leaf text-success"></i>
-                                    <span>Bữa sáng xuất sắc</span>
+                                    <span>@Localizer["ExcellentBreakfast"]</span>
                                 </div>
                             </div>
                         </div>
@@ -1588,7 +1589,7 @@
                             <th>Số lượng khách</th>
                             <th>Giá cho 3 đêm</th>
                             <th>Các lựa chọn</th>
-                            <th>Chọn phòng</th>
+                            <th>@Localizer["SelectRoom"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1596,38 +1597,58 @@
                 </table>
 
                 <div class="rooms-list mt-3">
-                        @foreach (var r in Model.Rooms)
+                        @if (Model.Rooms != null && Model.Rooms.Count > 0)
+                        {
+                            foreach (var r in Model.Rooms)
                         {
                             var guests = (r.CapacityAdults + r.CapacityChildren);
                             decimal? amount = null;
                             decimal a = default;
                             if (Model.RoomPrices != null && Model.RoomPrices.TryGetValue(r.Id, out a)) amount = a;
                         var firstPhoto = r.Photos?.FirstOrDefault()?.Url ?? "/images/placeholder.jpg";
-                        var bedItems = r.Beds.SelectMany(b => b.GetAllBedItems()).ToList();
-                        var bedSummary = bedItems.Count > 0
-                            ? string.Join(" hoặc ", bedItems.Select(i => $"{i.Count} {i.Type}"))
-                            : "Thông tin giường sẽ cập nhật";
-                        var cancellation = Model.PricePackage?.CancellationPolicyDisplayName ?? "";
+                        var bedSummaryParts = new List<string>();
+                        foreach (var b in (r.Beds ?? new List<HotelBooking.Models.RoomBed>()))
+                        {
+                            if (b == null) continue;
+                            var typesCount = b.Types?.Count ?? 0;
+                            var countsCount = b.Counts?.Count ?? 0;
+                            var lim = Math.Min(typesCount, countsCount);
+                            for (int i = 0; i < lim; i++)
+                            {
+                                var t = b.Types[i];
+                                var c = b.Counts[i];
+                                if (!string.IsNullOrWhiteSpace(t)) bedSummaryParts.Add($"{c} {t}");
+                            }
+                        }
+                        var bedSummary = bedSummaryParts.Count > 0 ? string.Join(" hoặc ", bedSummaryParts) : Localizer["BedInformation"];
+                        var cancellation = Model.PricePackage?.CancellationPolicy switch
+                        {
+                            "refund_1" => Localizer["RefundableUpTo1Day"],
+                            "refund_3" => Localizer["RefundableUpTo3Days"],
+                            "refund_7" => Localizer["RefundableUpTo7Days"],
+                            "non_refundable" => Localizer["NonRefundable"],
+                            _ => Model.PricePackage?.CancellationPolicyDisplayName ?? ""
+                        };
                         var breakfastIncluded = Model.PricePackage?.BreakfastIncluded == true;
 
           
 
                         <div class="room-card">
-                            <div class="room-photo-section" role="button" tabindex="0" aria-label="Xem chi tiết phòng" data-room-id="@r.Id">
+                            <div class="room-photo-section" role="button" tabindex="0" aria-label="@Localizer["ViewRoomDetails"]" data-room-id="@r.Id">
                                 <img src="@firstPhoto" alt="@r.Name" />
                                 <div class="info-badges">
                                     <span class="badge-item"><i class="bi bi-aspect-ratio me-1"></i> @r.Size m²</span>
-                                    <span class="badge-item"><i class="bi bi-droplet me-1"></i> Vòi tắm đứng</span>
-                                    <span class="badge-item"><i class="bi bi-snow me-1"></i> Máy lạnh</span>
+                                    <span class="badge-item"><i class="bi bi-droplet me-1"></i> @Localizer["StandingShower"]</span>
+                                    <span class="badge-item"><i class="bi bi-snow me-1"></i> @Localizer["AirConditioning"]</span>
                                 </div>
                                 <a href="javascript:void(0)" class="room-detail-link" data-room-id="@r.Id">
-                                    <i class="bi bi-grid-3x3-gap"></i> Xem chi tiết phòng
+                                    <i class="bi bi-grid-3x3-gap"></i> @Localizer["ViewRoomDetails"]
                                 </a>
                             </div>
 
                             <div class="room-info-section">
                                 <h5 class="room-name" role="button" data-room-id="@r.Id">@r.Name</h5>
-                                <div class="room-type-label">@(breakfastIncluded ? "Bao gồm bữa sáng" : "Không bao gồm bữa sáng")</div>
+                                <div class="room-type-label">@(breakfastIncluded ? Localizer["IncludesBreakfast"] : Localizer["DoesNotIncludeBreakfast"])</div>
 
                                 <div class="room-details">
                                     <div class="detail-item">
@@ -1636,11 +1657,11 @@
                                     </div>
                                     <div class="detail-item">
                                         <i class="bi bi-info-circle"></i>
-                                        <span>Chi tiết phí trẻ em tại đây</span>
+                                        <span>@Localizer["ChildPolicyDetails"]</span>
                                     </div>
                                     <div class="detail-item text-primary fw-bold">
                                         <i class="bi bi-credit-card"></i>
-                                        <span>Thanh Toán Tại Khách Sạn</span>
+                                        <span>@Localizer["PayAtHotel"]</span>
                                     </div>
                                     @if (!string.IsNullOrWhiteSpace(cancellation))
                                     {
@@ -1652,7 +1673,7 @@
                                     }
                                     <div class="detail-item">
                                         <i class="bi bi-arrow-repeat"></i>
-                                        <span>Áp dụng chính sách hủy phòng</span>
+                                        <span>@Localizer["CancellationPolicyApplies"]</span>
                                         <i class="bi bi-info-circle ms-1"></i>
                                     </div>
                                 </div>
@@ -1673,7 +1694,7 @@
                                         {
                                         <div class="current-price">Giá đang cập nhật</div>
                                         }
-                                    <div class="price-note">Bao gồm thuế và phí</div>
+                                    <div class="price-note">@Localizer["IncludesTaxAndFees"]</div>
                                     </div>
                                     @{
                                         var checkInDate = ((DateTime?)ViewBag.Checkin)?.ToString("yyyy-MM-dd");
@@ -1686,12 +1707,17 @@
                                        asp-route-roomId="@r.Id"
                                        asp-route-checkIn="@checkInDate"
                                        asp-route-checkOut="@checkOutDate">
-                                        Chọn
+                                        @Localizer["Select"]
                                     </a>
 
                             </div>
                         </div>
-                    }
+                        }
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">Chưa có phòng nào được cấu hình cho khách sạn này.</div>
+                        }
                 </div>
 
 <style>
@@ -1723,7 +1749,7 @@
     .old-price { color: #6b7280; font-size: 0.95rem; text-decoration: line-through; }
     .current-price { color: #d32f2f; font-size: 1.5rem; font-weight: 800; }
     .price-note { color: #6b7280; font-size: 0.85rem; }
-    .btn-choose { background: #006ce4; color: #fff; border: none; padding: 12px 24px; width: 100%; max-width: 200px; font-weight: 700; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background-color 0.2s; }
+    .btn-choose { background: #006ce4; color: #fff; border: none; padding: 12px 24px; width: 100%; max-width: 200px; font-weight: 700; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background-color 0.2s; text-decoration: none; display: inline-block; text-align: center; }
     .btn-choose:hover { background: #0056b3; }
     .rooms-left { color: #d32f2f; font-size: 0.9rem; font-weight: 600; }
 
@@ -1740,13 +1766,13 @@
 
         <!-- Reviews Section -->
         <div class="content-section mt-4">
-            <div class="section-title">Đánh giá của khách</div>
+            <div class="section-title">@Localizer["GuestReviews"]</div>
             <div class="d-flex align-items-center gap-3 mb-3">
                 <div class="d-flex align-items-center gap-2">
                     <span class="score-badge-large">8,9</span>
                     <div>
-                        <div class="fw-bold">Tuyệt vời · 327 đánh giá</div>
-                        <a href="#" class="text-primary text-decoration-none">Đọc tất cả đánh giá</a>
+                        <div class="fw-bold">@Localizer["ExcellentReviews"]</div>
+                        <a href="#" class="text-primary text-decoration-none">@Localizer["ReadAllReviews"]</a>
                     </div>
                 </div>
             </div>
@@ -1755,7 +1781,7 @@
             <div class="row mb-4">
                 <div class="col-md-6">
                     <div class="d-flex justify-content-between mb-2">
-                        <span>Nhân viên phục vụ</span>
+                        <span>@Localizer["StaffService"]</span>
                         <div class="d-flex align-items-center gap-2">
                             <div class="progress" style="width: 100px; height: 8px;">
                                 <div class="progress-bar bg-primary" style="width: 89%"></div>
@@ -1764,7 +1790,7 @@
                         </div>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span>Thoải mái ↑</span>
+                        <span>@Localizer["Comfort"]</span>
                         <div class="d-flex align-items-center gap-2">
                             <div class="progress" style="width: 100px; height: 8px;">
                                 <div class="progress-bar bg-success" style="width: 94%"></div>
@@ -1773,7 +1799,7 @@
                         </div>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span>WiFi miễn phí ↑</span>
+                        <span>@Localizer["FreeWiFi"] ↑</span>
                         <div class="d-flex align-items-center gap-2">
                             <div class="progress" style="width: 100px; height: 8px;">
                                 <div class="progress-bar bg-success" style="width: 90%"></div>
@@ -1784,7 +1810,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="d-flex justify-content-between mb-2">
-                        <span>Tiện nghi ↑</span>
+                        <span>@Localizer["Amenities"] ↑</span>
                         <div class="d-flex align-items-center gap-2">
                             <div class="progress" style="width: 100px; height: 8px;">
                                 <div class="progress-bar bg-success" style="width: 92%"></div>
@@ -1793,7 +1819,7 @@
                         </div>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span>Đáng giá tiền</span>
+                        <span>@Localizer["ValueForMoney"]</span>
                         <div class="d-flex align-items-center gap-2">
                             <div class="progress" style="width: 100px; height: 8px;">
                                 <div class="progress-bar bg-primary" style="width: 87%"></div>
@@ -1802,7 +1828,7 @@
                         </div>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span>Sạch sẽ ↑</span>
+                        <span>@Localizer["Cleanliness"]</span>
                         <div class="d-flex align-items-center gap-2">
                             <div class="progress" style="width: 100px; height: 8px;">
                                 <div class="progress-bar bg-success" style="width: 92%"></div>
@@ -1811,7 +1837,7 @@
                         </div>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span>Địa điểm</span>
+                        <span>@Localizer["Location"]</span>
                         <div class="d-flex align-items-center gap-2">
                             <div class="progress" style="width: 100px; height: 8px;">
                                 <div class="progress-bar bg-primary" style="width: 92%"></div>
@@ -1824,19 +1850,19 @@
 
             <!-- Review categories -->
             <div class="mb-3">
-                <strong>Chọn chủ đề để đọc đánh giá:</strong>
+                <strong>@Localizer["SelectTopicToReadReviews"]</strong>
             </div>
             <div class="review-categories mb-4">
-                <button class="category-btn">+ Bữa sáng</button>
-                <button class="category-btn">+ Bữa tối</button>
-                <button class="category-btn">+ Phòng</button>
-                <button class="category-btn">+ Hồ bơi</button>
-                <button class="category-btn">+ Vị trí</button>
+                <button class="category-btn">+ @Localizer["Breakfast"]</button>
+                <button class="category-btn">+ @Localizer["Dinner"]</button>
+                <button class="category-btn">+ @Localizer["Room"]</button>
+                <button class="category-btn">+ @Localizer["SwimmingPool"]</button>
+                <button class="category-btn">+ @Localizer["Location"]</button>
             </div>
 
             <!-- Individual reviews -->
             <div class="mb-3">
-                <strong>Khách lưu trú ở đây thích điều gì?</strong>
+                <strong>@Localizer["WhatDoGuestsLike"]</strong>
             </div>
 
             <div class="row">
@@ -1849,11 +1875,9 @@
                                 <div class="small-muted">🇬🇧 Vương Quốc Anh</div>
                             </div>
                         </div>
-                        <p class="small">"Nếu có thể cho nơi này trên 10 điểm thì tôi sẽ làm. Có lẽ đây là một trong
-                            những nơi tuyệt vời nhất mà tôi từng trải nghiệm. Mọi nhân viên ở đây từ nhận phòng đến khu
-                            vực ăn uống hết mình để phục vụ khách hàng theo tiêu chuẩn cao nhất. Không cảnh..."</p>
-                        <a href="#" class="text-primary">Tìm hiểu thêm</a>
-                        <div class="small text-muted mt-2">Được dịch bởi Google - Xem bản gốc</div>
+                        <p class="small">"@Localizer["Review1Text"]"</p>
+                        <a href="#" class="text-primary">@Localizer["ReadMore"]</a>
+                        <div class="small text-muted mt-2">@Localizer["TranslatedByGoogle"]</div>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -1865,11 +1889,9 @@
                                 <div class="small-muted">🇯🇵 Ý</div>
                             </div>
                         </div>
-                        <p class="small">"Bất động sản tuyệt vời, đồ ăn ngon, phòng đẹp và hồ bơi tuyệt vời. Bạn quản lý
-                            cấp cao rất tuyệt vời và chăm sóc bạn chủ đảo. Cũng xin chúc mừng tất cả mọi người ở khu vực
-                            nhà hàng/bữa sáng! Rất mong được quay lại lần nữa."</p>
-                        <a href="#" class="text-primary">Tìm hiểu thêm</a>
-                        <div class="small text-muted mt-2">Được dịch bởi Google - Xem bản gốc</div>
+                        <p class="small">"@Localizer["Review2Text"]"</p>
+                        <a href="#" class="text-primary">@Localizer["ReadMore"]</a>
+                        <div class="small text-muted mt-2">@Localizer["TranslatedByGoogle"]</div>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -1881,17 +1903,15 @@
                                 <div class="small-muted">🇬🇧 Vương Quốc Anh</div>
                             </div>
                         </div>
-                        <p class="small">"Khách sạn tuyệt vời, leo 10.000 bậc thang để ngắm tượng Phật vàng. Trải nghiệm
-                            khó quên với nội thất đẹp, vài tượng thủ công theo phương pháp truyền thống, phòng tắm lát
-                            đá cẩm thạch và nhà hàng, quầy bar tuyệt đẹp. Phải ở lại trên đường đi đến..."</p>
-                        <a href="#" class="text-primary">Tìm hiểu thêm</a>
-                        <div class="small text-muted mt-2">Được dịch bởi Google - Xem bản gốc</div>
+                        <p class="small">"@Localizer["Review3Text"]"</p>
+                        <a href="#" class="text-primary">@Localizer["ReadMore"]</a>
+                        <div class="small text-muted mt-2">@Localizer["TranslatedByGoogle"]</div>
                     </div>
                 </div>
             </div>
 
             <div class="text-center mt-4">
-                <button class="btn btn-outline-primary">Đọc tất cả đánh giá</button>
+                <button class="btn btn-outline-primary">@Localizer["ReadAllReviews"]</button>
             </div>
         </div>
     </div> <!-- end container -->
@@ -1924,12 +1944,12 @@
                         </div>
                         <div class="col-lg-5">
                             <div id="rdmSpecs" class="mb-3 small"></div>
-                            <div class="fw-semibold mb-2">Tiện nghi</div>
+                            <div class="fw-semibold mb-2">@Localizer["Amenities"]</div>
                             <div id="rdmAmenities" class="small mb-3"></div>
                             <div id="rdmBookingBox" class="p-3 border rounded" style="background:#fff">
-                                <div class="text-muted small mb-1">Khởi điểm từ:</div>
+                                <div class="text-muted small mb-1">@Localizer["StartingFrom"]</div>
                                 <div id="rdmPrice" class="h4 fw-bold text-danger mb-2">—</div>
-                                <button id="rdmBookBtn" type="button" class="btn btn-primary w-100 fw-bold">Thêm lựa chọn phòng</button>
+                                <button id="rdmBookBtn" type="button" class="btn btn-primary w-100 fw-bold">@Localizer["AddRoomOption"]</button>
                             </div>
                         </div>
                     </div>
@@ -1940,29 +1960,58 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const ROOM_DATA = [
-        @for (int i = 0; i < Model.Rooms.Count; i++)
-            {
-                var rm = Model.Rooms[i];
-                <text>{id:@rm.Id, name: @Html.Raw("\"" + (rm.Name ?? "") + "\""),
-                    size: @(rm.Size ?? 0), unit: @Html.Raw("\"" + (rm.SizeUnit ?? "m²") + "\""),
-                    adults: @rm.CapacityAdults, children: @rm.CapacityChildren,
-                    amenities: [@Html.Raw(string.Join(",", (rm.Amenities ?? new List<HotelBooking.Models.RoomAmenity>()).Select(a => "\"" + a.Name.Replace("\"", "\\\"") + "\"")))],
-                    photos: [@Html.Raw(string.Join(",", (rm.Photos ?? new List<HotelBooking.Models.RoomPhoto>()).Select(p => "\"" + p.Url.Replace("\"", "\\\"") + "\"")))] }
-                    @(i < Model.Rooms.Count - 1 ? "," : "")</text>
-        }
-        ];
+        const ROOM_DATA = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+            (Model.Rooms ?? new List<HotelBooking.Models.Room>()).Where(r => r != null).Select(r => new {
+                id = r.Id,
+                name = r.Name ?? string.Empty,
+                size = r.Size ?? 0,
+                unit = r.SizeUnit ?? "m²",
+                adults = r.CapacityAdults,
+                children = r.CapacityChildren,
+                amenities = (r.Amenities ?? new List<HotelBooking.Models.RoomAmenity>())
+                    .Where(a => a != null && !string.IsNullOrEmpty(a.Name))
+                    .Select(a => a.Name!),
+                photos = (r.Photos ?? new List<HotelBooking.Models.RoomPhoto>())
+                    .Where(p => p != null && !string.IsNullOrEmpty(p.Url))
+                    .Select(p => p.Url!)
+            })
+        ));
 
         (function () {
             const modalEl = document.getElementById('roomDetailModal');
             const modal = new bootstrap.Modal(modalEl);
+            
+            // Amenity mapping for localization
+            const amenityMap = {
+                'Ban công sân thượng': '@Localizer["TerraceBalcony"]',
+                'Hồ bơi riêng': '@Localizer["PrivatePool"]',
+                'Điều hòa không khí': '@Localizer["AirConditioning"]',
+                'Bàn làm việc': '@Localizer["WorkDesk"]',
+                'Lò vi sóng': '@Localizer["Microwave"]',
+                'Đồ ủi': '@Localizer["IroningFacilities"]',
+                'Tivi': '@Localizer["TV"]',
+                'Mini bar': '@Localizer["MiniBar"]',
+                'Máy sấy tóc': '@Localizer["HairDryer"]',
+                'Wifi': '@Localizer["Wifi"]',
+                'Máy giặt': '@Localizer["WashingMachine"]',
+                'Nhà tắm chung': '@Localizer["SharedBathroom"]',
+                'Tủ lạnh': '@Localizer["Refrigerator"]',
+                'Máy pha cà phê/trà': '@Localizer["CoffeeTeaMaker"]',
+                'Đồ dùng vệ sinh': '@Localizer["Toiletries"]',
+                'Áo choàng tắm': '@Localizer["Bathrobe"]',
+                'Bồn tắm': '@Localizer["Bathtub"]',
+                'Vòi sen': '@Localizer["Shower"]',
+                'Nhà tắm riêng': '@Localizer["PrivateBathroom"]',
+                'Nước nóng': '@Localizer["HotWater"]'
+            };
+            
             function openRoom(id) {
                 const r = ROOM_DATA.find(x => x.id === id);
                 if (!r) { modal.show(); return; }
                 document.getElementById('rdmTitle').textContent = r.name;
                 document.getElementById('rdmSpecs').innerHTML = `
-                    <div>• Kích thước: ${r.size || ''} ${r.unit || ''}</div>
-                    <div>• Sức chứa: ${r.adults + r.children} khách (👤 ${r.adults} · 🧒 ${r.children})</div>
+                    <div>• @Localizer["Size"]: ${r.size || ''} ${r.unit || ''}</div>
+                    <div>• @Localizer["Capacity"]: ${r.adults + r.children} @Localizer["Guests"] (👤 ${r.adults} · 🧒 ${r.children})</div>
                 `;
                 const slides = document.getElementById('rdmSlides');
                 slides.innerHTML = '';
@@ -1981,8 +2030,8 @@
                 });
                 const am = document.getElementById('rdmAmenities');
                 am.innerHTML = (r.amenities && r.amenities.length)
-                    ? r.amenities.map(a => `<div>✓ ${a}</div>`).join('')
-                    : '<div class="text-muted">Chưa cập nhật tiện nghi.</div>';
+                    ? r.amenities.map(a => `<div>✓ ${amenityMap[a] || a}</div>`).join('')
+                    : '<div class="text-muted">@Localizer["NoAmenitiesUpdated"]</div>';
                 // Gắn điều hướng Book trong modal kèm ngày từ ViewBag
                 (function(){
                     const bookBtn = document.getElementById('rdmBookBtn');
@@ -2019,14 +2068,15 @@
 <div class="full-gallery-overlay" id="fullGallery" style="display: none;">
     <div class="full-gallery-container">
         <div class="gallery-header">
-            <h2 class="gallery-title">Hình của khách sạn</h2>
+            <h2 class="gallery-title">@Localizer["HotelImages"]</h2>
             <button class="close-gallery" onclick="closeFullGallery()">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
 
         <div style="position: relative;">
-            <img id="mainGalleryImage" class="main-gallery-image" src="@Model.PhotoUrls[1]" alt="Hotel photo">
+            @{ var mainIdx = (Model.PhotoUrls?.Count ?? 0) > 0 ? 0 : -1; }
+            <img id="mainGalleryImage" class="main-gallery-image" src="@(mainIdx >= 0 ? Model.PhotoUrls[mainIdx] : "/images/placeholder.jpg")" alt="Hotel photo">
             <button class="gallery-navigation gallery-nav-prev" onclick="previousImage()">
                 <i class="bi bi-chevron-left"></i>
             </button>
@@ -2036,37 +2086,37 @@
         </div>
 
         <div class="gallery-image-info">
-            <div class="gallery-category" id="galleryImageCategory">Bên ngoài / Tòa nhà</div>
+            <div class="gallery-category" id="galleryImageCategory">@Localizer["ExteriorBuilding"]</div>
             <div class="gallery-counter" id="galleryImageCounter">2/@(Model.PhotoUrls.Count + Model.RoomPhotoUrls.Count)
             </div>
         </div>
 
         <div class="gallery-categories">
             <button class="gallery-category-tab active" data-category="all" onclick="filterGalleryByCategory('all')">
-                Tất cả hình ảnh (@(Model.PhotoUrls.Count + Model.RoomPhotoUrls.Count))
+                @Localizer["AllImages"] (@(Model.PhotoUrls.Count + Model.RoomPhotoUrls.Count))
             </button>
             <button class="gallery-category-tab" data-category="exterior" onclick="filterGalleryByCategory('exterior')">
-                Bên ngoài (3)
+                @Localizer["Exterior"] (3)
             </button>
             <button class="gallery-category-tab" data-category="lobby" onclick="filterGalleryByCategory('lobby')">
-                Sảnh chờ (8)
+                @Localizer["Lobby"] (8)
             </button>
             <button class="gallery-category-tab" data-category="restaurant"
                 onclick="filterGalleryByCategory('restaurant')">
-                Nhà hàng (19)
+                @Localizer["Restaurant"] (19)
             </button>
             <button class="gallery-category-tab" data-category="bar" onclick="filterGalleryByCategory('bar')">
-                Quầy bar, cafe và phòng lounge (8)
+                @Localizer["BarCafeLounge"] (8)
             </button>
             <button class="gallery-category-tab" data-category="pool" onclick="filterGalleryByCategory('pool')">
-                Hồ bơi (4)
+                @Localizer["SwimmingPool"] (4)
             </button>
             <button class="gallery-category-tab" data-category="rooms" onclick="filterGalleryByCategory('rooms')">
-                Phòng nghỉ (@Model.RoomPhotoUrls.Count)
+                @Localizer["Rooms"] (@Model.RoomPhotoUrls.Count)
             </button>
             <button class="gallery-category-tab" data-category="amenities"
                 onclick="filterGalleryByCategory('amenities')">
-                Tiện ích (6)
+                @Localizer["Amenities"] (6)
             </button>
         </div>
 

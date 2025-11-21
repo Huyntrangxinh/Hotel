@@ -28,6 +28,69 @@ namespace HotelBooking.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Discount model)
         {
+            ValidateDiscountModel(model);
+            if (!ModelState.IsValid) return View(model);
+
+            model.Code = model.Code.Trim().ToUpperInvariant();
+            _db.Discounts.Add(model);
+            await _db.SaveChangesAsync();
+            TempData["success"] = "Đã tạo ưu đãi";
+            return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> Edit(int id)
+        {
+            var discount = await _db.Discounts.FindAsync(id);
+            if (discount == null) return NotFound();
+            return View(discount);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, Discount model)
+        {
+            if (id != model.Id) return NotFound();
+
+            ValidateDiscountModel(model);
+            if (!ModelState.IsValid) return View(model);
+
+            try
+            {
+                model.Code = model.Code.Trim().ToUpperInvariant();
+                _db.Discounts.Update(model);
+                await _db.SaveChangesAsync();
+                TempData["success"] = "Đã cập nhật ưu đãi";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await _db.Discounts.AnyAsync(d => d.Id == id))
+                {
+                    return NotFound();
+                }
+                throw;
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var discount = await _db.Discounts.FindAsync(id);
+            if (discount == null)
+            {
+                TempData["success"] = "Không tìm thấy mã ưu đãi";
+                return RedirectToAction(nameof(Index));
+            }
+
+            _db.Discounts.Remove(discount);
+            await _db.SaveChangesAsync();
+            TempData["success"] = "Đã xóa mã ưu đãi";
+            return RedirectToAction(nameof(Index));
+        }
+
+        private void ValidateDiscountModel(Discount model)
+        {
             if (string.IsNullOrWhiteSpace(model.Code))
             {
                 ModelState.AddModelError(nameof(model.Code), "Mã không được để trống");
@@ -36,13 +99,6 @@ namespace HotelBooking.Areas.Admin.Controllers
             {
                 ModelState.AddModelError(string.Empty, "Cần nhập phần trăm hoặc số tiền giảm");
             }
-            if (!ModelState.IsValid) return View(model);
-
-            model.Code = model.Code.Trim().ToUpperInvariant();
-            _db.Discounts.Add(model);
-            await _db.SaveChangesAsync();
-            TempData["success"] = "Đã tạo ưu đãi";
-            return RedirectToAction(nameof(Index));
         }
     }
 }

@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using Microsoft.Extensions.Localization;
+using HotelBooking.Resources;
 
 namespace HotelBooking.Controllers
 {
@@ -14,18 +16,21 @@ namespace HotelBooking.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ApplicationDbContext _db;
+        private readonly IStringLocalizer<SharedResource> _localizer;
 
         // Cập nhật constructor để nhận các dịch vụ
         public HomeController(
             ILogger<HomeController> logger,
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            ApplicationDbContext db)
+            ApplicationDbContext db,
+            IStringLocalizer<SharedResource> localizer)
         {
             _logger = logger;
             _userManager = userManager;
             _signInManager = signInManager;
             _db = db;
+            _localizer = localizer;
         }
 
         // Cập nhật action Index để thêm logic kiểm tra
@@ -51,6 +56,18 @@ namespace HotelBooking.Controllers
                 .OrderByDescending(d => d.Id)
                 .ToListAsync();
             ViewBag.Discounts = discounts;
+            return View();
+        }
+
+        // Test language page
+        public IActionResult TestLanguage()
+        {
+            return View();
+        }
+        
+        // Debug language page
+        public IActionResult DebugLanguage()
+        {
             return View();
         }
 
