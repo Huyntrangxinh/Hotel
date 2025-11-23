@@ -1977,28 +1977,61 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
         {
             try
             {
+                _logger.LogInformation("ValidateDiscountCode called with Code: {Code}, PropertyId: {PropertyId}", 
+                    request.Code, request.PropertyId);
+
                 if (string.IsNullOrWhiteSpace(request.Code))
                 {
                     return Json(new { success = false, message = "Vui lòng nhập mã giảm giá" });
                 }
 
+                var codeUpper = request.Code.ToUpper().Trim();
                 var discount = await _context.Discounts
-                    .FirstOrDefaultAsync(d => d.Code.ToUpper() == request.Code.ToUpper().Trim() && d.IsActive);
+                    .FirstOrDefaultAsync(d => d.Code.ToUpper() == codeUpper && d.IsActive);
+
+                _logger.LogInformation("Discount found: {Found}, Code: {Code}, PropertyId: {PropertyId}, IsActive: {IsActive}", 
+                    discount != null, codeUpper, discount?.PropertyId, discount?.IsActive);
 
                 if (discount == null)
                 {
+                    _logger.LogWarning("Discount not found or inactive: {Code}", codeUpper);
                     return Json(new { success = false, message = "Mã giảm giá không hợp lệ hoặc đã hết hạn" });
                 }
 
-                // Kiểm tra ngày hiệu lực
-                var now = DateTime.UtcNow;
-                if (discount.StartDate.HasValue && now < discount.StartDate.Value)
+                // Kiểm tra PropertyId: nếu mã giảm giá có PropertyId (partner tạo), chỉ áp dụng cho property đó
+                // Nếu PropertyId là null (admin tạo), áp dụng cho tất cả
+                if (discount.PropertyId.HasValue)
                 {
+                    _logger.LogInformation("Discount has PropertyId: {DiscountPropertyId}, Request PropertyId: {RequestPropertyId}", 
+                        discount.PropertyId.Value, request.PropertyId);
+                    
+                    if (!request.PropertyId.HasValue || request.PropertyId.Value != discount.PropertyId.Value)
+                    {
+                        _logger.LogWarning("PropertyId mismatch. Discount PropertyId: {DiscountPropertyId}, Request PropertyId: {RequestPropertyId}", 
+                            discount.PropertyId.Value, request.PropertyId);
+                        return Json(new { success = false, message = "Mã giảm giá này chỉ áp dụng cho cơ sở lưu trú cụ thể" });
+                    }
+                }
+
+                // Kiểm tra ngày hiệu lực - chỉ so sánh phần ngày, không so sánh giờ
+                var today = DateTime.Today;
+                var startDate = discount.StartDate?.Date;
+                var endDate = discount.EndDate?.Date;
+                
+                _logger.LogInformation("Date check - Today: {Today}, StartDate: {StartDate}, EndDate: {EndDate}", 
+                    today, startDate, endDate);
+                
+                if (startDate.HasValue && today < startDate.Value)
+                {
+                    _logger.LogWarning("Discount not yet valid. Today: {Today}, StartDate: {StartDate}", 
+                        today, startDate.Value);
                     return Json(new { success = false, message = "Mã giảm giá chưa có hiệu lực" });
                 }
 
-                if (discount.EndDate.HasValue && now > discount.EndDate.Value)
+                if (endDate.HasValue && today > endDate.Value)
                 {
+                    _logger.LogWarning("Discount expired. Today: {Today}, EndDate: {EndDate}", 
+                        today, endDate.Value);
                     return Json(new { success = false, message = "Mã giảm giá đã hết hạn" });
                 }
 
@@ -2025,6 +2058,7 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
         public class DiscountCodeRequest
         {
             public string Code { get; set; } = string.Empty;
+            public int? PropertyId { get; set; } // PropertyId để kiểm tra mã giảm giá của partner
         }
 
         [HttpPost]
@@ -2102,7 +2136,7 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
     
     // Tạo form HTML - giống hệt form câu lệnh nhưng có thêm trường ngày
     const formHtml = `
-        <div id='${formId}' style='margin-top: 20px; padding: 20px; background: rgba(255, 255, 255, 0.9); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1); backdrop-filter: blur(10px); max-width: 920px; width: 100%;'>
+        <div id='${formId}' data-property-id='${propertyId}' style='margin-top: 20px; padding: 20px; background: rgba(255, 255, 255, 0.9); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1); backdrop-filter: blur(10px); max-width: 920px; width: 100%;'>
             <h4 style='color: #1e40af; margin-bottom: 20px; display: flex; align-items: center;'>
                 <span style='margin-right: 10px;'>📝</span>
                 Thu thập thông tin đặt phòng
@@ -2245,13 +2279,17 @@ async function applyDiscountCode(formId) {
         return;
     }
     
+    // Lấy propertyId từ form (nếu có)
+    const formRoot = document.getElementById(formId);
+    const propertyId = formRoot?.getAttribute('data-property-id');
+    
     try {
         const response = await fetch('/Chat/ValidateDiscountCode', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ code: code })
+            body: JSON.stringify({ code: code, propertyId: propertyId ? parseInt(propertyId) : null })
         });
         
         const data = await response.json();
@@ -2428,7 +2466,7 @@ function editBookingInfo(formId) {
             bool showDateInputs = !checkIn.HasValue || !checkOut.HasValue;
 
             return $@"
-            <div id='{formId}' style='margin-top: 20px; padding: 20px; background: rgba(255, 255, 255, 0.9); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1); backdrop-filter: blur(10px); max-width: 920px; width: 100%;'>
+            <div id='{formId}' data-property-id='{propertyId}' style='margin-top: 20px; padding: 20px; background: rgba(255, 255, 255, 0.9); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1); backdrop-filter: blur(10px); max-width: 920px; width: 100%;'>
                 <h4 style='color: #1e40af; margin-bottom: 20px; display: flex; align-items: center;'>
                     <span style='margin-right: 10px;'>📝</span>
                     Thu thập thông tin đặt phòng
@@ -2533,13 +2571,16 @@ function editBookingInfo(formId) {
                     return;
                 }}
                 
+                // Lấy propertyId từ form
+                const propertyId = formRoot.getAttribute('data-property-id');
+                
                 try {{
                     const response = await fetch('/Chat/ValidateDiscountCode', {{
                         method: 'POST',
                         headers: {{
                             'Content-Type': 'application/json',
                         }},
-                        body: JSON.stringify({{ code: code }})
+                        body: JSON.stringify({{ code: code, propertyId: propertyId ? parseInt(propertyId) : null }})
                     }});
                     
                     const data = await response.json();

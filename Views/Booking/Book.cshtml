@@ -310,7 +310,7 @@
                             <div class="discount-section mt-3">
                                 <div class="d-flex gap-2">
                                     <div class="flex-grow-1">
-                                        <input type="text" id="discountCode" class="form-control"
+                                        <input type="text" id="discountCode" class="form-control" style="text-transform: uppercase;"
                                             placeholder="@Localizer["EnterDiscountCode"]" maxlength="20">
                                     </div>
                                     <button type="button" id="applyDiscount"
@@ -790,29 +790,22 @@
             }
             const localizedStrings = @Html.Raw(JsonSerializer.Serialize(localizedStrings));
 
-        const discountCodes = {
-            'HOCHIMINH25': 25,
-            'CHINA25': 25,
-            '1010': 50,
-            'SUMMER20': 20,
-            'WELCOME10': 10,
-            'SAVE15': 15,
-            'TRAVEL30': 30
-        };
-
         let originalPrice = @((Model.PricePerNight * Model.TotalNights * 1.1m).ToString("F2").Replace(",", "."));
         let currentDiscount = 0;
         let appliedCode = '';
+        const propertyId = @Model.PropertyId;
 
-        document.getElementById('applyDiscount').addEventListener('click', function () {
+        document.getElementById('applyDiscount').addEventListener('click', async function () {
             console.log('Apply discount button clicked');
             const code = document.getElementById('discountCode').value.trim().toUpperCase();
             const messageDiv = document.getElementById('discountMessage');
             const discountRow = document.getElementById('discountRow');
             const discountAmount = document.getElementById('discountAmount');
             const finalPrice = document.getElementById('finalPrice');
+            const applyButton = this;
 
             console.log('Code entered:', code);
+            console.log('PropertyId:', propertyId);
             console.log('Original price:', originalPrice);
 
             if (!code) {
@@ -820,46 +813,107 @@
                 return;
             }
 
-            if (discountCodes[code]) {
-                const discountPercent = discountCodes[code];
-                currentDiscount = originalPrice * (discountPercent / 100);
-                appliedCode = code;
+            // Disable button while validating
+            applyButton.disabled = true;
+            applyButton.textContent = 'Đang kiểm tra...';
 
-                console.log('Discount percent:', discountPercent);
-                console.log('Discount amount:', currentDiscount);
+            try {
+                console.log('Sending request to /Chat/ValidateDiscountCode with:', { code: code, propertyId: propertyId });
+                
+                const response = await fetch('/Chat/ValidateDiscountCode', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ code: code, propertyId: propertyId })
+                });
 
-                // Show discount row
-                discountRow.style.display = 'flex';
-                discountAmount.textContent = `-${Math.round(currentDiscount).toLocaleString()} VND`;
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
 
-                // Update final price
-                const newPrice = originalPrice - currentDiscount;
-                finalPrice.textContent = `${Math.round(newPrice).toLocaleString()} VND`;
+                if (data.success && data.discount) {
+                    const discount = data.discount;
+                    let discountValue = 0;
+                    let discountText = '';
 
-                console.log('New price:', newPrice);
+                    // Calculate discount based on percent or amount
+                    if (discount.discountPercent) {
+                        discountValue = originalPrice * (discount.discountPercent / 100);
+                        discountText = `Giảm ${discount.discountPercent}%`;
+                    } else if (discount.discountAmount) {
+                        discountValue = discount.discountAmount;
+                        discountText = `Giảm ${parseInt(discount.discountAmount).toLocaleString('vi-VN')} VND`;
+                    }
 
-                // Show success message
-                messageDiv.innerHTML = `<span class="text-success">${localizedStrings.discountCodeApplied.replace('{0}', discountPercent)}</span>`;
+                    currentDiscount = discountValue;
+                    appliedCode = code;
 
-                // Update button state but keep it clickable
-                this.textContent = localizedStrings.applied;
-                this.classList.remove('btn-outline-primary');
-                this.classList.add('btn-success');
+                    console.log('Discount applied:', discount);
+                    console.log('Discount amount:', currentDiscount);
 
-                // Update hidden fields for form submission
-                document.getElementById('discountCodeHidden').value = code;
-                document.getElementById('discountAmountHidden').value = currentDiscount;
-                document.getElementById('discountPercentageHidden').value = discountPercent;
+                    // Show discount row
+                    discountRow.style.display = 'flex';
+                    discountAmount.textContent = `-${Math.round(currentDiscount).toLocaleString('vi-VN')} VND`;
 
-                // Update TotalPrice with discounted amount
-                document.querySelector('input[name="TotalPrice"]').value = newPrice;
-            } else {
-                messageDiv.innerHTML = '<span class="text-danger">' + localizedStrings.invalidDiscountCode + '</span>';
+                    // Update final price
+                    const newPrice = originalPrice - currentDiscount;
+                    finalPrice.textContent = `${Math.round(newPrice).toLocaleString('vi-VN')} VND`;
+
+                    console.log('New price:', newPrice);
+
+                    // Show success message
+                    messageDiv.innerHTML = `<span class="text-success">✓ ${discountText} đã được áp dụng!</span>`;
+
+                    // Update button state
+                    applyButton.textContent = localizedStrings.applied;
+                    applyButton.classList.remove('btn-outline-primary');
+                    applyButton.classList.add('btn-success');
+
+                    // Update hidden fields for form submission
+                    document.getElementById('discountCodeHidden').value = code;
+                    document.getElementById('discountAmountHidden').value = currentDiscount;
+                    document.getElementById('discountPercentageHidden').value = discount.discountPercent || 0;
+
+                    // Update TotalPrice with discounted amount
+                    document.querySelector('input[name="TotalPrice"]').value = newPrice;
+                } else {
+                    // Show error message
+                    console.log('Discount validation failed:', data);
+                    messageDiv.innerHTML = '<span class="text-danger">' + (data.message || localizedStrings.invalidDiscountCode) + '</span>';
+                    
+                    // Reset discount
+                    currentDiscount = 0;
+                    appliedCode = '';
+                    discountRow.style.display = 'none';
+                    finalPrice.textContent = `${Math.round(originalPrice).toLocaleString('vi-VN')} VND`;
+                    
+                    // Reset hidden fields
+                    document.getElementById('discountCodeHidden').value = '';
+                    document.getElementById('discountAmountHidden').value = '0';
+                    document.getElementById('discountPercentageHidden').value = '0';
+                    document.querySelector('input[name="TotalPrice"]').value = originalPrice;
+                }
+            } catch (error) {
+                console.error('Error validating discount code:', error);
+                console.error('Error details:', error.message, error.stack);
+                messageDiv.innerHTML = '<span class="text-danger">Có lỗi xảy ra khi kiểm tra mã giảm giá. Vui lòng thử lại.</span>';
+            } finally {
+                applyButton.disabled = false;
+                if (appliedCode !== code) {
+                    applyButton.textContent = localizedStrings.apply;
+                    applyButton.classList.remove('btn-success');
+                    applyButton.classList.add('btn-outline-primary');
+                }
             }
         });
 
-        // Allow changing discount code
+        // Auto-uppercase discount code input and allow changing discount code
         document.getElementById('discountCode').addEventListener('input', function () {
+            // Auto-uppercase
+            this.value = this.value.toUpperCase();
+            
+            // Allow changing discount code
             if (appliedCode && this.value.toUpperCase() !== appliedCode) {
                 // Reset discount
                 currentDiscount = 0;
@@ -897,25 +951,11 @@
                 document.getElementById('finalPrice').textContent = `${Math.round(originalPrice).toLocaleString()} VND`;
                 document.getElementById('discountMessage').innerHTML = '';
 
-                // Re-apply the current code in the input
+                // Re-apply the current code in the input by triggering click
                 const currentCode = document.getElementById('discountCode').value.trim().toUpperCase();
-                if (currentCode && discountCodes[currentCode]) {
-                    // Apply the new code immediately
-                    const discountPercent = discountCodes[currentCode];
-                    currentDiscount = originalPrice * (discountPercent / 100);
-                    appliedCode = currentCode;
-
-                    document.getElementById('discountRow').style.display = 'flex';
-                    document.getElementById('discountAmount').textContent = `-${Math.round(currentDiscount).toLocaleString()} VND`;
-
-                    const newPrice = originalPrice - currentDiscount;
-                    document.getElementById('finalPrice').textContent = `${Math.round(newPrice).toLocaleString()} VND`;
-
-                    document.getElementById('discountMessage').innerHTML = `<span class="text-success">${localizedStrings.discountCodeApplied.replace('{0}', discountPercent)}</span>`;
-
-                    this.textContent = localizedStrings.applied;
-                    this.classList.remove('btn-outline-primary');
-                    this.classList.add('btn-success');
+                if (currentCode) {
+                    // Trigger the apply button click to validate and apply the code
+                    document.getElementById('applyDiscount').click();
                 }
                 return;
             }

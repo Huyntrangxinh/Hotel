@@ -36,6 +36,16 @@ namespace HotelBooking.Controllers
             var promo = await _db.Discounts
                 .FirstOrDefaultAsync(d => d.Id == id && d.IsActive && (!d.StartDate.HasValue || d.StartDate <= today) && (!d.EndDate.HasValue || d.EndDate >= today));
             if (promo == null) return NotFound();
+            
+            // Load Property nếu có PropertyId
+            Property? property = null;
+            if (promo.PropertyId.HasValue)
+            {
+                property = await _db.Properties
+                    .FirstOrDefaultAsync(p => p.Id == promo.PropertyId.Value);
+            }
+            
+            ViewBag.Property = property;
             return View(promo);
         }
     }

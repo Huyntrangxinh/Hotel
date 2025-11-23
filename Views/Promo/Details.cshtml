@@ -104,6 +104,19 @@
                                 @Localizer["ValidFrom"]: @Model.StartDate?.ToString("dd/MM/yyyy") -
                                 @Model.EndDate?.ToString("dd/MM/yyyy")
                             </p>
+                            @{
+                                var property = ViewBag.Property as HotelBooking.Models.Property;
+                            }
+                            @if (property != null)
+                            {
+                                <p class="text-sm text-gray-600 mt-2">
+                                    Mã ưu đãi chỉ dành cho khách sạn 
+                                    <a href="@Url.Action("Hotel", "Public", new { id = property.Id })" 
+                                       class="text-blue-600 hover:text-blue-800 font-semibold underline">
+                                        @property.Name
+                                    </a>
+                                </p>
+                            }
                         </div>
                     </div>
                 </div>

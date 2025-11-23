@@ -29,6 +29,9 @@ namespace HotelBooking.Models
 
         [StringLength(512)]
         public string? ImageUrl { get; set; } // banner ưu đãi (tuỳ chọn)
+
+        // PropertyId: null = admin tạo (áp dụng cho tất cả), có giá trị = partner tạo (chỉ áp dụng cho property đó)
+        public int? PropertyId { get; set; }
     }
 }
 

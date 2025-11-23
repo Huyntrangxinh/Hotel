@@ -3003,5 +3003,258 @@ public async Task<IActionResult> Success()
             
             return View();
         }
+
+        // ========== DISCOUNT CODE MANAGEMENT ==========
+        [HttpGet]
+        public async Task<IActionResult> DiscountIndex()
+        {
+            var me = await _users.GetUserAsync(User);
+            if (me == null) return RedirectToAction("Login", "Account");
+
+            await SetUserHasPropertiesAsync();
+
+            // Lấy tất cả properties của partner
+            var userId = me.Id;
+            var propertyIds = await _db.Properties
+                .Where(p => p.UserId == userId)
+                .Select(p => p.Id)
+                .ToListAsync();
+
+            // Lấy tất cả mã giảm giá của partner (PropertyId trong danh sách propertyIds)
+            var discounts = await _db.Discounts
+                .Where(d => d.PropertyId.HasValue && propertyIds.Contains(d.PropertyId.Value))
+                .OrderByDescending(d => d.Id)
+                .ToListAsync();
+
+            return View(discounts);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DiscountCreate()
+        {
+            var me = await _users.GetUserAsync(User);
+            if (me == null) return RedirectToAction("Login", "Account");
+
+            await SetUserHasPropertiesAsync();
+
+            // Lấy danh sách properties của partner để hiển thị trong dropdown
+            var userId = me.Id;
+            var properties = await _db.Properties
+                .Where(p => p.UserId == userId)
+                .Select(p => new { p.Id, p.Name })
+                .ToListAsync();
+
+            ViewBag.Properties = properties;
+
+            var model = new Discount 
+            { 
+                StartDate = DateTime.Today, 
+                EndDate = DateTime.Today.AddMonths(1) 
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DiscountCreate(Discount model, int? selectedPropertyId)
+        {
+            var me = await _users.GetUserAsync(User);
+            if (me == null) return RedirectToAction("Login", "Account");
+
+            await SetUserHasPropertiesAsync();
+
+            // Kiểm tra propertyId có thuộc về partner không
+            if (selectedPropertyId.HasValue)
+            {
+                var userId = me.Id;
+                var isValidProperty = await _db.Properties
+                    .AnyAsync(p => p.Id == selectedPropertyId.Value && p.UserId == userId);
+
+                if (!isValidProperty)
+                {
+                    ModelState.AddModelError("", "Cơ sở lưu trú không hợp lệ.");
+                }
+                else
+                {
+                    model.PropertyId = selectedPropertyId.Value;
+                }
+            }
+            else
+            {
+                ModelState.AddModelError("", "Vui lòng chọn cơ sở lưu trú.");
+            }
+
+            ValidateDiscountModel(model);
+            if (!ModelState.IsValid)
+            {
+                // Load lại danh sách properties
+                var userId = me.Id;
+                var properties = await _db.Properties
+                    .Where(p => p.UserId == userId)
+                    .Select(p => new { p.Id, p.Name })
+                    .ToListAsync();
+                ViewBag.Properties = properties;
+                return View(model);
+            }
+
+            model.Code = model.Code.Trim().ToUpperInvariant();
+            _db.Discounts.Add(model);
+            await _db.SaveChangesAsync();
+            TempData["success"] = "Đã tạo mã giảm giá";
+            return RedirectToAction(nameof(DiscountIndex));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DiscountEdit(int id)
+        {
+            var me = await _users.GetUserAsync(User);
+            if (me == null) return RedirectToAction("Login", "Account");
+
+            await SetUserHasPropertiesAsync();
+
+            // Kiểm tra mã giảm giá có thuộc về partner không
+            var userId = me.Id;
+            var propertyIds = await _db.Properties
+                .Where(p => p.UserId == userId)
+                .Select(p => p.Id)
+                .ToListAsync();
+
+            var discount = await _db.Discounts
+                .FirstOrDefaultAsync(d => d.Id == id && d.PropertyId.HasValue && propertyIds.Contains(d.PropertyId.Value));
+
+            if (discount == null)
+            {
+                TempData["error"] = "Không tìm thấy mã giảm giá hoặc bạn không có quyền chỉnh sửa mã này.";
+                return RedirectToAction(nameof(DiscountIndex));
+            }
+
+            // Load danh sách properties của partner
+            var properties = await _db.Properties
+                .Where(p => p.UserId == userId)
+                .Select(p => new { p.Id, p.Name })
+                .ToListAsync();
+
+            ViewBag.Properties = properties;
+            ViewBag.CurrentPropertyId = discount.PropertyId;
+
+            return View(discount);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DiscountEdit(int id, Discount model, int? selectedPropertyId)
+        {
+            var me = await _users.GetUserAsync(User);
+            if (me == null) return RedirectToAction("Login", "Account");
+
+            await SetUserHasPropertiesAsync();
+
+            // Kiểm tra mã giảm giá có thuộc về partner không
+            var userId = me.Id;
+            var propertyIds = await _db.Properties
+                .Where(p => p.UserId == userId)
+                .Select(p => p.Id)
+                .ToListAsync();
+
+            var existingDiscount = await _db.Discounts
+                .FirstOrDefaultAsync(d => d.Id == id && d.PropertyId.HasValue && propertyIds.Contains(d.PropertyId.Value));
+
+            if (existingDiscount == null)
+            {
+                TempData["error"] = "Không tìm thấy mã giảm giá hoặc bạn không có quyền chỉnh sửa mã này.";
+                return RedirectToAction(nameof(DiscountIndex));
+            }
+
+            // Kiểm tra propertyId có thuộc về partner không (nếu có thay đổi)
+            if (selectedPropertyId.HasValue)
+            {
+                var isValidProperty = propertyIds.Contains(selectedPropertyId.Value);
+                if (!isValidProperty)
+                {
+                    ModelState.AddModelError("", "Cơ sở lưu trú không hợp lệ.");
+                }
+                else
+                {
+                    model.PropertyId = selectedPropertyId.Value;
+                }
+            }
+            else
+            {
+                // Giữ nguyên PropertyId hiện tại
+                model.PropertyId = existingDiscount.PropertyId;
+            }
+
+            ValidateDiscountModel(model);
+            if (!ModelState.IsValid)
+            {
+                // Load lại danh sách properties
+                var properties = await _db.Properties
+                    .Where(p => p.UserId == userId)
+                    .Select(p => new { p.Id, p.Name })
+                    .ToListAsync();
+                ViewBag.Properties = properties;
+                ViewBag.CurrentPropertyId = existingDiscount.PropertyId;
+                return View(model);
+            }
+
+            // Cập nhật thông tin
+            existingDiscount.Code = model.Code.Trim().ToUpperInvariant();
+            existingDiscount.Title = model.Title;
+            existingDiscount.Description = model.Description;
+            existingDiscount.DiscountPercent = model.DiscountPercent;
+            existingDiscount.DiscountAmount = model.DiscountAmount;
+            existingDiscount.StartDate = model.StartDate;
+            existingDiscount.EndDate = model.EndDate;
+            existingDiscount.IsActive = model.IsActive;
+            existingDiscount.ImageUrl = model.ImageUrl;
+            existingDiscount.PropertyId = model.PropertyId;
+
+            _db.Discounts.Update(existingDiscount);
+            await _db.SaveChangesAsync();
+            TempData["success"] = "Đã cập nhật mã giảm giá";
+            return RedirectToAction(nameof(DiscountIndex));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DiscountDelete(int id)
+        {
+            var me = await _users.GetUserAsync(User);
+            if (me == null) return RedirectToAction("Login", "Account");
+
+            // Kiểm tra mã giảm giá có thuộc về partner không
+            var userId = me.Id;
+            var propertyIds = await _db.Properties
+                .Where(p => p.UserId == userId)
+                .Select(p => p.Id)
+                .ToListAsync();
+
+            var discount = await _db.Discounts
+                .FirstOrDefaultAsync(d => d.Id == id && d.PropertyId.HasValue && propertyIds.Contains(d.PropertyId.Value));
+
+            if (discount == null)
+            {
+                TempData["error"] = "Không tìm thấy mã giảm giá hoặc bạn không có quyền xóa mã này.";
+                return RedirectToAction(nameof(DiscountIndex));
+            }
+
+            _db.Discounts.Remove(discount);
+            await _db.SaveChangesAsync();
+            TempData["success"] = "Đã xóa mã giảm giá";
+            return RedirectToAction(nameof(DiscountIndex));
+        }
+
+        private void ValidateDiscountModel(Discount model)
+        {
+            if (string.IsNullOrWhiteSpace(model.Code))
+            {
+                ModelState.AddModelError(nameof(model.Code), "Mã không được để trống");
+            }
+            if (model.DiscountPercent is null && model.DiscountAmount is null)
+            {
+                ModelState.AddModelError(string.Empty, "Cần nhập phần trăm hoặc số tiền giảm");
+            }
+        }
     }
 }
