@@ -88,7 +88,8 @@ namespace HotelBooking.Areas.Admin.Controllers
                 .ToListAsync();
             viewModel.PricePackage = await _db.PricePackages.FirstOrDefaultAsync(p => p.PropertyId == id);
             viewModel.RoomPrices = await _db.RoomPrices.Where(rp => rp.PropertyId == id)
-                .ToDictionaryAsync(rp => rp.RoomId, rp => rp.Amount);
+                .GroupBy(rp => rp.RoomId)
+                .ToDictionaryAsync(g => g.Key, g => g.Min(rp => rp.Amount));
 
             return View(viewModel);
         }

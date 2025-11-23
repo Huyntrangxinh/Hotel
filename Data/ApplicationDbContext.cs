@@ -28,6 +28,7 @@ namespace HotelBooking.Data
         public DbSet<Destination> Destinations => Set<Destination>();
         public DbSet<Discount> Discounts => Set<Discount>();
         public DbSet<Booking> Bookings => Set<Booking>();
+        public DbSet<Review> Reviews => Set<Review>();
 
         // Helper methods for robust JSON deserialization
         private static List<string> DeserializeStringList(string? json)
@@ -143,8 +144,12 @@ namespace HotelBooking.Data
                    .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<RoomPrice>()
-                   .HasIndex(rp => new { rp.PropertyId, rp.RoomId })
-                   .IsUnique();
+                   .HasOne(rp => rp.PricePackage)
+                   .WithMany()
+                   .HasForeignKey(rp => rp.PricePackageId)
+                   .OnDelete(DeleteBehavior.SetNull);
+
+            // Removed unique constraint to allow multiple prices per room with different PricePackageId
 
             // RoomDailyRate relations and unique constraint per property-room-date
             builder.Entity<RoomDailyRate>()
@@ -161,6 +166,30 @@ namespace HotelBooking.Data
 
             builder.Entity<RoomDailyRate>()
                    .HasIndex(r => new { r.PropertyId, r.RoomId, r.Date })
+                   .IsUnique();
+
+            // Review relations
+            builder.Entity<Review>()
+                   .HasOne(r => r.Booking)
+                   .WithMany()
+                   .HasForeignKey(r => r.BookingId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Review>()
+                   .HasOne(r => r.Property)
+                   .WithMany()
+                   .HasForeignKey(r => r.PropertyId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Review>()
+                   .HasOne(r => r.User)
+                   .WithMany()
+                   .HasForeignKey(r => r.UserId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            // Unique constraint: one review per booking
+            builder.Entity<Review>()
+                   .HasIndex(r => r.BookingId)
                    .IsUnique();
         }
     }

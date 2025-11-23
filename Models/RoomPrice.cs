@@ -18,6 +18,12 @@ namespace HotelBooking.Models
         [StringLength(8)]
         public string Currency { get; set; } = "VND";
 
+        public int? PricePackageId { get; set; }
+        public PricePackage? PricePackage { get; set; }
+
+        [StringLength(100)]
+        public string? OptionName { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }

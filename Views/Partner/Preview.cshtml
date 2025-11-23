@@ -60,33 +60,95 @@
         </div>
     </div>
 
-    <!-- Room Types -->
+    <!-- Room Types with Prices -->
     <div class="card">
         <div class="card-header">
-            <h5 class="h5"><i class="bi bi-door-open"></i>Loại phòng</h5>
+            <h5 class="h5"><i class="bi bi-door-open"></i>Loại phòng & Gói giá</h5>
             <a href="@Url.Action("PropertyData", "Partner", new { propertyId = Model.PropertyId, tab = "rooms" })" class="btn-edit"><i class="bi bi-pencil me-1"></i>Chỉnh sửa</a>
         </div>
         <div class="card-body">
+            @{
+                var roomPricesByRoom = ViewBag.RoomPricesByRoom as Dictionary<int, List<HotelBooking.Models.RoomPrice>> ?? new Dictionary<int, List<HotelBooking.Models.RoomPrice>>();
+            }
+            
             @if (Model.Rooms.Any())
             {
                 <div class="row g-3">
                     @foreach (var room in Model.Rooms)
                     {
-                        <div class="col-md-6">
+                        var roomPrices = roomPricesByRoom.ContainsKey(room.Id) ? roomPricesByRoom[room.Id] : new List<HotelBooking.Models.RoomPrice>();
+                        
+                        <div class="col-12">
                             <div class="item-card">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                     <h6 class="fw-bold mb-0">@room.Name</h6>
-                                     <span class="badge bg-light text-dark border">@room.RoomType</span>
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <h6 class="fw-bold mb-0">@room.Name</h6>
+                                            <span class="badge bg-light text-dark border">@room.RoomType</span>
+                                        </div>
+                                        <div class="small text-muted">
+                                            <div><i class="bi bi-rulers me-1"></i> @room.Size@room.SizeUnit</div>
+                                            <div><i class="bi bi-people me-1"></i> Sức chứa: @room.CapacityAdults người lớn</div>
+                                            @if (room.AllowChildren)
+                                            {
+                                                <div><i class="bi bi-check-circle me-1"></i> Cho phép trẻ em</div>
+                                            }
+                                            <div><i class="bi bi-house-door me-1"></i> Số lượng: @room.Quantity phòng</div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="small text-muted">
-                                    <div><i class="bi bi-rulers me-1"></i> @room.Size@room.SizeUnit</div>
-                                    <div><i class="bi bi-people me-1"></i> Sức chứa: @room.CapacityAdults người lớn</div>
-                                    @if (room.AllowChildren)
-                                    {
-                                        <div><i class="bi bi-check-circle me-1"></i> Cho phép trẻ em</div>
-                                    }
-                                    <div><i class="bi bi-house-door me-1"></i> Số lượng: @room.Quantity phòng</div>
-                                </div>
+                                
+                                @if (roomPrices.Any())
+                                {
+                                    <div class="border-top pt-3">
+                                        <h6 class="fw-semibold mb-3">Các gói giá:</h6>
+                                        <div class="row g-2">
+                                            @foreach (var roomPrice in roomPrices)
+                                            {
+                                                var package = roomPrice.PricePackage;
+                                                <div class="col-md-6">
+                                                    <div class="p-3 border rounded" style="background-color: #f8f9fa;">
+                                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                                            <div class="flex-grow-1">
+                                                                @if (package != null)
+                                                                {
+                                                                    <div class="fw-bold mb-1">@package.CancellationPolicyDisplayName</div>
+                                                                    <div class="small text-muted mb-1">
+                                                                        @{
+                                                                            var policyDesc = package.CancellationPolicy switch
+                                                                            {
+                                                                                "refund_1" => "Hoàn tiền đến 1 ngày trước",
+                                                                                "refund_3" => "Hoàn tiền đến 3 ngày trước",
+                                                                                "refund_7" => "Hoàn tiền đến 7 ngày trước",
+                                                                                _ => "Không thể hoàn tiền"
+                                                                            };
+                                                                        }
+                                                                        @policyDesc
+                                                                    </div>
+                                                                    <div class="small text-muted">@(package.BreakfastIncluded ? "Có bữa sáng" : "Không bữa sáng")</div>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <div class="fw-bold mb-1 text-muted">Chưa chọn gói giá</div>
+                                                                }
+                                                            </div>
+                                                            <div class="text-end">
+                                                                <div class="price-display fw-bold text-primary">@String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:N0}", roomPrice.Amount) VND</div>
+                                                                <div class="text-muted small">/ đêm</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="border-top pt-3">
+                                        <p class="text-muted small mb-0">Chưa có gói giá nào được thiết lập cho phòng này</p>
+                                    </div>
+                                }
                             </div>
                         </div>
                     }
@@ -97,81 +159,6 @@
                 <div class="text-center py-4">
                     <i class="bi bi-door-open text-muted" style="font-size: 3rem;"></i>
                     <p class="text-muted mt-2">Chưa có phòng nào được tạo</p>
-                </div>
-            }
-        </div>
-    </div>
-
-    <!-- Pricing -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="h5"><i class="bi bi-tags"></i>Giá phòng & Gói giá</h5>
-            <a href="@Url.Action("PropertyData", "Partner", new { propertyId = Model.PropertyId, tab = "pricing" })" class="btn-edit"><i class="bi bi-pencil me-1"></i>Chỉnh sửa</a>
-        </div>
-        <div class="card-body">
-            <!-- Price Package -->
-            @if (Model.PricePackage != null)
-            {
-                <h6 class="fw-bold mb-3">Gói giá áp dụng</h6>
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <div class="item-card">
-                            <div class="fw-bold mb-1">@Model.PricePackage.CancellationPolicyDisplayName</div>
-                            <p class="small text-muted mb-0">
-                                @{
-                                    var policyDesc = Model.PricePackage.CancellationPolicy switch
-                                    {
-                                        "refund_1" => "Khách có thể được hoàn tiền cho đến 1 ngày trước ngày làm thủ tục nhận phòng (trước 14:00).",
-                                        "refund_3" => "Khách có thể được hoàn tiền cho đến 3 ngày trước ngày làm thủ tục nhận phòng (trước 14:00).",
-                                        "refund_7" => "Khách có thể được hoàn tiền cho đến 7 ngày trước ngày làm thủ tục nhận phòng (trước 14:00).",
-                                        _ => "Không thể hoàn tiền"
-                                    };
-                                }
-                                @policyDesc
-                            </p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="item-card">
-                            <div class="fw-bold mb-1">Bữa ăn</div>
-                            <p class="small text-muted mb-0">@Model.PricePackage.BreakfastDisplayName bữa sáng</p>
-                        </div>
-                    </div>
-                </div>
-            }
-
-            <!-- Room Prices -->
-            <h6 class="fw-bold mb-3">Bảng giá theo phòng</h6>
-            @if (Model.RoomPrices.Any())
-            {
-                <div class="row g-3">
-                    @foreach (var room in Model.Rooms)
-                    {
-                        if (Model.RoomPrices.TryGetValue(room.Id, out var price))
-                        {
-                            <div class="col-md-6">
-                                <div class="item-card">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <div class="fw-semibold">@room.Name</div>
-                                            <div class="text-muted small">@room.RoomType</div>
-                                        </div>
-                                        <div class="text-end">
-                                            <div class="price-display">@String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:N0}", price) VND</div>
-                                            <div class="text-muted small">/ đêm</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="text-center py-4">
-                    <i class="bi bi-currency-exchange text-muted" style="font-size: 3rem;"></i>
-                    <p class="text-muted mt-2">Chưa có giá phòng nào được thiết lập</p>
                 </div>
             }
         </div>

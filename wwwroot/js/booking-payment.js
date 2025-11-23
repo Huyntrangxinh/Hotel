@@ -1,6 +1,42 @@
 // Booking Payment Handler
 window.BookingPayment = {
     showPaymentForm: function (bookingInfo) {
+        // Luôn lấy thông tin mới nhất từ localStorage để đảm bảo có roomPriceAmount
+        const storedInfo = JSON.parse(localStorage.getItem('bookingInfo') || '{}');
+        if (storedInfo) {
+            // Merge thông tin từ localStorage vào bookingInfo (ưu tiên storedInfo)
+            bookingInfo = Object.assign({}, bookingInfo, storedInfo);
+        }
+
+        // Nếu vẫn không có roomPriceAmount, thử lấy từ window
+        if (!bookingInfo.roomPriceAmount && window.currentRoomPriceAmount) {
+            bookingInfo.roomPriceAmount = window.currentRoomPriceAmount;
+        }
+
+        // Đảm bảo roomPriceAmount là number
+        if (bookingInfo.roomPriceAmount) {
+            bookingInfo.roomPriceAmount = parseFloat(bookingInfo.roomPriceAmount);
+        }
+
+        console.log('showPaymentForm - bookingInfo:', bookingInfo);
+        console.log('showPaymentForm - roomPriceAmount:', bookingInfo.roomPriceAmount);
+        console.log('showPaymentForm - getRoomPricePerNight:', BookingPayment.getRoomPricePerNight(bookingInfo));
+
+        // Lấy giá phòng trước khi tạo HTML
+        const roomPricePerNight = BookingPayment.getRoomPricePerNight(bookingInfo);
+        const nights = BookingPayment.calculateNights(bookingInfo.checkIn, bookingInfo.checkOut);
+        const subtotal = nights * roomPricePerNight;
+        const tax = Math.round(subtotal * 0.1);
+        const total = subtotal + tax;
+
+        console.log('showPaymentForm - Calculated values:', {
+            roomPricePerNight,
+            nights,
+            subtotal,
+            tax,
+            total
+        });
+
         // Xác định form hiện tại
         let formRoot = null;
         if (bookingInfo && bookingInfo.formId) {
@@ -18,7 +54,7 @@ window.BookingPayment = {
             }
         }
 
-        // Tạo HTML cho form thanh toán
+        // Tạo HTML cho form thanh toán - sử dụng giá đã tính toán
         const paymentFormHtml = `
             <div id="paymentForm" style="margin-top: 20px; padding: 20px; background: rgba(255, 255, 255, 0.9); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1); backdrop-filter: blur(10px);">
                 <h4 style="color: #1e40af; margin-bottom: 20px; display: flex; align-items: center;">
@@ -40,23 +76,23 @@ window.BookingPayment = {
                             <div style="font-size: 14px; color: #374151; margin-bottom: 8px;">
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                                     <span>💰 Giá phòng/đêm:</span>
-                                    <span>2,000,000 VND</span>
+                                    <span>${roomPricePerNight.toLocaleString('vi-VN')} VND</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                                     <span>📅 Số đêm:</span>
-                                    <span>${BookingPayment.calculateNights(bookingInfo.checkIn, bookingInfo.checkOut)} đêm</span>
+                                    <span>${nights} đêm</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                                     <span>🧮 Tạm tính:</span>
-                                    <span>${(BookingPayment.calculateNights(bookingInfo.checkIn, bookingInfo.checkOut) * 2000000).toLocaleString('vi-VN')} VND</span>
+                                    <span>${subtotal.toLocaleString('vi-VN')} VND</span>
                                 </div>
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                                     <span>💸 Thuế (10%):</span>
-                                    <span>${Math.round(BookingPayment.calculateNights(bookingInfo.checkIn, bookingInfo.checkOut) * 2000000 * 0.1).toLocaleString('vi-VN')} VND</span>
+                                    <span>${tax.toLocaleString('vi-VN')} VND</span>
                                 </div>
                             </div>
                             <div style="font-size: 16px; font-weight: bold; color: #1e40af; border-top: 1px solid #d1d5db; padding-top: 8px;">
-                                💰 Tổng tiền: ${BookingPayment.calculateTotalAmount(bookingInfo.checkIn, bookingInfo.checkOut)} VND
+                                💰 Tổng tiền: ${total.toLocaleString('vi-VN')} VND
                             </div>
                         </div>
                     </div>
@@ -101,7 +137,7 @@ window.BookingPayment = {
                             Mở ứng dụng ngân hàng và quét mã QR để thanh toán
                         </p>
                         <div style="text-align: center; font-weight: bold; color: #1e40af; font-size: 16px;">
-                            Số tiền: ${BookingPayment.calculateTotalAmount(bookingInfo.checkIn, bookingInfo.checkOut)} VND
+                            Số tiền: ${total.toLocaleString('vi-VN')} VND
                         </div>
                     </div>
                     
@@ -112,7 +148,7 @@ window.BookingPayment = {
                             <div style="margin-bottom: 10px;"><strong>STK:</strong> 1234567890</div>
                             <div style="margin-bottom: 10px;"><strong>Ngân hàng:</strong> Vietcombank</div>
                             <div style="margin-bottom: 10px;"><strong>Chủ TK:</strong> Hotel Booking System</div>
-                            <div style="font-weight: bold; color: #1e40af;">Số tiền: ${BookingPayment.calculateTotalAmount(bookingInfo.checkIn, bookingInfo.checkOut)} VND</div>
+                            <div style="font-weight: bold; color: #1e40af;">Số tiền: ${total.toLocaleString('vi-VN')} VND</div>
                         </div>
                     </div>
                     
@@ -122,7 +158,7 @@ window.BookingPayment = {
                         <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0;">
                             <div style="margin-bottom: 10px;">• Circle K, FamilyMart, 7-Eleven</div>
                             <div style="margin-bottom: 10px;">• Mã thanh toán: <strong>${Math.random().toString(36).substr(2, 8).toUpperCase()}</strong></div>
-                            <div style="font-weight: bold; color: #1e40af;">Số tiền: ${BookingPayment.calculateTotalAmount(bookingInfo.checkIn, bookingInfo.checkOut)} VND</div>
+                            <div style="font-weight: bold; color: #1e40af;">Số tiền: ${total.toLocaleString('vi-VN')} VND</div>
                         </div>
                     </div>
                     
@@ -132,7 +168,7 @@ window.BookingPayment = {
                         <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0;">
                             <div style="margin-bottom: 10px;">• Visa, Mastercard, JCB</div>
                             <div style="margin-bottom: 10px;">• Bảo mật SSL 256-bit</div>
-                            <div style="font-weight: bold; color: #1e40af;">Số tiền: ${BookingPayment.calculateTotalAmount(bookingInfo.checkIn, bookingInfo.checkOut)} VND</div>
+                            <div style="font-weight: bold; color: #1e40af;">Số tiền: ${total.toLocaleString('vi-VN')} VND</div>
                         </div>
                     </div>
                 </div>
@@ -200,7 +236,18 @@ window.BookingPayment = {
 // Override confirmBooking function to use the new payment form
 window.confirmBooking = function () {
     const bookingInfo = JSON.parse(localStorage.getItem('bookingInfo') || '{}');
+    console.log('confirmBooking - bookingInfo from localStorage:', bookingInfo);
+    console.log('confirmBooking - roomPriceAmount:', bookingInfo.roomPriceAmount);
+
     if (bookingInfo.propertyId) {
+        // Đảm bảo bookingInfo có đầy đủ thông tin từ localStorage
+        if (!bookingInfo.roomPriceAmount) {
+            console.log('confirmBooking - roomPriceAmount missing, trying to get from window.currentRoomPriceAmount');
+            if (window.currentRoomPriceAmount) {
+                bookingInfo.roomPriceAmount = window.currentRoomPriceAmount;
+            }
+        }
+
         // Hiển thị form thanh toán thay vì chuyển hướng
         BookingPayment.showPaymentForm(bookingInfo);
     }
@@ -215,16 +262,50 @@ BookingPayment.calculateNights = function (checkIn, checkOut) {
     return nights > 0 ? nights : 1; // Tối thiểu 1 đêm
 };
 
-BookingPayment.calculateTotalAmountValue = function (checkIn, checkOut) {
+BookingPayment.getRoomPricePerNight = function (bookingInfo) {
+    // Lấy giá từ bookingInfo nếu có, nếu không thì dùng giá mặc định
+    if (bookingInfo) {
+        // Thử lấy từ roomPriceAmount
+        if (bookingInfo.roomPriceAmount) {
+            const price = parseFloat(bookingInfo.roomPriceAmount);
+            if (!isNaN(price) && price > 0) {
+                console.log('Using roomPriceAmount from bookingInfo:', price);
+                return price;
+            }
+        }
+        // Thử lấy từ localStorage nếu bookingInfo không có
+        const storedInfo = JSON.parse(localStorage.getItem('bookingInfo') || '{}');
+        if (storedInfo.roomPriceAmount) {
+            const price = parseFloat(storedInfo.roomPriceAmount);
+            if (!isNaN(price) && price > 0) {
+                console.log('Using roomPriceAmount from localStorage:', price);
+                return price;
+            }
+        }
+    }
+    // Fallback: thử lấy từ window.currentRoomPriceAmount nếu có
+    if (window.currentRoomPriceAmount) {
+        const price = parseFloat(window.currentRoomPriceAmount);
+        if (!isNaN(price) && price > 0) {
+            console.log('Using currentRoomPriceAmount from window:', price);
+            return price;
+        }
+    }
+    // Giá mặc định
+    console.log('Using default price: 2000000');
+    return 2000000;
+};
+
+BookingPayment.calculateTotalAmountValue = function (checkIn, checkOut, bookingInfo) {
     const nights = BookingPayment.calculateNights(checkIn, checkOut);
-    const roomPricePerNight = 2000000; // 2 triệu VND/đêm
+    const roomPricePerNight = BookingPayment.getRoomPricePerNight(bookingInfo || {});
     const subtotal = nights * roomPricePerNight;
     const tax = Math.round(subtotal * 0.1); // 10% thuế
     return subtotal + tax;
 };
 
-BookingPayment.calculateTotalAmount = function (checkIn, checkOut) {
-    return BookingPayment.calculateTotalAmountValue(checkIn, checkOut).toLocaleString('vi-VN');
+BookingPayment.calculateTotalAmount = function (checkIn, checkOut, bookingInfo) {
+    return BookingPayment.calculateTotalAmountValue(checkIn, checkOut, bookingInfo).toLocaleString('vi-VN');
 };
 
 BookingPayment.selectPaymentMethod = function (method, element) {
@@ -464,7 +545,7 @@ BookingPayment.sendConfirmationEmail = function (bookingInfo, bookingId) {
         propertyName: bookingInfo.propertyName || '',
         roomName: bookingInfo.roomName || '',
         specialRequests: bookingInfo.specialRequests || '',
-        totalAmount: BookingPayment.calculateTotalAmountValue(bookingInfo.checkIn, bookingInfo.checkOut).toString()
+        totalAmount: BookingPayment.calculateTotalAmountValue(bookingInfo.checkIn, bookingInfo.checkOut, bookingInfo).toString()
     };
 
     fetch('/Chat/SendBookingConfirmationEmail', {
@@ -614,6 +695,8 @@ BookingPayment.showBookingSuccess = function (bookingInfo) {
 
 // Tạo và tải hóa đơn PDF
 BookingPayment.downloadInvoice = function (bookingId, fullName, checkIn, checkOut, guests) {
+    // Lấy bookingInfo từ localStorage
+    const bookingInfo = JSON.parse(localStorage.getItem('bookingInfo') || '{}');
     // Tạo nội dung HTML cho PDF
     const invoiceHtml = `
         <!DOCTYPE html>
@@ -686,8 +769,8 @@ BookingPayment.downloadInvoice = function (bookingId, fullName, checkIn, checkOu
                     <div class="section-title">💰 Chi tiết thanh toán</div>
                     <div class="summary">
                         <div class="info-row">
-                            <div class="info-label">Giá phòng/đêm:</div>
-                            <div class="info-value">2,000,000 VND</div>
+                            <div class="info-label">Giá phòng/đêm 123:</div>
+                            <div class="info-value">${BookingPayment.getRoomPricePerNight(bookingInfo || {}).toLocaleString('vi-VN')} VND</div>
                         </div>
                         <div class="info-row">
                             <div class="info-label">Số đêm:</div>
@@ -695,14 +778,14 @@ BookingPayment.downloadInvoice = function (bookingId, fullName, checkIn, checkOu
                         </div>
                         <div class="info-row">
                             <div class="info-label">Tạm tính:</div>
-                            <div class="info-value">${(BookingPayment.calculateNights(checkIn, checkOut) * 2000000).toLocaleString('vi-VN')} VND</div>
+                            <div class="info-value">${(BookingPayment.calculateNights(checkIn, checkOut) * BookingPayment.getRoomPricePerNight(bookingInfo || {})).toLocaleString('vi-VN')} VND</div>
                         </div>
                         <div class="info-row">
                             <div class="info-label">Thuế (10%):</div>
-                            <div class="info-value">${Math.round(BookingPayment.calculateNights(checkIn, checkOut) * 2000000 * 0.1).toLocaleString('vi-VN')} VND</div>
+                            <div class="info-value">${Math.round(BookingPayment.calculateNights(checkIn, checkOut) * BookingPayment.getRoomPricePerNight(bookingInfo || {}) * 0.1).toLocaleString('vi-VN')} VND</div>
                         </div>
                         <div class="total">
-                            Tổng tiền: ${BookingPayment.calculateTotalAmount(checkIn, checkOut)} VND
+                            Tổng tiền: ${BookingPayment.calculateTotalAmount(checkIn, checkOut, bookingInfo)} VND
                         </div>
                     </div>
                 </div>

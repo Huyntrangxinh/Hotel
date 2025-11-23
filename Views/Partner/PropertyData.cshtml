@@ -394,7 +394,7 @@
                     </div>
                     <div class="card-body py-3">
                         <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" asp-for="StarRating" value="" id="no-rating">
+                            <input class="form-check-input" type="radio" name="StarRating" value="" id="no-rating" @(Model.StarRating == null ? "checked" : "")>
                             <label class="form-check-label" for="no-rating">@Localizer["NoRating"]</label>
                         </div>
                         <div class="row g-2">
@@ -402,8 +402,8 @@
                             {
                                 <div class="col-6 col-md-2">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="radio" asp-for="StarRating" value="@i"
-                                            id="rating-@i">
+                                        <input class="form-check-input" type="radio" name="StarRating" value="@i"
+                                            id="rating-@i" @(Model.StarRating == i ? "checked" : "")>
                                         <label class="form-check-label" for="rating-@i">
                                             @for (int j = 1; j <= i; j++)
                                             {
@@ -595,28 +595,56 @@
                                 sách phòng của bạn. Bạn có thể thay đổi cài đặt này sau trong TERA.</small>
                         </div>
                         <div class="col-lg-8">
-                            @if (Model.PricePackage != null)
+                            @{
+                                var allPricePackagesList = ViewBag.AllPricePackages as List<HotelBooking.Models.PricePackage> ?? new List<HotelBooking.Models.PricePackage>();
+                            }
+                            
+                            @if (allPricePackagesList.Any())
                             {
-                                var policyDesc = Model.PricePackage.CancellationPolicy switch
+                                <div class="price-summary-wrapper d-flex flex-column gap-3">
+                                    @foreach (var pkg in allPricePackagesList)
+                                    {
+                                        var policyDesc = pkg.CancellationPolicy switch
                                 {
                                     "refund_1" => "Khách có thể được hoàn tiền cho đến 1 ngày trước ngày làm thủ tục nhận phòng (trước 14:00). Sau thời điểm đó, phí hủy phòng áp dụng là giá 1 đêm trong tổng số đêm lưu trú. Khách không đến sẽ bị tính phí 100% số tiền đặt phòng.",
                                     "refund_3" => "Khách có thể được hoàn tiền cho đến 3 ngày trước ngày làm thủ tục nhận phòng (trước 14:00). Sau thời điểm đó, phí hủy phòng áp dụng là giá 1 đêm trong tổng số đêm lưu trú. Khách không đến sẽ bị tính phí 100% số tiền đặt phòng.",
                                     "refund_7" => "Khách có thể được hoàn tiền cho đến 7 ngày trước ngày làm thủ tục nhận phòng (trước 14:00). Sau thời điểm đó, phí hủy phòng áp dụng là giá 1 đêm trong tổng số đêm lưu trú. Khách không đến sẽ bị tính phí 100% số tiền đặt phòng.",
                                     _ => "Nếu khách hủy đặt phòng bất kỳ lúc nào, họ sẽ bị tính phí 100% số tiền đặt phòng. Nếu họ chưa từng đến nhận phòng (Vắng mặt), họ sẽ bị tính phí 100% số tiền đặt phòng."
                                 };
-                                var breakfastText = ($"{Model.PricePackage.BreakfastDisplayName} bữa sáng");
-
-                                <div class="price-summary-wrapper d-flex flex-column gap-3">
-                                    <div class="summary-card rounded-3 p-3">
-                                        <div class="fw-bold mb-2">@Model.PricePackage.CancellationPolicyDisplayName</div>
-                                        <div class="text-muted">@policyDesc</div>
-                                    </div>
-                                    <div class="summary-card rounded-3 p-3">
+                                        var breakfastText = $"{pkg.BreakfastDisplayName} bữa sáng";
+                                        
+                                        <div class="summary-card rounded-3 p-3 position-relative">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div class="flex-grow-1">
+                                                    <div class="fw-bold mb-2">@pkg.CancellationPolicyDisplayName</div>
+                                                    <div class="text-muted mb-2">@policyDesc</div>
                                         <div class="fw-bold">@breakfastText</div>
                                     </div>
+                                                <div class="d-flex gap-2">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary edit-price-package-btn" 
+                                                            data-package-id="@pkg.Id"
+                                                            data-cancellation-policy="@pkg.CancellationPolicy"
+                                                            data-breakfast-included="@pkg.BreakfastIncluded.ToString().ToLower()"
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#createPricePackageModal"
+                                                            title="Chỉnh sửa">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                    <form asp-action="DeletePricePackage" method="post" style="display: inline;" onsubmit="return confirm('Bạn có chắc muốn xóa gói giá này?');">
+                                                        <input type="hidden" name="propertyId" value="@Model.PropertyId" />
+                                                        <input type="hidden" name="packageId" value="@pkg.Id" />
+                                                        <input type="hidden" name="returnTab" value="pricing" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
                                     <div class="text-end">
-                                        <button class="btn btn-link text-decoration-none" data-bs-toggle="modal" data-bs-target="#createPricePackageModal">
-                                            <i class="bi bi-pencil me-2"></i>Thay đổi Gói giá
+                                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createPricePackageModal">
+                                            <i class="bi bi-plus-lg me-1"></i> Tạo gói giá mới
                                         </button>
                                     </div>
                                 </div>
@@ -639,7 +667,11 @@
 
                     <hr class="my-4" />
 
-                    @{ var priceMap = ViewBag.RoomPriceMap as Dictionary<int, decimal> ?? new Dictionary<int, decimal>(); }
+                    @{ 
+                        var priceMap = ViewBag.RoomPriceMapLegacy as Dictionary<int, decimal> ?? new Dictionary<int, decimal>();
+                        var allPricePackages = ViewBag.AllPricePackages as List<HotelBooking.Models.PricePackage> ?? new List<HotelBooking.Models.PricePackage>();
+                        var roomPriceMap = ViewBag.RoomPriceMap as Dictionary<int, List<HotelBooking.Models.RoomPrice>> ?? new Dictionary<int, List<HotelBooking.Models.RoomPrice>>();
+                    }
 
                     <div class="row g-4 align-items-start mb-2">
                         <div class="col-lg-4">
@@ -655,13 +687,60 @@
                                     <i class="bi bi-calendar3 me-1"></i> Lịch giá & phòng trống
                                 </a>
                             </div>
-                            <form asp-action="SaveRoomPrices" method="post" class="d-flex flex-column gap-3">
+                            <form asp-action="SaveRoomPrices" method="post" class="d-flex flex-column gap-3" id="roomPricesForm">
                                 <input type="hidden" name="propertyId" value="@Model.PropertyId" />
                         @foreach (var r in Model.Rooms)
                         {
                             var current = priceMap.ContainsKey(r.Id) ? priceMap[r.Id] : 0m;
-                            <div class="card room-card shadow-sm border-0" style="background-color: #F7F8FB;">
+                            var roomPrices = roomPriceMap.ContainsKey(r.Id) ? roomPriceMap[r.Id] : new List<HotelBooking.Models.RoomPrice>();
+                            
+                            // Nếu chưa có RoomPrice nào, tạo một card mặc định
+                            if (!roomPrices.Any())
+                            {
+                                roomPrices.Add(new HotelBooking.Models.RoomPrice { RoomId = r.Id, Amount = current, PricePackageId = Model.PricePackage?.Id });
+                            }
+                            
+                            <div class="room-prices-container" data-room-id="@r.Id">
+                                @foreach (var roomPrice in roomPrices)
+                                {
+                                    var pricePackageId = roomPrice.PricePackageId ?? Model.PricePackage?.Id;
+                                    var selectedPackage = allPricePackages.FirstOrDefault(p => p.Id == pricePackageId);
+                                    var priceValue = roomPrice.Amount;
+                                    
+                                    <div class="card room-price-card shadow-sm border-0 mb-3" style="background-color: #F7F8FB;" data-price-id="@roomPrice.Id" data-room-id="@r.Id">
                                 <div class="card-body py-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <label class="form-label mb-0 fw-semibold">Gói giá:</label>
+                                                    <select class="form-select form-select-sm price-package-select" name="pricePackages[@r.Id][]" style="max-width: 300px;" data-room-id="@r.Id">
+                                                        <option value="">-- Chọn gói giá --</option>
+                                                        @foreach (var pkg in allPricePackages)
+                                                        {
+                                                            var isSelected = pkg.Id == pricePackageId;
+                                                            if (isSelected)
+                                                            {
+                                                                <option value="@pkg.Id" selected="selected">
+                                                                    @pkg.CancellationPolicyDisplayName - @(pkg.BreakfastIncluded ? "Có bữa sáng" : "Không bữa sáng")
+                                                                </option>
+                                                            }
+                                                            else
+                                                            {
+                                                                <option value="@pkg.Id">
+                                                                    @pkg.CancellationPolicyDisplayName - @(pkg.BreakfastIncluded ? "Có bữa sáng" : "Không bữa sáng")
+                                                                </option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                </div>
+                                                <div class="d-flex gap-2">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary copy-price-card-btn" data-room-id="@r.Id" title="Sao chép">
+                                                        <i class="bi bi-files"></i> Sao chép
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger delete-price-card-btn" data-room-id="@r.Id" title="Xóa">
+                                                        <i class="bi bi-trash"></i> Xóa
+                                                    </button>
+                                                </div>
+                                            </div>
                                     <div class="row g-3">
                                         <div class="col-md-6">
                                             <!-- Header với tên phòng -->
@@ -742,24 +821,25 @@
                                                 <label class="form-label mb-1 fw-semibold">Giá phòng</label>
                                                 <div class="input-group input-group-sm" style="max-width: 260px;" data-min="@(r.SecurityDeposit ?? 0)">
                                                     <span class="input-group-text">VND</span>
-                                                    <input type="text" class="form-control price-input" inputmode="numeric" autocomplete="off" placeholder="0" data-room-id="@r.Id" value="@String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:N0}", current)" />
-                                                    <input type="hidden" name="prices[@r.Id]" value="@current" />
+                                                            <input type="text" class="form-control price-input" inputmode="numeric" autocomplete="off" placeholder="0" data-room-id="@r.Id" value="@String.Format(new System.Globalization.CultureInfo("vi-VN"), "{0:N0}", priceValue)" />
+                                                            <input type="hidden" name="prices[@r.Id][]" value="@priceValue" />
+                                                            <input type="hidden" name="priceIds[@r.Id][]" value="@roomPrice.Id" />
                                                 </div>
                                                 <div class="invalid-feedback d-block mt-1" style="display:none;">Phải cao hơn giá trị bảo vệ giá</div>
                                             </div>
-                                            <div class="summary-card rounded-3 p-3">
-                                                <div class="fw-bold mb-1">@Model.PricePackage?.CancellationPolicyDisplayName</div>
-                                                @if (Model.PricePackage != null)
+                                                    <div class="summary-card rounded-3 p-3 price-package-info" data-package-id="@pricePackageId">
+                                                        @if (selectedPackage != null)
                                                 {
-                                                    var localDesc = Model.PricePackage.CancellationPolicy switch
+                                                            var localDesc = selectedPackage.CancellationPolicy switch
                                                     {
                                                         "refund_1" => "Khách có thể được hoàn tiền cho đến 1 ngày trước ngày làm thủ tục nhận phòng (trước 14:00).",
                                                         "refund_3" => "Khách có thể được hoàn tiền cho đến 3 ngày trước ngày làm thủ tục nhận phòng (trước 14:00).",
                                                         "refund_7" => "Khách có thể được hoàn tiền cho đến 7 ngày trước ngày làm thủ tục nhận phòng (trước 14:00).",
                                                         _ => "Không thể hoàn tiền"
                                                     };
+                                                            <div class="fw-bold mb-1">@selectedPackage.CancellationPolicyDisplayName</div>
                                                     <div class="text-muted">@localDesc</div>
-                                                    <div class="text-muted mt-2">@(Model.PricePackage.BreakfastIncluded ? "Breakfast included" : "Breakfast not included")</div>
+                                                            <div class="text-muted mt-2">@(selectedPackage.BreakfastIncluded ? "Breakfast included" : "Breakfast not included")</div>
                                                 }
                                                 else
                                                 {
@@ -769,6 +849,8 @@
                                         </div>
                                     </div>
                                 </div>
+                                    </div>
+                                }
                             </div>
                         }
 
@@ -925,8 +1007,8 @@
                 const amenityCheckboxes = document.querySelectorAll('.amenities-container input[type="checkbox"]');
 
                 if (!selectAllAmenities || amenityCheckboxes.length === 0) {
-                    return;
-                }
+                            return;
+                        }
 
                 const updateSelectAllState = () => {
                     const total = amenityCheckboxes.length;
@@ -956,6 +1038,200 @@
                 });
 
                 updateSelectAllState();
+            });
+
+            // Price Package Management
+            document.addEventListener('DOMContentLoaded', function () {
+                // Price package data from server
+                @{
+                    var pricePackagesJson = System.Text.Json.JsonSerializer.Serialize(
+                        allPricePackages.Select(p => new {
+                            Id = p.Id,
+                            CancellationPolicy = p.CancellationPolicy,
+                            CancellationPolicyDisplayName = p.CancellationPolicyDisplayName,
+                            BreakfastIncluded = p.BreakfastIncluded
+                        })
+                    );
+                }
+                const pricePackages = @Html.Raw(pricePackagesJson);
+
+                // Use event delegation for copy button to handle dynamically added cards
+                document.addEventListener('click', function(e) {
+                    if (e.target.closest('.copy-price-card-btn')) {
+                        const btn = e.target.closest('.copy-price-card-btn');
+                        const roomId = parseInt(btn.getAttribute('data-room-id'));
+                        const originalCard = btn.closest('.room-price-card');
+                        const container = originalCard.closest('.room-prices-container');
+                        
+                        // Clone the card
+                        const newCard = originalCard.cloneNode(true);
+                        newCard.removeAttribute('data-price-id'); // Remove price ID for new card
+                        
+                        // Update form inputs in cloned card
+                        const priceInput = newCard.querySelector('.price-input');
+                        const hiddenPriceInput = newCard.querySelector('input[type="hidden"][name^="prices"]');
+                        const hiddenPriceIdInput = newCard.querySelector('input[type="hidden"][name^="priceIds"]');
+                        const packageSelect = newCard.querySelector('.price-package-select');
+                        const packageInfo = newCard.querySelector('.price-package-info');
+                        
+                        // Clear price values
+                        if (priceInput) {
+                            priceInput.value = '';
+                            priceInput.setAttribute('data-room-id', roomId);
+                        }
+                        if (hiddenPriceInput) {
+                            hiddenPriceInput.value = '0';
+                        }
+                        if (hiddenPriceIdInput) {
+                            hiddenPriceIdInput.value = '0'; // 0 means new price
+                        }
+                        if (packageSelect) {
+                            packageSelect.value = '';
+                            packageSelect.setAttribute('data-room-id', roomId);
+                        }
+                        if (packageInfo) {
+                            packageInfo.setAttribute('data-package-id', '');
+                            packageInfo.innerHTML = '<div class="text-muted">Chưa thiết lập gói giá</div>';
+                        }
+                        
+                        // Insert after original card
+                        container.insertBefore(newCard, originalCard.nextSibling);
+                        
+                        // Re-attach event listeners
+                        attachPriceCardEvents(newCard, roomId);
+                    }
+                    
+                    // Handle delete button
+                    if (e.target.closest('.delete-price-card-btn')) {
+                        const btn = e.target.closest('.delete-price-card-btn');
+                        const card = btn.closest('.room-price-card');
+                        const container = card.closest('.room-prices-container');
+                        const roomId = parseInt(container.getAttribute('data-room-id'));
+                        
+                        // Check if this is the last card for this room
+                        const allCards = container.querySelectorAll('.room-price-card');
+                        if (allCards.length <= 1) {
+                            alert('Không thể xóa card cuối cùng. Mỗi phòng phải có ít nhất một gói giá.');
+                            return;
+                        }
+                        
+                        if (confirm('Bạn có chắc muốn xóa gói giá này?')) {
+                            card.remove();
+                        }
+                    }
+                });
+
+                // Attach events to price package select dropdowns
+                function attachPriceCardEvents(card, roomId) {
+                    const packageSelect = card.querySelector('.price-package-select');
+                    const packageInfo = card.querySelector('.price-package-info');
+                    
+                    if (packageSelect && packageInfo) {
+                        packageSelect.addEventListener('change', function () {
+                            const packageId = parseInt(this.value);
+                            const selectedPackage = pricePackages.find(p => p.Id === packageId);
+                            
+                            if (selectedPackage) {
+                                packageInfo.setAttribute('data-package-id', packageId);
+                                
+                                let localDesc = '';
+                                switch (selectedPackage.CancellationPolicy) {
+                                    case 'refund_1':
+                                        localDesc = 'Khách có thể được hoàn tiền cho đến 1 ngày trước ngày làm thủ tục nhận phòng (trước 14:00).';
+                                        break;
+                                    case 'refund_3':
+                                        localDesc = 'Khách có thể được hoàn tiền cho đến 3 ngày trước ngày làm thủ tục nhận phòng (trước 14:00).';
+                                        break;
+                                    case 'refund_7':
+                                        localDesc = 'Khách có thể được hoàn tiền cho đến 7 ngày trước ngày làm thủ tục nhận phòng (trước 14:00).';
+                                        break;
+                                    default:
+                                        localDesc = 'Không thể hoàn tiền';
+                                }
+                                
+                                packageInfo.innerHTML = `
+                                    <div class="fw-bold mb-1">${selectedPackage.CancellationPolicyDisplayName}</div>
+                                    <div class="text-muted">${localDesc}</div>
+                                    <div class="text-muted mt-2">${selectedPackage.BreakfastIncluded ? 'Breakfast included' : 'Breakfast not included'}</div>
+                                `;
+                        } else {
+                                packageInfo.setAttribute('data-package-id', '');
+                                packageInfo.innerHTML = '<div class="text-muted">Chưa thiết lập gói giá</div>';
+                            }
+                        });
+                    }
+                    // Note: Copy button is handled by event delegation above, no need to attach here
+                }
+
+                // Initialize events for existing cards
+                document.querySelectorAll('.room-price-card').forEach(card => {
+                    const roomId = parseInt(card.getAttribute('data-room-id'));
+                    attachPriceCardEvents(card, roomId);
+                });
+
+                // Update hidden inputs before form submission
+                const roomPricesForm = document.getElementById('roomPricesForm');
+                if (roomPricesForm) {
+                    roomPricesForm.addEventListener('submit', function(e) {
+                        // Update all price inputs and priceIds
+                        // IMPORTANT: Process cards in order to maintain correct index mapping
+                        const allCards = Array.from(document.querySelectorAll('.room-price-card'));
+                        allCards.forEach((card, cardIndex) => {
+                            const roomId = parseInt(card.getAttribute('data-room-id'));
+                            const priceId = card.getAttribute('data-price-id');
+                            const priceInput = card.querySelector('.price-input');
+                            const packageSelect = card.querySelector('.price-package-select');
+                            
+                            if (priceInput) {
+                                // Get the numeric value from the formatted input
+                                const rawValue = priceInput.value.replace(/[^0-9]/g, '');
+                                const numericValue = rawValue === '' ? '0' : rawValue;
+                                
+                                // Remove all existing hidden price inputs for this card to avoid duplicates
+                                const existingPriceInputs = card.querySelectorAll('input[type="hidden"][name^="prices"]');
+                                existingPriceInputs.forEach(input => input.remove());
+                                
+                                // Create a single hidden price input
+                                const hiddenPriceInputNew = document.createElement('input');
+                                hiddenPriceInputNew.type = 'hidden';
+                                hiddenPriceInputNew.name = `prices[${roomId}][]`;
+                                hiddenPriceInputNew.value = numericValue;
+                                card.querySelector('.card-body').appendChild(hiddenPriceInputNew);
+                            }
+                            
+                            // Remove all existing hidden priceId inputs for this card to avoid duplicates
+                            const existingPriceIdInputs = card.querySelectorAll('input[type="hidden"][name^="priceIds"]');
+                            existingPriceIdInputs.forEach(input => input.remove());
+                            
+                            // Create a single hidden priceId input
+                            const hiddenPriceIdInputNew = document.createElement('input');
+                            hiddenPriceIdInputNew.type = 'hidden';
+                            hiddenPriceIdInputNew.name = `priceIds[${roomId}][]`;
+                            hiddenPriceIdInputNew.value = priceId ? priceId : '0';
+                            card.querySelector('.card-body').appendChild(hiddenPriceIdInputNew);
+                            
+                            if (packageSelect) {
+                                // Remove all existing hidden package inputs for this card to avoid duplicates
+                                const existingPackageInputs = card.querySelectorAll('input[type="hidden"][name^="pricePackages"]');
+                                existingPackageInputs.forEach(input => input.remove());
+                                
+                                // Create a single hidden package input
+                                const hiddenPackageInput = document.createElement('input');
+                                hiddenPackageInput.type = 'hidden';
+                                hiddenPackageInput.name = `pricePackages[${roomId}][]`;
+                                hiddenPackageInput.value = packageSelect.value || '';
+                                card.querySelector('.card-body').appendChild(hiddenPackageInput);
+                            }
+                        });
+                        
+                        // QUAN TRỌNG: Xóa name của tất cả select boxes để tránh duplicate trong FormData
+                        // Select boxes có name="pricePackages[18][]" sẽ gửi giá trị cùng với hidden inputs
+                        const allPackageSelects = roomPricesForm.querySelectorAll('select.price-package-select[name^="pricePackages"]');
+                        allPackageSelects.forEach((select) => {
+                            select.removeAttribute('name');
+                        });
+                    });
+                }
             });
         </script>
     }
@@ -2357,9 +2633,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
-            <form asp-action="CreatePricePackage" method="post">
+            <form asp-action="CreatePricePackage" method="post" id="pricePackageForm">
                 <input type="hidden" name="PropertyId" value="@Model.PropertyId" />
                 <input type="hidden" name="ReturnTab" value="pricing" />
+                <input type="hidden" name="PackageId" id="editPackageId" value="" />
                 
                 <div class="modal-body">
                     <div class="row">
@@ -2466,4 +2743,62 @@ function selectCancellationPolicy(value) {
     // Check the radio button
     document.getElementById(value).checked = true;
 }
+
+// Handle edit price package button
+document.addEventListener('DOMContentLoaded', function() {
+    const editButtons = document.querySelectorAll('.edit-price-package-btn');
+    const modal = document.getElementById('createPricePackageModal');
+    const form = document.getElementById('pricePackageForm');
+    const packageIdInput = document.getElementById('editPackageId');
+    const modalTitle = modal.querySelector('.modal-title');
+    
+    editButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const packageId = this.getAttribute('data-package-id');
+            const cancellationPolicy = this.getAttribute('data-cancellation-policy');
+            const breakfastIncluded = this.getAttribute('data-breakfast-included') === 'true';
+            
+            // Set package ID for edit mode
+            packageIdInput.value = packageId;
+            
+            // Update modal title
+            modalTitle.textContent = 'Chỉnh sửa Gói giá';
+            
+            // Select the cancellation policy radio button
+            if (cancellationPolicy) {
+                const policyRadio = document.getElementById(cancellationPolicy);
+                if (policyRadio) {
+                    policyRadio.checked = true;
+                    // Trigger click on the option to show selected state
+                    const option = policyRadio.closest('.price-package-option');
+                    if (option) {
+                        document.querySelectorAll('.price-package-option').forEach(opt => {
+                            opt.classList.remove('selected');
+                        });
+                        option.classList.add('selected');
+                    }
+                }
+            }
+            
+            // Select the breakfast radio button
+            if (breakfastIncluded) {
+                document.getElementById('breakfast_included').checked = true;
+            } else {
+                document.getElementById('breakfast_not_included').checked = true;
+            }
+        });
+    });
+    
+    // Reset modal when closed (for create mode)
+    modal.addEventListener('hidden.bs.modal', function() {
+        packageIdInput.value = '';
+        modalTitle.textContent = 'Gói giá';
+        // Reset form
+        form.reset();
+        // Clear selected classes
+        document.querySelectorAll('.price-package-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+    });
+});
 </script>

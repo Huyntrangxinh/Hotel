@@ -1,0 +1,194 @@
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = "Chi tiết đặt chỗ";
+    var booking = ViewBag.Booking as HotelBooking.Models.Booking;
+    var property = ViewBag.Property as HotelBooking.Models.Property;
+    var room = ViewBag.Room as HotelBooking.Models.Room;
+}
+
+@if (booking == null)
+{
+    <div class="container py-4">
+        <div class="alert alert-danger">Không tìm thấy đặt chỗ</div>
+    </div>
+}
+else
+{
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">Chi tiết đặt chỗ</h1>
+            <a href="@Url.Action("MyBookings", "Booking")" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Quay lại
+            </a>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Booking Information Card -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Thông tin đặt chỗ</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="text-muted small">Mã đặt chỗ</label>
+                                    <div class="fw-bold text-primary fs-5">@booking.BookingCode</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="text-muted small">Trạng thái</label>
+                                    <div>
+                                        @{
+                                            var statusClass = booking.Status switch
+                                            {
+                                                HotelBooking.Models.BookingStatus.Confirmed => "success",
+                                                HotelBooking.Models.BookingStatus.Pending => "warning",
+                                                HotelBooking.Models.BookingStatus.Cancelled => "danger",
+                                                _ => "secondary"
+                                            };
+                                            var statusText = booking.Status switch
+                                            {
+                                                HotelBooking.Models.BookingStatus.Confirmed => "Đã xác nhận",
+                                                HotelBooking.Models.BookingStatus.Pending => "Đang chờ",
+                                                HotelBooking.Models.BookingStatus.Cancelled => "Đã hủy",
+                                                _ => booking.Status.ToString()
+                                            };
+                                        }
+                                        <span class="badge bg-@statusClass">@statusText</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="text-muted small">Ngày nhận phòng</label>
+                                <div class="fw-bold">@booking.CheckIn.ToString("dd/MM/yyyy")</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Ngày trả phòng</label>
+                                <div class="fw-bold">@booking.CheckOut.ToString("dd/MM/yyyy")</div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="text-muted small">Số đêm</label>
+                                <div class="fw-bold">@booking.TotalNights đêm</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Số khách</label>
+                                <div class="fw-bold">@booking.Guests người</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Information Card -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-building me-2"></i>Thông tin khách sạn</h5>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="mb-2">@(property?.Name ?? "Khách sạn")</h5>
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-geo-alt"></i> @(property?.AddressLine ?? ""), @(property?.City ?? "")
+                        </p>
+                        <p class="mb-0">
+                            <i class="bi bi-door-open"></i> <strong>@(room?.Name ?? "Phòng")</strong>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Guest Information Card -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-person me-2"></i>Thông tin khách hàng</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small">Họ tên</label>
+                                <div class="fw-bold">@booking.FullName</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small">Tên khách</label>
+                                <div class="fw-bold">@booking.GuestName</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small">Email</label>
+                                <div>@booking.Email</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small">Số điện thoại</label>
+                                <div>@booking.PhoneNumber</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- Price Summary Card -->
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="bi bi-cash-coin me-2"></i>Tổng thanh toán</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Giá phòng (@booking.TotalNights đêm)</span>
+                                <span>@((booking.PricePerNight * booking.TotalNights).ToString("N0")) VND</span>
+                            </div>
+                            @if (booking.DiscountAmount > 0)
+                            {
+                                <div class="d-flex justify-content-between mb-2 text-success">
+                                    <span>Giảm giá (@booking.DiscountCode)</span>
+                                    <span>-@booking.DiscountAmount.ToString("N0") VND</span>
+                                </div>
+                            }
+                            <hr />
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold">Tổng cộng</span>
+                                <span class="fw-bold text-primary fs-5">@booking.TotalPrice.ToString("N0") VND</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions Card -->
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        @if (booking.Status == HotelBooking.Models.BookingStatus.Confirmed && booking.CheckIn > DateTime.Now)
+                        {
+                            <button type="button" class="btn btn-danger w-100 mb-2" onclick="cancelBooking(@booking.Id)">
+                                <i class="bi bi-x-circle me-2"></i>Hủy đặt chỗ
+                            </button>
+                        }
+                        <a href="@Url.Action("MyBookings", "Booking")" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-arrow-left me-2"></i>Quay lại danh sách
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        function cancelBooking(bookingId) {
+            if (confirm('Bạn có chắc muốn hủy đặt chỗ này?')) {
+                // TODO: Implement cancel booking logic
+                alert('Tính năng hủy đặt chỗ đang được phát triển');
+            }
+        }
+    </script>
+}
+

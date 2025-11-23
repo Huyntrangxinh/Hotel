@@ -1,0 +1,243 @@
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = "Đánh giá khách sạn";
+    var booking = ViewBag.Booking as HotelBooking.Models.Booking;
+    var property = ViewBag.Property as HotelBooking.Models.Property;
+    var room = ViewBag.Room as HotelBooking.Models.Room;
+}
+
+@if (booking == null || property == null)
+{
+    <div class="container py-4">
+        <div class="alert alert-danger">Không tìm thấy thông tin đặt chỗ</div>
+    </div>
+}
+else
+{
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-warning text-dark">
+                        <h4 class="mb-0"><i class="bi bi-star me-2"></i>Đánh giá khách sạn</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Booking Info -->
+                        <div class="mb-4 p-3 bg-light rounded">
+                            <h5 class="mb-2">@property.Name</h5>
+                            <p class="text-muted mb-1">
+                                <i class="bi bi-geo-alt"></i> @property.City
+                            </p>
+                            <p class="text-muted mb-1">
+                                <i class="bi bi-door-open"></i> @(room?.Name ?? "Phòng")
+                            </p>
+                            <p class="text-muted mb-0 small">
+                                <i class="bi bi-calendar"></i> @booking.CheckIn.ToString("dd/MM/yyyy") - @booking.CheckOut.ToString("dd/MM/yyyy")
+                            </p>
+                        </div>
+
+                        <form method="post" asp-action="Review">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="bookingId" value="@booking.Id" />
+
+                            <!-- Overall Rating -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Đánh giá tổng thể <span class="text-danger">*</span></label>
+                                <div class="rating-input mb-2">
+                                    @for (int i = 5; i >= 1; i--)
+                                    {
+                                        <input type="radio" name="rating" id="rating@i" value="@i" required />
+                                        <label for="rating@i" class="star-label">
+                                            <i class="bi bi-star"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                        </label>
+                                    }
+                                </div>
+                                <div class="rating-text text-muted small"></div>
+                            </div>
+
+                            <!-- Sub-ratings -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Đánh giá chi tiết</label>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Độ sạch sẽ</label>
+                                    <div class="rating-input-small">
+                                        @for (int i = 5; i >= 1; i--)
+                                        {
+                                            <input type="radio" name="cleanlinessRating" id="clean@i" value="@i" />
+                                            <label for="clean@i" class="star-label-small">
+                                                <i class="bi bi-star"></i>
+                                                <i class="bi bi-star-fill"></i>
+                                            </label>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Dịch vụ</label>
+                                    <div class="rating-input-small">
+                                        @for (int i = 5; i >= 1; i--)
+                                        {
+                                            <input type="radio" name="serviceRating" id="service@i" value="@i" />
+                                            <label for="service@i" class="star-label-small">
+                                                <i class="bi bi-star"></i>
+                                                <i class="bi bi-star-fill"></i>
+                                            </label>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Giá trị</label>
+                                    <div class="rating-input-small">
+                                        @for (int i = 5; i >= 1; i--)
+                                        {
+                                            <input type="radio" name="valueRating" id="value@i" value="@i" />
+                                            <label for="value@i" class="star-label-small">
+                                                <i class="bi bi-star"></i>
+                                                <i class="bi bi-star-fill"></i>
+                                            </label>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Vị trí</label>
+                                    <div class="rating-input-small">
+                                        @for (int i = 5; i >= 1; i--)
+                                        {
+                                            <input type="radio" name="locationRating" id="location@i" value="@i" />
+                                            <label for="location@i" class="star-label-small">
+                                                <i class="bi bi-star"></i>
+                                                <i class="bi bi-star-fill"></i>
+                                            </label>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Comment -->
+                            <div class="mb-4">
+                                <label for="comment" class="form-label fw-bold">Nhận xét của bạn</label>
+                                <textarea class="form-control" id="comment" name="comment" rows="5" 
+                                          placeholder="Chia sẻ trải nghiệm của bạn về khách sạn này..."></textarea>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle me-2"></i>Gửi đánh giá
+                                </button>
+                                <a href="@Url.Action("MyBookings", "Booking")" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle me-2"></i>Hủy
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .rating-input {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        gap: 5px;
+    }
+
+    .rating-input input[type="radio"] {
+        display: none;
+    }
+
+    .rating-input label {
+        font-size: 2rem;
+        color: #ddd;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .rating-input label:hover,
+    .rating-input label:hover ~ label,
+    .rating-input input[type="radio"]:checked ~ label {
+        color: #ffc107;
+    }
+
+    .rating-input label .bi-star-fill {
+        display: none;
+    }
+
+    .rating-input input[type="radio"]:checked ~ label .bi-star {
+        display: none;
+    }
+
+    .rating-input input[type="radio"]:checked ~ label .bi-star-fill {
+        display: inline;
+    }
+
+    .rating-input-small {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        gap: 3px;
+    }
+
+    .rating-input-small input[type="radio"] {
+        display: none;
+    }
+
+    .rating-input-small label {
+        font-size: 1.2rem;
+        color: #ddd;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .rating-input-small label:hover,
+    .rating-input-small label:hover ~ label,
+    .rating-input-small input[type="radio"]:checked ~ label {
+        color: #ffc107;
+    }
+
+    .rating-input-small label .bi-star-fill {
+        display: none;
+    }
+
+    .rating-input-small input[type="radio"]:checked ~ label .bi-star {
+        display: none;
+    }
+
+    .rating-input-small input[type="radio"]:checked ~ label .bi-star-fill {
+        display: inline;
+    }
+
+    .rating-text {
+        margin-top: 8px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // Update rating text
+        const ratingInputs = document.querySelectorAll('.rating-input input[type="radio"]');
+        const ratingText = document.querySelector('.rating-text');
+        const ratingLabels = {
+            1: 'Rất tệ',
+            2: 'Tệ',
+            3: 'Bình thường',
+            4: 'Tốt',
+            5: 'Tuyệt vời'
+        };
+
+        ratingInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                ratingText.textContent = ratingLabels[this.value] || '';
+            });
+        });
+    </script>
+}
+

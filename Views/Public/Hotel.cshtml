@@ -1469,6 +1469,34 @@
 
                 <!-- Amenities -->
                 <div class="amenities-grid mb-4">
+                    @if (ViewBag.PropertyAmenities != null && ((List<(string Name, string Icon, string LocalizerKey)>)ViewBag.PropertyAmenities).Count > 0)
+                    {
+                        @foreach (var amenity in (List<(string Name, string Icon, string LocalizerKey)>)ViewBag.PropertyAmenities)
+                        {
+                            <div class="amenity-item">
+                                <i class="bi @amenity.Icon"></i>
+                                @{
+                                    string displayText = amenity.Name;
+                                    try
+                                    {
+                                        var localized = Localizer[amenity.LocalizerKey];
+                                        if (localized != null && !string.IsNullOrEmpty(localized.Value))
+                                        {
+                                            displayText = localized.Value;
+                                        }
+                                    }
+                                    catch
+                                    {
+                                        // Use Name if localization fails
+                                    }
+                                }
+                                <span>@displayText</span>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <!-- Fallback: Show default amenities if no PropertyData amenities -->
                     <div class="amenity-item">
                         <i class="bi bi-water"></i>
                         <span>@Localizer["MountainView"]</span>
@@ -1509,22 +1537,34 @@
                         <i class="bi bi-clock"></i>
                         <span>@Localizer["Reception24Hours"]</span>
                     </div>
+                    }
                 </div>
 
                 <!-- Hotel Description -->
                 <div class="content-section">
+                    @if (ViewBag.HotelDescription != null)
+                    {
+                        var description = ViewBag.HotelDescription.ToString();
+                        var paragraphs = description.Split(new[] { "\n\n" }, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var paragraph in paragraphs)
+                        {
+                            if (!string.IsNullOrWhiteSpace(paragraph))
+                            {
+                                <p>@paragraph</p>
+                            }
+                        }
+                    }
+                    else
+                    {
+                        <!-- Fallback to old localization if description not available -->
                     <div class="section-title">@Localizer["EnjoyWorldClassService"]</div>
                     <p>@Localizer["LocatedInUongBi"]</p>
-
                     <p>@Localizer["HotelRoomsDescription"]</p>
-
                     <p>@Localizer["BreakfastService"]</p>
-
                     <p>@Localizer["DistanceToHaiPhong"]</p>
-
                     <p>@Localizer["CouplesLoveThisPlace"]</p>
-
                     <p style="font-size: 0.8rem; color: var(--booking-text-light);">@Localizer["DistanceNote"]</p>
+                    }
 
                     <div class="mt-4">
                         <div class="section-title">@Localizer["MostPopularAmenities"]</div>
@@ -1630,16 +1670,19 @@
                             _ => Model.PricePackage?.CancellationPolicyDisplayName ?? ""
                         };
                         var breakfastIncluded = Model.PricePackage?.BreakfastIncluded == true;
-
-          
+                        var checkInDate = ((DateTime?)ViewBag.Checkin)?.ToString("yyyy-MM-dd");
+                        var checkOutDate = ((DateTime?)ViewBag.Checkout)?.ToString("yyyy-MM-dd");
 
                         <div class="room-card">
-                            <div class="room-photo-section" role="button" tabindex="0" aria-label="@Localizer["ViewRoomDetails"]" data-room-id="@r.Id">
+                            <div class="room-photo-section">
+                                <h5 class="room-name" role="button" data-room-id="@r.Id">@r.Name</h5>
+                                <div class="room-photo-wrapper" role="button" tabindex="0" aria-label="@Localizer["ViewRoomDetails"]" data-room-id="@r.Id">
                                 <img src="@firstPhoto" alt="@r.Name" />
                                 <div class="info-badges">
                                     <span class="badge-item"><i class="bi bi-aspect-ratio me-1"></i> @r.Size m²</span>
                                     <span class="badge-item"><i class="bi bi-droplet me-1"></i> @Localizer["StandingShower"]</span>
                                     <span class="badge-item"><i class="bi bi-snow me-1"></i> @Localizer["AirConditioning"]</span>
+                                    </div>
                                 </div>
                                 <a href="javascript:void(0)" class="room-detail-link" data-room-id="@r.Id">
                                     <i class="bi bi-grid-3x3-gap"></i> @Localizer["ViewRoomDetails"]
@@ -1647,59 +1690,208 @@
                             </div>
 
                             <div class="room-info-section">
-                                <h5 class="room-name" role="button" data-room-id="@r.Id">@r.Name</h5>
-                                <div class="room-type-label">@(breakfastIncluded ? Localizer["IncludesBreakfast"] : Localizer["DoesNotIncludeBreakfast"])</div>
-
-                                <div class="room-details">
-                                    <div class="detail-item">
-                                        <i class="bi bi-check-circle-fill text-success"></i>
-                                        <span>@bedSummary</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <i class="bi bi-info-circle"></i>
-                                        <span>@Localizer["ChildPolicyDetails"]</span>
-                                    </div>
-                                    <div class="detail-item text-primary fw-bold">
-                                        <i class="bi bi-credit-card"></i>
-                                        <span>@Localizer["PayAtHotel"]</span>
-                                    </div>
-                                    @if (!string.IsNullOrWhiteSpace(cancellation))
+                                <div class="room-booking-section">
+                                @{
+                                    // Load room prices from database (ViewBag.RoomPricesByRoom)
+                                    var roomOptions = new List<dynamic>();
+                                    var roomPricesForRoom = ViewBag.RoomPricesByRoom != null && 
+                                        ((Dictionary<int, List<HotelBooking.Models.RoomPrice>>)ViewBag.RoomPricesByRoom).ContainsKey(r.Id)
+                                        ? ((Dictionary<int, List<HotelBooking.Models.RoomPrice>>)ViewBag.RoomPricesByRoom)[r.Id]
+                                        : new List<HotelBooking.Models.RoomPrice>();
+                                    
+                                    if (roomPricesForRoom != null && roomPricesForRoom.Any())
                                     {
-                                        <div class="detail-item text-success">
-                                            <i class="bi bi-check-circle-fill"></i>
-                                            <span>@cancellation</span>
-                                            <i class="bi bi-info-circle ms-1"></i>
+                                        // Tạo options từ dữ liệu thực trong database
+                                        foreach (var roomPrice in roomPricesForRoom)
+                                        {
+                                            var package = roomPrice.PricePackage;
+                                            var packageBreakfast = package?.BreakfastIncluded == true;
+                                            var packageCancellation = package?.CancellationPolicy switch
+                                            {
+                                                "refund_1" => Localizer["RefundableUpTo1Day"].Value,
+                                                "refund_3" => Localizer["RefundableUpTo3Days"].Value,
+                                                "refund_7" => Localizer["RefundableUpTo7Days"].Value,
+                                                "non_refundable" => Localizer["NonRefundable"].Value,
+                                                _ => package?.CancellationPolicyDisplayName ?? Localizer["CancellationPolicyApplies"].Value
+                                            };
+                                            
+                                            var optionName = r.Name;
+                                            if (package != null && !string.IsNullOrEmpty(package.CancellationPolicyDisplayName))
+                                            {
+                                                // Có thể thêm suffix dựa trên package nếu cần
+                                                optionName = r.Name;
+                                            }
+                                            
+                                            var inclusions = new List<string>();
+                                            if (packageBreakfast)
+                                            {
+                                                inclusions.Add("Bữa sáng cho " + guests + " người");
+                                            }
+                                            if (!string.IsNullOrEmpty(bedSummary) && bedSummary != Localizer["BedInformation"].Value)
+                                            {
+                                                inclusions.Add(bedSummary);
+                                            }
+                                            
+                                            // Tính OldPrice (giả sử là 25% cao hơn, hoặc có thể lưu trong database)
+                                            var currentPrice = roomPrice.Amount;
+                                            var oldPrice = currentPrice * 1.25m;
+                                            
+                                            roomOptions.Add(new {
+                                                Name = optionName,
+                                                Inclusions = inclusions,
+                                                CancellationPolicy = packageCancellation,
+                                                PaymentPolicy = Localizer["PayAtHotel"].Value,
+                                                Guests = guests,
+                                                OldPrice = (decimal?)oldPrice,
+                                                CurrentPrice = (decimal?)currentPrice,
+                                                IsSpecial = false,
+                                                SpecialLabel = "",
+                                                RoomPriceId = roomPrice.Id,  // ID của RoomPrice để truyền sang Booking/Book
+                                                PricePackageId = package?.Id  // ID của PricePackage
+                                            });
+                                        }
+                                    }
+                                    else if (amount.HasValue)
+                                    {
+                                        // Fallback: Nếu không có room prices trong database, dùng giá cũ
+                                        decimal basePrice = amount.Value;
+                                        roomOptions.Add(new {
+                                            Name = r.Name,
+                                            Inclusions = new[] { 
+                                                breakfastIncluded ? "Bữa sáng cho " + guests + " người" : "",
+                                                bedSummary
+                                            }.Where(x => !string.IsNullOrEmpty(x)).ToList(),
+                                            CancellationPolicy = cancellation,
+                                            PaymentPolicy = Localizer["PayAtHotel"].Value,
+                                            Guests = guests,
+                                            OldPrice = (decimal?)(basePrice * 1.25m),
+                                            CurrentPrice = (decimal?)basePrice,
+                                            IsSpecial = false,
+                                            SpecialLabel = ""
+                                        });
+                                    }
+                                    else
+                                    {
+                                        // Nếu không có giá, chỉ hiển thị 1 option
+                                        roomOptions.Add(new {
+                                            Name = r.Name,
+                                            Inclusions = new[] { bedSummary }.Where(x => !string.IsNullOrEmpty(x)).ToList(),
+                                            CancellationPolicy = cancellation,
+                                            PaymentPolicy = Localizer["PayAtHotel"].Value,
+                                            Guests = guests,
+                                            OldPrice = (decimal?)null,
+                                            CurrentPrice = (decimal?)null,
+                                            IsSpecial = false,
+                                            SpecialLabel = ""
+                                        });
+                                    }
+                                }
+                                
+                                @if (roomOptions.Any())
+                                {
+                                    <!-- Hiển thị dạng bảng cho cả 1 và nhiều options -->
+                                    <div class="room-options-table-wrapper">
+                                        <table class="table room-options-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Lựa chọn phòng</th>
+                                                    <th>Khách</th>
+                                                    <th>Tổng giá</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var option in roomOptions)
+                                                {
+                                                    <tr class="room-option-row">
+                                                        <td class="option-details-col">
+                                                            <div class="option-name">@option.Name</div>
+                                                            <div class="option-inclusions">
+                                                                @foreach (var inc in option.Inclusions)
+                                                                {
+                                                                    <div class="inclusion-item">@inc</div>
+                                                                }
+                                    </div>
+                                                            <div class="option-policies">
+                                                                @if (!string.IsNullOrEmpty(option.PaymentPolicy))
+                                                                {
+                                                                    <div class="policy-item">
+                                                                        <i class="bi bi-credit-card text-primary"></i>
+                                                                        <span>@option.PaymentPolicy</span>
+                                    </div>
+                                                                }
+                                                                @if (!string.IsNullOrEmpty(option.CancellationPolicy))
+                                                                {
+                                                                    <div class="policy-item">
+                                                                        <i class="bi bi-check-circle text-success"></i>
+                                                                        <span>@option.CancellationPolicy</span>
                                         </div>
                                     }
-                                    <div class="detail-item">
-                                        <i class="bi bi-arrow-repeat"></i>
-                                        <span>@Localizer["CancellationPolicyApplies"]</span>
-                                        <i class="bi bi-info-circle ms-1"></i>
                                     </div>
+                                                        </td>
+                                                        <td class="option-guests-col">
+                                                            <div class="option-guests">
+                                                                <i class="bi bi-people-fill"></i>
+                                                                <span>@option.Guests</span>
                                 </div>
+                                                        </td>
+                                                        <td class="option-price-col">
+                                                            <div class="option-price">
+                                                                @if (option.IsSpecial && !string.IsNullOrEmpty(option.SpecialLabel))
+                                                                {
+                                                                    <div class="special-label">@option.SpecialLabel</div>
+                                                                }
+                                                                @{
+                                                                    var oldPrice = option.OldPrice as decimal?;
+                                                                    var currentPrice = option.CurrentPrice as decimal?;
+                                                                }
+                                                                @if (oldPrice.HasValue && currentPrice.HasValue)
+                                                                {
+                                                                    <div class="old-price">@string.Format("{0:N0} VND", oldPrice.Value)</div>
+                                                                    <div class="current-price">@string.Format("{0:N0} VND", currentPrice.Value)</div>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <div class="current-price">Giá đang cập nhật</div>
+                                                                }
+                                                                <div class="price-note">@Localizer["IncludesTaxAndFees"]</div>
                             </div>
-
-                            <div class="room-booking-section">
-                                <div class="guest-info">
-                                    <i class="bi bi-people-fill"></i>
-                                    <span>&nbsp;@guests</span>
-                                </div>
-                                <div class="price-info">
-                                    @if(amount.HasValue)
-                                    {
-                                        <div class="old-price">@string.Format("{0:N0} VND", amount.Value * 1.25m)</div>
-                                        <div class="current-price">@string.Format("{0:N0} VND", amount.Value)</div>
-                                                                        }
+                                                            <a class="btn-choose-option"
+                                                               asp-controller="Booking"
+                                                               asp-action="Book"
+                                                               asp-route-propertyId="@Model.Property.Id"
+                                                               asp-route-roomId="@r.Id"
+                                                               asp-route-checkIn="@checkInDate"
+                                                               asp-route-checkOut="@checkOutDate"
+                                                               asp-route-roomPriceId="@(option.RoomPriceId ?? 0)"
+                                                               asp-route-pricePackageId="@(option.PricePackageId ?? 0)">
+                                                                @Localizer["Select"]
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <!-- Fallback nếu không có roomOptions -->
+                                    <div class="guest-info">
+                                        <i class="bi bi-people-fill"></i>
+                                        <span>&nbsp;@guests</span>
+                                    </div>
+                                    <div class="price-info">
+                                        @if(amount.HasValue)
+                                        {
+                                            <div class="old-price">@string.Format("{0:N0} VND", amount.Value * 1.25m)</div>
+                                            <div class="current-price">@string.Format("{0:N0} VND", amount.Value)</div>
+                                        }
                                         else
                                         {
-                                        <div class="current-price">Giá đang cập nhật</div>
+                                            <div class="current-price">Giá đang cập nhật</div>
                                         }
-                                    <div class="price-note">@Localizer["IncludesTaxAndFees"]</div>
+                                        <div class="price-note">@Localizer["IncludesTaxAndFees"]</div>
                                     </div>
-                                    @{
-                                        var checkInDate = ((DateTime?)ViewBag.Checkin)?.ToString("yyyy-MM-dd");
-                                        var checkOutDate = ((DateTime?)ViewBag.Checkout)?.ToString("yyyy-MM-dd");
-                                    }
                                     <a class="btn-choose"
                                        asp-controller="Booking"
                                        asp-action="Book"
@@ -1709,7 +1901,8 @@
                                        asp-route-checkOut="@checkOutDate">
                                         @Localizer["Select"]
                                     </a>
-
+                                }
+                                </div>
                             </div>
                         </div>
                         }
@@ -1723,26 +1916,144 @@
 <style>
     /* Danh sách các card phòng */
     .rooms-list { display: flex; flex-direction: column; gap: 16px; }
-    .room-card { display: grid; grid-template-columns: 380px 1fr 300px; background: #fff; border-radius: 12px; border: 1px solid #e6e6e6; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .room-card { 
+        display: grid; 
+        grid-template-columns: 300px 1fr; 
+        background: #fff; 
+        border-radius: 12px; 
+        border: 1px solid #e6e6e6; 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+        overflow: hidden;
+    }
 
     /* Cột 1: Ảnh & Tiện ích */
-    .room-photo-section { padding: 16px; position: relative; border-right: 1px solid #e6e6e6; }
-    .room-photo-section img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; }
-    .info-badges { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.85rem; color: #333; }
-    .badge-item { background-color: #f3f4f6; padding: 5px 10px; border-radius: 16px; }
-    .room-detail-link { margin-top: 16px; display: inline-block; color: #006ce4; font-weight: 600; text-decoration: none; font-size: 0.9rem; }
+    .room-photo-section { 
+        padding: 16px; 
+        position: relative; 
+        border-right: 1px solid #e6e6e6; 
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .room-photo-section .room-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin: 0;
+        line-height: 1.3;
+    }
+    .room-photo-wrapper {
+        position: relative;
+    }
+    .room-photo-section img { 
+        width: 100%; 
+        height: 220px; 
+        object-fit: cover; 
+        border-radius: 8px; 
+        margin-bottom: 12px; 
+    }
+    .info-badges { 
+        display: flex; 
+        flex-wrap: wrap; 
+        gap: 6px; 
+        font-size: 0.8rem; 
+        color: #333; 
+        margin-bottom: 12px;
+    }
+    .badge-item { 
+        background-color: #f3f4f6; 
+        padding: 4px 8px; 
+        border-radius: 12px; 
+        font-size: 0.75rem;
+    }
+    .room-detail-link { 
+        margin-top: auto; 
+        display: inline-block; 
+        color: #006ce4; 
+        font-weight: 600; 
+        text-decoration: none; 
+        font-size: 0.85rem; 
+    }
     .room-detail-link:hover { text-decoration: underline; }
 
-    /* Cột 2: Thông tin phòng */
-    .room-info-section { padding: 20px; border-right: 1px solid #e6e6e6; }
-    .room-name { font-weight: 700; font-size: 1.15rem; margin-bottom: 4px; }
-    .room-type-label { font-size: 0.9rem; color: #6b7280; margin-bottom: 16px; }
-    .room-details { display: flex; flex-direction: column; gap: 12px; }
-    .detail-item { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
-    .detail-item i { font-size: 1.1rem; }
+    /* Cột 2: Thông tin phòng + Options */
+    .room-info-section { 
+        padding: 16px; 
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        flex: 1;
+    }
+    .room-header-info {
+        margin-bottom: 12px;
+    }
+    .room-name { 
+        font-weight: 700; 
+        font-size: 1.05rem; 
+        margin-bottom: 4px; 
+    }
+    .room-type-label { 
+        font-size: 0.8rem; 
+        color: #6b7280; 
+        margin-bottom: 8px; 
+    }
+    .room-details { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 6px; 
+    }
+    .detail-item { 
+        display: flex; 
+        align-items: flex-start; 
+        gap: 6px; 
+        font-size: 0.8rem; 
+        line-height: 1.4;
+    }
+    .detail-item i { 
+        font-size: 0.9rem; 
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
 
-    /* Cột 3: Giá & Đặt phòng */
-    .room-booking-section { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; gap: 8px; }
+    /* Cột 2 (phần booking): Giá & Đặt phòng */
+    .room-booking-section { 
+        display: flex; 
+        flex-direction: column; 
+        align-items: stretch; 
+        justify-content: flex-start; 
+        padding: 0;
+        gap: 0;
+        flex: 1;
+        margin-top: auto;
+    }
+    .room-booking-section:has(.room-options-table-wrapper) {
+        padding: 0;
+        align-items: stretch;
+    }
+    .single-option-details {
+        margin-bottom: 12px;
+    }
+    .single-option-details .option-policies {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .single-option-details .policy-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 5px;
+        font-size: 0.8rem;
+        color: #666;
+        line-height: 1.3;
+    }
+    .single-option-details .policy-item i {
+        margin-top: 2px;
+        flex-shrink: 0;
+        font-size: 0.85rem;
+    }
+    .single-option-details .policy-item span {
+        flex: 1;
+    }
     .guest-info { font-size: 1rem; color: #333; }
     .price-info { text-align: center; margin: 8px 0; }
     .special-label { color: #d32f2f; font-size: 0.8rem; font-weight: 600; }
@@ -1752,6 +2063,149 @@
     .btn-choose { background: #006ce4; color: #fff; border: none; padding: 12px 24px; width: 100%; max-width: 200px; font-weight: 700; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background-color 0.2s; text-decoration: none; display: inline-block; text-align: center; }
     .btn-choose:hover { background: #0056b3; }
     .rooms-left { color: #d32f2f; font-size: 0.9rem; font-weight: 600; }
+
+    /* Multiple Room Options - Table Layout (như ảnh 2) */
+    .room-options-table-wrapper { 
+        width: 100%; 
+        overflow-x: auto; 
+    }
+    .room-options-table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        background: #fff;
+        border: none;
+        font-size: 0.9rem;
+    }
+    .room-options-table thead { 
+        background: #f8f9fa; 
+        border-bottom: 2px solid #e6e6e6;
+    }
+    .room-options-table th { 
+        padding: 10px 12px; 
+        text-align: left; 
+        font-weight: 600; 
+        font-size: 0.85rem;
+        color: #333;
+        white-space: nowrap;
+    }
+    .room-options-table td { 
+        padding: 12px; 
+        vertical-align: top;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .room-options-table tbody tr:last-child td { border-bottom: none; }
+    .room-options-table tbody tr:hover { background: #fafafa; }
+    
+    .option-details-col { 
+        width: 55%; 
+        min-width: 300px;
+    }
+    .option-name { 
+        font-weight: 600; 
+        font-size: 0.9rem; 
+        color: #333; 
+        margin-bottom: 6px; 
+    }
+    .option-inclusions { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 3px; 
+        margin-bottom: 6px; 
+    }
+    .inclusion-item { 
+        font-size: 0.8rem; 
+        color: #666; 
+        line-height: 1.3;
+    }
+    .option-policies { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 4px; 
+    }
+    .policy-item { 
+        display: flex; 
+        align-items: flex-start; 
+        gap: 5px; 
+        font-size: 0.8rem; 
+        color: #666;
+        line-height: 1.3;
+    }
+    .policy-item i { 
+        margin-top: 2px; 
+        flex-shrink: 0; 
+        font-size: 0.85rem;
+    }
+    .policy-item span {
+        flex: 1;
+    }
+    
+    .option-guests-col { 
+        width: 12%; 
+        text-align: center;
+        vertical-align: middle;
+        min-width: 60px;
+    }
+    .option-guests { 
+        display: flex; 
+        align-items: center; 
+        justify-content: center;
+        gap: 4px; 
+        font-size: 0.85rem; 
+        color: #333;
+    }
+    .option-guests i {
+        font-size: 1rem;
+    }
+    
+    .option-price-col { 
+        width: 33%; 
+        text-align: right;
+        vertical-align: middle;
+        min-width: 180px;
+    }
+    .option-price { 
+        text-align: right; 
+        margin-bottom: 10px;
+    }
+    .option-price .special-label { 
+        color: #d32f2f; 
+        font-size: 0.7rem; 
+        font-weight: 600; 
+        margin-bottom: 4px;
+    }
+    .option-price .old-price { 
+        color: #6b7280; 
+        font-size: 0.85rem; 
+        text-decoration: line-through; 
+        margin-bottom: 2px;
+    }
+    .option-price .current-price { 
+        color: #d32f2f; 
+        font-size: 1.2rem; 
+        font-weight: 800; 
+        margin-bottom: 2px;
+    }
+    .option-price .price-note { 
+        color: #6b7280; 
+        font-size: 0.75rem; 
+    }
+    .btn-choose-option { 
+        background: #006ce4; 
+        color: #fff; 
+        border: none; 
+        padding: 8px 16px; 
+        min-width: 90px;
+        font-weight: 600; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        font-size: 0.85rem; 
+        transition: background-color 0.2s; 
+        text-decoration: none; 
+        display: inline-block; 
+        text-align: center; 
+        white-space: nowrap;
+    }
+    .btn-choose-option:hover { background: #0056b3; }
 
     /* Responsive */
     @@media (max-width: 992px) {
@@ -1766,13 +2220,16 @@
 
         <!-- Reviews Section -->
         <div class="content-section mt-4">
-            <div class="section-title">@Localizer["GuestReviews"]</div>
-            <div class="d-flex align-items-center gap-3 mb-3">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="score-badge-large">8,9</span>
+            <div class="section-title">Đánh giá của du khách về @Model.Property.Name</div>
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary text-white p-4 rounded" style="min-width: 80px; text-align: center;">
+                        <div class="h2 mb-0 fw-bold">@(ViewBag.AvgRating != null ? ((double)ViewBag.AvgRating).ToString("F1") : "8,9")</div>
+                    </div>
                     <div>
-                        <div class="fw-bold">@Localizer["ExcellentReviews"]</div>
-                        <a href="#" class="text-primary text-decoration-none">@Localizer["ReadAllReviews"]</a>
+                        <div class="fw-bold fs-5">@(ViewBag.AvgRating >= 8.5 ? "Rất tốt" : ViewBag.AvgRating >= 7.0 ? "Tốt" : "Khá")</div>
+                        <div class="text-muted">Từ @(ViewBag.TotalReviews ?? 10) đánh giá</div>
+                        <div class="text-muted small">Bởi khách du lịch trên Booking.com</div>
                     </div>
                 </div>
             </div>
@@ -1781,68 +2238,59 @@
             <div class="row mb-4">
                 <div class="col-md-6">
                     <div class="d-flex justify-content-between mb-2">
-                        <span>@Localizer["StaffService"]</span>
+                        <span>Vệ sinh</span>
                         <div class="d-flex align-items-center gap-2">
-                            <div class="progress" style="width: 100px; height: 8px;">
-                                <div class="progress-bar bg-primary" style="width: 89%"></div>
+                            <div class="progress" style="width: 150px; height: 8px;">
+                                <div class="progress-bar bg-primary" style="width: @((ViewBag.AvgCleanliness ?? 8.7) * 10)%"></div>
                             </div>
-                            <span class="fw-bold">8,9</span>
+                            <span class="fw-bold">@((ViewBag.AvgCleanliness ?? 8.7).ToString("F1"))</span>
                         </div>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span>@Localizer["Comfort"]</span>
+                        <span>Tiện nghi</span>
                         <div class="d-flex align-items-center gap-2">
-                            <div class="progress" style="width: 100px; height: 8px;">
-                                <div class="progress-bar bg-success" style="width: 94%"></div>
+                            <div class="progress" style="width: 150px; height: 8px;">
+                                <div class="progress-bar bg-primary" style="width: @((ViewBag.AvgService ?? 8.7) * 10)%"></div>
                             </div>
-                            <span class="fw-bold">9,4</span>
+                            <span class="fw-bold">@((ViewBag.AvgService ?? 8.7).ToString("F1"))</span>
                         </div>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span>@Localizer["FreeWiFi"] ↑</span>
+                        <span>Phòng</span>
                         <div class="d-flex align-items-center gap-2">
-                            <div class="progress" style="width: 100px; height: 8px;">
-                                <div class="progress-bar bg-success" style="width: 90%"></div>
+                            <div class="progress" style="width: 150px; height: 8px;">
+                                <div class="progress-bar bg-primary" style="width: @((ViewBag.AvgRating ?? 8.9) * 10)%"></div>
                             </div>
-                            <span class="fw-bold">9,0</span>
+                            <span class="fw-bold">@((ViewBag.AvgRating ?? 8.9).ToString("F1"))</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="d-flex justify-content-between mb-2">
-                        <span>@Localizer["Amenities"] ↑</span>
+                        <span>Đồ ăn</span>
                         <div class="d-flex align-items-center gap-2">
-                            <div class="progress" style="width: 100px; height: 8px;">
-                                <div class="progress-bar bg-success" style="width: 92%"></div>
+                            <div class="progress" style="width: 150px; height: 8px;">
+                                <div class="progress-bar bg-primary" style="width: @((ViewBag.AvgValue ?? 8.4) * 10)%"></div>
                             </div>
-                            <span class="fw-bold">9,2</span>
+                            <span class="fw-bold">@((ViewBag.AvgValue ?? 8.4).ToString("F1"))</span>
                         </div>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span>@Localizer["ValueForMoney"]</span>
+                        <span>Vị trí</span>
                         <div class="d-flex align-items-center gap-2">
-                            <div class="progress" style="width: 100px; height: 8px;">
-                                <div class="progress-bar bg-primary" style="width: 87%"></div>
+                            <div class="progress" style="width: 150px; height: 8px;">
+                                <div class="progress-bar bg-primary" style="width: @((ViewBag.AvgLocation ?? 8.6) * 10)%"></div>
                             </div>
-                            <span class="fw-bold">8,7</span>
+                            <span class="fw-bold">@((ViewBag.AvgLocation ?? 8.6).ToString("F1"))</span>
                         </div>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span>@Localizer["Cleanliness"]</span>
+                        <span>Dịch vụ và Tiện ích</span>
                         <div class="d-flex align-items-center gap-2">
-                            <div class="progress" style="width: 100px; height: 8px;">
-                                <div class="progress-bar bg-success" style="width: 92%"></div>
+                            <div class="progress" style="width: 150px; height: 8px;">
+                                <div class="progress-bar bg-primary" style="width: @((ViewBag.AvgService ?? 8.7) * 10)%"></div>
                             </div>
-                            <span class="fw-bold">9,2</span>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>@Localizer["Location"]</span>
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="progress" style="width: 100px; height: 8px;">
-                                <div class="progress-bar bg-primary" style="width: 92%"></div>
-                            </div>
-                            <span class="fw-bold">9,2</span>
+                            <span class="fw-bold">@((ViewBag.AvgService ?? 8.7).ToString("F1"))</span>
                         </div>
                     </div>
                 </div>
@@ -1862,57 +2310,85 @@
 
             <!-- Individual reviews -->
             <div class="mb-3">
-                <strong>@Localizer["WhatDoGuestsLike"]</strong>
+                <strong>Đánh giá của khách hàng</strong>
             </div>
 
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="review-item">
-                        <div class="reviewer-info">
-                            <div class="avatar-circle bg-success">J</div>
-                            <div>
-                                <div class="fw-bold">James</div>
-                                <div class="small-muted">🇬🇧 Vương Quốc Anh</div>
+            @{
+                var reviews = ViewBag.Reviews as List<HotelBooking.ViewModels.HotelReviewViewModel> ?? new List<HotelBooking.ViewModels.HotelReviewViewModel>();
+                var initialReviews = reviews.Take(5).ToList();
+                var remainingReviews = reviews.Skip(5).ToList();
+            }
+
+            <div class="reviews-list">
+                @for (int i = 0; i < reviews.Count; i++)
+                {
+                    var review = reviews[i];
+                    var avatarColors = new[] { "bg-primary", "bg-success", "bg-warning", "bg-info", "bg-danger" };
+                    var colorIndex = review.Initials.GetHashCode() % avatarColors.Length;
+                    if (colorIndex < 0) colorIndex = -colorIndex;
+                    var avatarColor = avatarColors[colorIndex];
+                    var isHidden = i >= 5 ? "d-none" : "";
+                    
+                    <div class="review-item mb-4 p-3 border rounded @isHidden" data-review-index="@i">
+                        <div class="d-flex align-items-start gap-3 mb-2">
+                            <div class="avatar-circle @avatarColor text-white" style="width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px;">
+                                @review.Initials
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <div class="fw-bold">@review.Name</div>
+                                    @if (review.IsBusiness)
+                                    {
+                                        <span class="badge bg-secondary small">
+                                            <i class="bi bi-briefcase"></i> Công tác
+                                        </span>
+                                    }
+                        </div>
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    @{
+                                        var starRating = review.Rating / 2.0m; // Convert from 0-10 to 0-5 stars
+                                        var fullStars = (int)Math.Floor((double)starRating);
+                                        var hasHalfStar = starRating - fullStars >= 0.5m;
+                                    }
+                                    <div class="d-flex align-items-center gap-1">
+                                        @for (int s = 0; s < 5; s++)
+                                        {
+                                            if (s < fullStars)
+                                            {
+                                                <i class="bi bi-star-fill text-warning" style="font-size: 1.1rem;"></i>
+                                            }
+                                            else if (s == fullStars && hasHalfStar)
+                                            {
+                                                <i class="bi bi-star-half text-warning" style="font-size: 1.1rem;"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-star text-warning" style="font-size: 1.1rem;"></i>
+                                            }
+                                        }
+                                    </div>
+                                    <span class="text-muted small">Đánh giá cách đây @review.TimeAgo</span>
+                    </div>
+                                <p class="mb-2" style="line-height: 1.6;">@review.Comment</p>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button class="btn btn-sm btn-outline-secondary" style="border: none; padding: 4px 8px;">
+                                        <i class="bi bi-hand-thumbs-up"></i> Đánh giá này hữu ích không?
+                                    </button>
+                </div>
                             </div>
                         </div>
-                        <p class="small">"@Localizer["Review1Text"]"</p>
-                        <a href="#" class="text-primary">@Localizer["ReadMore"]</a>
-                        <div class="small text-muted mt-2">@Localizer["TranslatedByGoogle"]</div>
                     </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="review-item">
-                        <div class="reviewer-info">
-                            <div class="avatar-circle bg-warning">H</div>
-                            <div>
-                                <div class="fw-bold">Hanae</div>
-                                <div class="small-muted">🇯🇵 Ý</div>
-                            </div>
-                        </div>
-                        <p class="small">"@Localizer["Review2Text"]"</p>
-                        <a href="#" class="text-primary">@Localizer["ReadMore"]</a>
-                        <div class="small text-muted mt-2">@Localizer["TranslatedByGoogle"]</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="review-item">
-                        <div class="reviewer-info">
-                            <div class="avatar-circle bg-primary">M</div>
-                            <div>
-                                <div class="fw-bold">Magdalena</div>
-                                <div class="small-muted">🇬🇧 Vương Quốc Anh</div>
-                            </div>
-                        </div>
-                        <p class="small">"@Localizer["Review3Text"]"</p>
-                        <a href="#" class="text-primary">@Localizer["ReadMore"]</a>
-                        <div class="small text-muted mt-2">@Localizer["TranslatedByGoogle"]</div>
-                    </div>
-                </div>
+                }
             </div>
 
+            @if (reviews.Count > 5)
+            {
             <div class="text-center mt-4">
-                <button class="btn btn-outline-primary">@Localizer["ReadAllReviews"]</button>
+                    <button id="showAllReviewsBtn" class="btn btn-outline-primary">
+                        Xem tất cả đánh giá (@(reviews.Count - 5) thêm)
+                    </button>
             </div>
+            }
         </div>
     </div> <!-- end container -->
 
@@ -1968,6 +2444,7 @@
                 unit = r.SizeUnit ?? "m²",
                 adults = r.CapacityAdults,
                 children = r.CapacityChildren,
+                price = (Model.RoomPrices != null && Model.RoomPrices.TryGetValue(r.Id, out var price)) ? price : (decimal?)null,
                 amenities = (r.Amenities ?? new List<HotelBooking.Models.RoomAmenity>())
                     .Where(a => a != null && !string.IsNullOrEmpty(a.Name))
                     .Select(a => a.Name!),
@@ -1976,13 +2453,27 @@
                     .Select(p => p.Url!)
             })
         ));
+        
+        // Property amenities from PropertyData
+        @{
+            var propertyAmenitiesJson = "[]";
+            if (ViewBag.PropertyAmenities != null)
+            {
+                var amenitiesList = ((List<(string Name, string Icon, string LocalizerKey)>)ViewBag.PropertyAmenities)
+                    .Select(a => new { name = a.Name, icon = a.Icon, key = a.LocalizerKey })
+                    .ToList();
+                propertyAmenitiesJson = System.Text.Json.JsonSerializer.Serialize(amenitiesList);
+            }
+        }
+        const PROPERTY_AMENITIES = @Html.Raw(propertyAmenitiesJson);
 
         (function () {
             const modalEl = document.getElementById('roomDetailModal');
             const modal = new bootstrap.Modal(modalEl);
             
-            // Amenity mapping for localization
+            // Amenity mapping for localization (Room amenities + Property amenities)
             const amenityMap = {
+                // Room amenities
                 'Ban công sân thượng': '@Localizer["TerraceBalcony"]',
                 'Hồ bơi riêng': '@Localizer["PrivatePool"]',
                 'Điều hòa không khí': '@Localizer["AirConditioning"]',
@@ -1996,6 +2487,24 @@
                 'Máy giặt': '@Localizer["WashingMachine"]',
                 'Nhà tắm chung': '@Localizer["SharedBathroom"]',
                 'Tủ lạnh': '@Localizer["Refrigerator"]',
+                // Property amenities
+                'SmokingArea': '@Localizer["SmokingArea"]',
+                'AccessibleBathroom': '@Localizer["AccessibleBathroom"]',
+                'Elevator': '@Localizer["Elevator"]',
+                'FreeWiFi': '@Localizer["FreeWiFi"]',
+                'AccessibleParking': '@Localizer["AccessibleParking"]',
+                'FreeParking': '@Localizer["FreeParking"]',
+                'Cafe': '@Localizer["Cafe"]',
+                'Restaurant': '@Localizer["Restaurant"]',
+                'Bar': '@Localizer["Bar"]',
+                'FrontDesk': '@Localizer["FrontDesk"]',
+                'ExpressCheckIn': '@Localizer["ExpressCheckIn"]',
+                'Concierge': '@Localizer["Concierge"]',
+                'ExpressCheckOut': '@Localizer["ExpressCheckOut"]',
+                'LaundryService': '@Localizer["LaundryService"]',
+                '24HourSecurity': '@Localizer["24HourSecurity"]',
+                'LuggageStorage': '@Localizer["LuggageStorage"]',
+                'AirportTransfer': '@Localizer["AirportTransfer"]',
                 'Máy pha cà phê/trà': '@Localizer["CoffeeTeaMaker"]',
                 'Đồ dùng vệ sinh': '@Localizer["Toiletries"]',
                 'Áo choàng tắm': '@Localizer["Bathrobe"]',
@@ -2029,9 +2538,35 @@
                     });
                 });
                 const am = document.getElementById('rdmAmenities');
-                am.innerHTML = (r.amenities && r.amenities.length)
-                    ? r.amenities.map(a => `<div>✓ ${amenityMap[a] || a}</div>`).join('')
-                    : '<div class="text-muted">@Localizer["NoAmenitiesUpdated"]</div>';
+                // Hiển thị Property amenities (từ PropertyData) thay vì Room amenities
+                if (PROPERTY_AMENITIES && PROPERTY_AMENITIES.length > 0) {
+                    am.innerHTML = PROPERTY_AMENITIES.map(a => {
+                        const localizedName = amenityMap[a.key] || a.name;
+                        return `<div>✓ <i class="bi ${a.icon} me-1"></i>${localizedName}</div>`;
+                    }).join('');
+                } else if (r.amenities && r.amenities.length) {
+                    // Fallback: hiển thị Room amenities nếu không có Property amenities
+                    am.innerHTML = r.amenities.map(a => `<div>✓ ${amenityMap[a] || a}</div>`).join('');
+                } else {
+                    am.innerHTML = '<div class="text-muted">@Localizer["NoAmenitiesUpdated"]</div>';
+                }
+                
+                // Hiển thị giá phòng
+                const priceEl = document.getElementById('rdmPrice');
+                if (priceEl) {
+                    if (r.price && r.price > 0) {
+                        // Format giá theo định dạng VND
+                        const formattedPrice = new Intl.NumberFormat('vi-VN').format(r.price);
+                        priceEl.textContent = `${formattedPrice} VND`;
+                        priceEl.classList.remove('text-muted');
+                        priceEl.classList.add('text-danger');
+                    } else {
+                        priceEl.textContent = 'Giá đang cập nhật';
+                        priceEl.classList.remove('text-danger');
+                        priceEl.classList.add('text-muted');
+                    }
+                }
+                
                 // Gắn điều hướng Book trong modal kèm ngày từ ViewBag
                 (function(){
                     const bookBtn = document.getElementById('rdmBookBtn');
@@ -2276,4 +2811,18 @@
 
     // Gallery thumbnail selection
     // old selectGalleryImage removed; selectImage is used
+
+    // Show all reviews functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const showAllBtn = document.getElementById('showAllReviewsBtn');
+        if (showAllBtn) {
+            showAllBtn.addEventListener('click', function() {
+                const hiddenReviews = document.querySelectorAll('.review-item.d-none');
+                hiddenReviews.forEach(function(review) {
+                    review.classList.remove('d-none');
+                });
+                showAllBtn.style.display = 'none';
+            });
+        }
+    });
 </script>

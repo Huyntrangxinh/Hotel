@@ -1,0 +1,155 @@
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResource> Localizer
+@{
+    ViewData["Title"] = Localizer["MyBookings"];
+    var bookings = ViewBag.Bookings as List<dynamic> ?? new List<dynamic>();
+}
+
+<div class="container py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h4 mb-0 fw-bold">@Localizer["MyBookings"]</h1>
+    </div>
+
+    @if (bookings.Count == 0)
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+            <h3 class="mt-3 text-muted">Chưa có đặt chỗ nào</h3>
+            <p class="text-muted">Bạn chưa có đặt chỗ nào. Hãy tìm và đặt phòng ngay!</p>
+            <a href="@Url.Action("Index", "Public")" class="btn btn-primary mt-3">
+                <i class="bi bi-search me-2"></i>Tìm khách sạn
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var item in bookings)
+            {
+                var booking = item.Booking as HotelBooking.Models.Booking;
+                var property = item.Property as HotelBooking.Models.Property;
+                var room = item.Room as HotelBooking.Models.Room;
+
+                if (booking == null) continue;
+
+                // Kiểm tra nếu đã qua ngày check-out thì có thể đánh giá
+                var isCompleted = booking.CheckOut < DateTime.Now;
+                var reviewIds = ViewBag.ReviewIds as List<int> ?? new List<int>();
+                var hasReview = reviewIds.Contains(booking.Id);
+
+                <div class="col-12 mb-3">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-3">
+                            <div class="row g-3">
+                                <!-- Left: Property Info -->
+                                <div class="col-md-7">
+                                    <div class="mb-2">
+                                        <h6 class="card-title mb-1 fw-bold" style="font-size: 16px;">@(property?.Name ?? "Khách sạn")</h6>
+                                        <p class="text-muted mb-1 small" style="font-size: 13px;">
+                                            <i class="bi bi-geo-alt"></i> @(property?.City ?? "")
+                                        </p>
+                                        <p class="text-muted mb-2 small" style="font-size: 13px;">
+                                            <i class="bi bi-door-open"></i> @(room?.Name ?? "Phòng")
+                                        </p>
+                                    </div>
+
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-calendar-check text-primary me-1" style="font-size: 14px;"></i>
+                                                <div>
+                                                    <div class="small text-muted" style="font-size: 11px;">@Localizer["CheckIn"]</div>
+                                                    <div class="fw-bold" style="font-size: 13px;">@booking.CheckIn.ToString("dd/MM/yyyy")</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-calendar-x text-danger me-1" style="font-size: 14px;"></i>
+                                                <div>
+                                                    <div class="small text-muted" style="font-size: 11px;">@Localizer["CheckOut"]</div>
+                                                    <div class="fw-bold" style="font-size: 13px;">@booking.CheckOut.ToString("dd/MM/yyyy")</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-people text-info me-1" style="font-size: 14px;"></i>
+                                                <div>
+                                                    <div class="small text-muted" style="font-size: 11px;">@Localizer["Guests"]</div>
+                                                    <div class="fw-bold" style="font-size: 13px;">@booking.Guests @Localizer["Adults"]</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-moon-stars text-warning me-1" style="font-size: 14px;"></i>
+                                                <div>
+                                                    <div class="small text-muted" style="font-size: 11px;">@Localizer["Nights"]</div>
+                                                    <div class="fw-bold" style="font-size: 13px;">@booking.TotalNights @Localizer["Night"]</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="border-top pt-2">
+                                        <div class="small text-muted mb-0" style="font-size: 11px;">@Localizer["BookingCode"]</div>
+                                        <div class="fw-bold text-primary" style="font-size: 13px;">@booking.BookingCode</div>
+                                    </div>
+                                </div>
+
+                                 <!-- Right: Price & Actions -->
+                                 <div class="col-md-5">
+                                     <div class="d-flex flex-column justify-content-between h-100">
+                                         <div class="mb-2 text-end">
+                                             <div class="small text-muted mb-0" style="font-size: 11px;">@Localizer["TotalPrice"]</div>
+                                             <div class="h5 text-primary fw-bold mb-0" style="font-size: 18px;">
+                                                 @booking.TotalPrice.ToString("N0") VND
+                                             </div>
+                                             @if (booking.DiscountAmount > 0)
+                                             {
+                                                 <div class="small text-success mt-1" style="font-size: 11px;">
+                                                     <i class="bi bi-tag"></i> Đã giảm: @booking.DiscountAmount.ToString("N0") VND
+                                                 </div>
+                                             }
+                                         </div>
+
+                                         <div class="d-flex flex-column gap-1 mt-auto">
+                                             <a href="@Url.Action("Details", "Booking", new { id = booking.Id })" class="btn btn-outline-primary btn-sm text-center">
+                                                 <i class="bi bi-eye"></i> Chi tiết
+                                             </a>
+                                             @if (isCompleted && !hasReview)
+                                             {
+                                                 <a href="@Url.Action("Review", "Booking", new { bookingId = booking.Id })" class="btn btn-warning btn-sm text-center">
+                                                     <i class="bi bi-star"></i> Đánh giá
+                                                 </a>
+                                             }
+                                             @if (booking.Status == HotelBooking.Models.BookingStatus.Confirmed && booking.CheckIn > DateTime.Now)
+                                             {
+                                                 <button type="button" class="btn btn-outline-danger btn-sm text-center" onclick="cancelBooking(@booking.Id)">
+                                                     <i class="bi bi-x-circle"></i> Hủy
+                                                 </button>
+                                             }
+                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function cancelBooking(bookingId) {
+            if (confirm('Bạn có chắc muốn hủy đặt chỗ này?')) {
+                // TODO: Implement cancel booking logic
+                alert('Tính năng hủy đặt chỗ đang được phát triển');
+            }
+        }
+    </script>
+}
+

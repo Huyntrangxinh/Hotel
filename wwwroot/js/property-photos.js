@@ -416,8 +416,49 @@
                 const formElements = formEl.querySelectorAll('input:not([type="file"]), select, textarea');
                 console.log('===DEBUG===photos: Copying form fields...');
                 console.log(`Found ${formElements.length} form elements`);
+
+                // First, handle radio buttons separately to ensure only checked ones are copied
+                const radioGroups = new Map();
                 formElements.forEach(el => {
+                    if (el.type === 'radio') {
+                        if (!radioGroups.has(el.name)) {
+                            radioGroups.set(el.name, []);
+                        }
+                        radioGroups.get(el.name).push(el);
+                    }
+                });
+
+                // Copy checked radio buttons
+                radioGroups.forEach((radios, name) => {
+                    const checked = radios.find(r => r.checked);
+                    console.log(`  Radio group "${name}": ${radios.length} radios, checked: ${checked ? checked.value : 'none'}`);
+                    if (checked) {
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = name;
+                        hiddenInput.value = checked.value || '';
+                        hiddenForm.appendChild(hiddenInput);
+                        if (name === 'StarRating') {
+                            console.log(`  ✅ Copied StarRating (radio): ${hiddenInput.value}`);
+                        }
+                    } else {
+                        console.log(`  ⚠️ No checked radio found for "${name}"`);
+                    }
+                });
+
+                // Copy other form fields (non-radio)
+                formElements.forEach(el => {
+                    // Skip radio buttons (already handled above)
+                    if (el.type === 'radio') {
+                        return;
+                    }
+
                     if (el.name && el.value !== null && el.value !== undefined) {
+                        // Skip if already added (e.g., from radio button handling)
+                        if (hiddenForm.querySelector(`input[name="${el.name}"]`)) {
+                            return;
+                        }
+
                         const hiddenInput = document.createElement('input');
                         hiddenInput.type = 'hidden';
                         hiddenInput.name = el.name;
@@ -478,6 +519,13 @@
                 console.log(`  CSRF Token: ${hiddenForm.querySelector('input[name="__RequestVerificationToken"]')?.value ? 'Present' : 'MISSING!'}`);
                 console.log(`  File inputs: ${hiddenForm.querySelectorAll('input[type="file"]').length}`);
                 console.log(`  Total inputs: ${hiddenForm.querySelectorAll('input').length}`);
+
+                // Log all StarRating inputs in hidden form
+                const starRatingInputs = hiddenForm.querySelectorAll('input[name="StarRating"]');
+                console.log(`  StarRating inputs: ${starRatingInputs.length}`);
+                starRatingInputs.forEach((input, idx) => {
+                    console.log(`    StarRating[${idx}]: ${input.value}`);
+                });
 
                 console.log('✅ Submitting form...');
                 hiddenForm.submit();

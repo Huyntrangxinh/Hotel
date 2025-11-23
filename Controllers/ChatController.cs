@@ -556,15 +556,31 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
                         newContextForFrontEnd = $"Đã hiển thị cho khách hàng: {string.Join(", ", hotelNamesForContext)}. Yêu cầu gốc: {request.Message}";
 
                         var introHtml = "<p><strong>✨ Mình đã tìm được một vài chỗ ở phù hợp cho bạn đây!</strong></p>";
-                        var outroHtml = "<div style=\"margin-top:12px\">"
-                                      + "<p><strong>Bạn có thể:</strong></p>"
-                                      + "<ul>"
-                                      + "<li>Hỏi mình về tiện nghi của một khách sạn cụ thể.</li>"
-                                      + "<li>Yêu cầu khoảng giá mong muốn (ví dụ: 'dưới 500k').</li>"
-                                      + "<li>Nói 'đặt phòng' + tên khách sạn bạn chọn.</li>"
-                                      + "</ul>"
-                                      + "<p>Mình luôn sẵn sàng giúp bạn tìm được nơi ở ưng ý nhất! 😊</p>"
-                                      + "</div>";
+                        var outroHtml = "<div style=\"margin-top:12px; padding: 12px; background: #f0f9ff; border-radius: 6px; border-left: 4px solid #006ce4;\">"
+                                      + "<p style='margin: 0 0 8px 0; font-weight: 600; color: #1e40af;'><strong>💡 Hướng dẫn:</strong></p>"
+                                      + "<p style='margin: 0 0 6px 0; font-size: 13px; color: #374151;'>• Hỏi mình xem phòng: <strong>'cho tôi xem phòng khách sạn [tên khách sạn]'</strong></p>"
+                                      + "<p style='margin: 0 0 6px 0; font-size: 13px; color: #374151;'>• Hoặc ấn vào nút <strong>'Xem chỗ trống'</strong> ở trên để xem các option phòng</p>"
+                                      + "<p style='margin: 8px 0 0 0; font-size: 12px; color: #6b7280;'>Mình luôn sẵn sàng giúp bạn tìm được nơi ở ưng ý nhất! 😊</p>"
+                                      + "</div>"
+                                      + "<script>"
+                                      + "function viewRoomsInChat(hotelName) {"
+                                      + "  var messageInput = document.querySelector('#chatbot-input-field');"
+                                      + "  var sendButton = document.querySelector('#chatbot-send');"
+                                      + "  if (messageInput) {"
+                                      + "    var message = 'cho tôi xem phòng khách sạn ' + hotelName;"
+                                      + "    messageInput.value = message;"
+                                      + "    messageInput.dispatchEvent(new Event('input', { bubbles: true }));"
+                                      + "    if (sendButton) {"
+                                      + "      sendButton.click();"
+                                      + "    } else {"
+                                      + "      var event = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true });"
+                                      + "      messageInput.dispatchEvent(event);"
+                                      + "    }"
+                                      + "  } else {"
+                                      + "    console.error('Không tìm thấy input field để gửi message');"
+                                      + "  }"
+                                      + "}"
+                                      + "</script>";
                         var finalReply = introHtml + hotelCardsHtml + outroHtml;
                         
                         return Json(new { success = true, reply = finalReply, newContext = newContextForFrontEnd });
@@ -893,34 +909,40 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
             var safePrice = hotel.PriceFrom > 0 ? hotel.PriceFrom.ToString("N0") : "Liên hệ";
             var imageUrl = string.IsNullOrWhiteSpace(hotel.ImageUrl) ? "/images/default-hotel.svg" : hotel.ImageUrl;
 
-            // Tạo mô tả chi tiết về vị trí và tiện ích
+            // Tạo mô tả chi tiết về vị trí và tiện ích - rút gọn cho chat
             var locationDescription = GenerateLocationDescription(hotel);
+            // Giới hạn số dòng mô tả để card nhỏ gọn hơn
+            var locationLines = locationDescription.Split(new[] { "<br/>" }, StringSplitOptions.RemoveEmptyEntries);
+            var shortLocationDescription = string.Join("<br/>", locationLines.Take(3)); // Chỉ hiển thị 3 dòng đầu
 
             return $@"
-<div class='search-card'>
-  <div class='hotel-image'>
-    <img class='hotel-img' src=""{imageUrl}"" alt=""{hotel.Name}"" onerror=""this.src='/images/default-hotel.svg'"" />
-    <button class='heart-btn' title='Yêu thích'>❤</button>
+<div style='display: flex; margin-bottom: 12px; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1);'>
+  <div style='flex: 0 0 120px;'>
+    <img src='{imageUrl}' alt='{safeName}' style='width: 100%; height: 90px; object-fit: cover;' onerror='this.src=&quot;/images/default-hotel.svg&quot; this.onerror=null;' />
   </div>
-  <div class='hotel-details'>
-    <div style='display:flex;align-items:center;gap:8px;'>
-      <h3 class='hotel-name'>{safeName}</h3>
-      <span class='hotel-stars'>{stars}</span>
+  <div style='flex: 1; padding: 10px;'>
+    <div style='display: flex; align-items: center; gap: 6px; margin-bottom: 4px;'>
+      <h3 style='margin: 0; font-size: 13px; font-weight: 600; color: #1e40af;'>{safeName}</h3>
+      <span style='color: #fbbf24; font-size: 11px;'>{stars}</span>
     </div>
-    <div class='hotel-location'>{safeAddress}</div>
-    <div class='room-type'>Phòng tiêu chuẩn</div>
-    <div class='promotion'>Bao gồm bữa sáng</div>
-    <div class='warning'>Chỉ còn vài phòng với giá này trên trang của chúng tôi</div>
-    <div style='margin-top: 12px; padding: 8px; background: #f8f9fa; border-radius: 6px; font-size: 13px; color: #495057;'>
+    <div style='font-size: 11px; color: #6b7280; margin-bottom: 4px;'>{safeAddress}</div>
+    <div style='font-size: 10px; color: #6b7280; margin-bottom: 2px;'>Phòng tiêu chuẩn</div>
+    <div style='font-size: 10px; color: #6b7280; margin-bottom: 2px;'>Bao gồm bữa sáng</div>
+    <div style='font-size: 10px; color: #dc2626; margin-bottom: 6px;'>Chỉ còn vài phòng với giá này</div>
+    <div style='padding: 6px; background: #f8f9fa; border-radius: 4px; font-size: 10px; color: #495057; line-height: 1.3;'>
       <strong>📍 Vị trí & Tiện ích:</strong><br/>
-      {locationDescription}
+      {shortLocationDescription}
     </div>
   </div>
-  <div class='rating-section'>
-    <div class='rating-score'>8,9</div>
-    <div class='price'>VND {safePrice}</div>
-    <div class='price-includes'>+ thuế và phí</div>
-    <button class='book-btn'>Xem chỗ trống</button>
+  <div style='flex: 0 0 100px; padding: 10px; text-align: center; background: #f8f9fa; display: flex; flex-direction: column; justify-content: space-between;'>
+    <div>
+      <div style='color: #333; font-size: 11px; font-weight: 600; margin-bottom: 6px;'>8,9</div>
+      <div style='color: #dc2626; font-size: 14px; font-weight: 700; margin-bottom: 2px;'>VND {safePrice}</div>
+      <div style='color: #6b7280; font-size: 9px; margin-bottom: 8px;'>+ thuế và phí</div>
+    </div>
+    <button onclick='viewRoomsInChat({System.Text.Json.JsonSerializer.Serialize(hotel.Name)})' style='background: #006ce4; color: white; padding: 6px 10px; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; width: 100%;'>
+      Xem chỗ trống
+    </button>
   </div>
 </div>";
         }
@@ -1113,22 +1135,22 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
                 }
 
                 var roomsHtml = "<div style='margin: 16px 0;'>";
-                roomsHtml += $"<h4 style='color: #1e40af; margin-bottom: 16px;'>🏨 Các loại phòng tại {hotelName}</h4>";
 
                 foreach (var room in rooms.Take(3)) // Hiển thị tối đa 3 loại phòng
                 {
                     _logger.LogInformation("Processing room {RoomId}: {RoomName}", room.Id, room.Name);
                     
-                    // Lấy giá phòng
+                    // Lấy tất cả giá phòng với PricePackage
+                    // SQLite không hỗ trợ ORDER BY decimal, nên load trước rồi sort trong memory
                     var roomPrices = await _context.RoomPrices
                         .Where(rp => rp.RoomId == room.Id)
+                        .Include(rp => rp.PricePackage)
                         .ToListAsync();
                     
-                    var roomPrice = roomPrices.OrderBy(rp => rp.Amount).FirstOrDefault();
+                    // Sort trong memory sau khi load
+                    roomPrices = roomPrices.OrderBy(rp => rp.Amount).ToList();
 
-                    var price = roomPrice?.Amount ?? 0;
-                    var formattedPrice = price > 0 ? $"{price:N0} VND" : "Liên hệ";
-                    _logger.LogInformation("Room {RoomId} price: {Price}", room.Id, formattedPrice);
+                    _logger.LogInformation("Room {RoomId} has {PriceCount} price options", room.Id, roomPrices.Count);
 
                     // Lấy tất cả ảnh phòng
                     var roomPhotos = room.Photos?.OrderBy(p => p.SortOrder).ToList() ?? new List<RoomPhoto>();
@@ -1139,65 +1161,132 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
                     // Tạo danh sách tất cả ảnh cho modal
                     var allPhotos = roomPhotos.Select(p => NormalizeImagePath(p.Url)).ToList();
                     var allPhotosJson = System.Text.Json.JsonSerializer.Serialize(allPhotos);
+                    var roomNameEscaped = System.Net.WebUtility.HtmlEncode(room.Name);
 
-                    // Tạo card phòng
+                    // Tạo card phòng - kích thước nhỏ gọn cho chat
+                    var normalizedMainPhotoEscaped = System.Net.WebUtility.HtmlEncode(normalizedMainPhoto);
                     roomsHtml += $@"
-                        <div style='display: flex; margin-bottom: 20px; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>
+                        <div style='display: flex; margin-bottom: 16px; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1);'>
                             <!-- Ảnh phòng -->
-                            <div style='flex: 0 0 200px;'>
-                                <img src='{normalizedMainPhoto}' 
-                                     alt='{room.Name}' 
-                                     style='width: 100%; height: 150px; object-fit: cover; cursor: pointer;'
-                                     onclick='openImageModal(&quot;{normalizedMainPhoto}&quot;, &quot;{room.Name}&quot;, {allPhotosJson})'
+                            <div style='flex: 0 0 120px;'>
+                                <img src='{normalizedMainPhotoEscaped}' 
+                                     alt='{roomNameEscaped}' 
+                                     style='width: 100%; height: 100px; object-fit: cover; cursor: pointer;'
                                      onerror='this.src=&quot;/images/default-room.jpg&quot; this.onerror=null;'>";
 
-                    // Thêm gallery ảnh nhỏ
-                    if (roomPhotos.Any())
-                    {
-                        roomsHtml += "<div style='display: flex; gap: 4px; margin: 8px; overflow-x: auto;'>";
-                        foreach (var photo in roomPhotos.Take(6)) // Hiển thị tối đa 6 ảnh
-                        {
-                            var normalizedPhoto = NormalizeImagePath(photo.Url);
-                            roomsHtml += $@"
-                                <img src='{normalizedPhoto}' 
-                                     alt='{room.Name}' 
-                                     style='width: 60px; height: 60px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 2px solid #e5e7eb;'
-                                     onclick='openImageModal(&quot;{normalizedPhoto}&quot;, &quot;{room.Name}&quot;, {allPhotosJson})'
-                                     onerror='this.src=&quot;/images/default-room.jpg&quot; this.onerror=null;'>";
-                        }
-                        roomsHtml += "</div>";
-                    }
+                    // Thêm gallery ảnh nhỏ - ẩn trong chat để tiết kiệm không gian
+                    // if (roomPhotos.Any()) { ... } - Ẩn gallery ảnh nhỏ trong chat
 
                     roomsHtml += $@"
-                                <div style='padding: 8px; background: #f8f9fa;'>
-                                    <div style='display: flex; gap: 8px; font-size: 12px; color: #6b7280;'>
-                                        <span>📐 {room.Size} {room.SizeUnit}</span>
-                                        <span>👥 {room.CapacityAdults} người</span>
+                                <div style='padding: 6px; background: #f8f9fa;'>
+                                    <div style='display: flex; gap: 6px; font-size: 10px; color: #6b7280;'>
+                                        <span>📐 {room.Size}{room.SizeUnit}</span>
+                                        <span>👥 {room.CapacityAdults}</span>
                                     </div>
                                 </div>
                             </div>
                             
                             <!-- Thông tin phòng -->
-                            <div style='flex: 1; padding: 16px;'>
-                                <h5 style='margin: 0 0 8px 0; color: #1e40af; font-size: 16px;'>{room.Name}</h5>
-                                <p style='margin: 0 0 12px 0; color: #6b7280; font-size: 14px;'>Loại: {room.RoomType}</p>
+                            <div style='flex: 1; padding: 10px;'>
+                                <h5 style='margin: 0 0 4px 0; color: #1e40af; font-size: 13px; font-weight: 600;'>{roomNameEscaped}</h5>
+                                <p style='margin: 0 0 8px 0; color: #6b7280; font-size: 11px;'>Loại: {System.Net.WebUtility.HtmlEncode(room.RoomType ?? "")}</p>
                                 
-                                <!-- Tiện nghi -->
-                                <div style='margin-bottom: 12px;'>
-                                    <div style='display: flex; flex-wrap: wrap; gap: 4px;'>";
+                                <!-- Tiện nghi - ẩn hoặc rút gọn -->
+                                <div style='margin-bottom: 8px; display: none;'>
+                                    <div style='display: flex; flex-wrap: wrap; gap: 3px;'>";
 
-                        // Hiển thị tiện nghi
-                        var amenities = room.Amenities?.Take(4) ?? new List<RoomAmenity>();
-                        foreach (var amenity in amenities)
-                        {
-                            roomsHtml += $"<span style='background: #e0f2fe; color: #1e40af; padding: 2px 6px; border-radius: 4px; font-size: 12px;'>{amenity.Name}</span>";
-                        }
+                        // Hiển thị tiện nghi - ẩn trong chat
+                        // var amenities = room.Amenities?.Take(4) ?? new List<RoomAmenity>();
+                        // foreach (var amenity in amenities) { ... }
 
                         roomsHtml += @"
                                     </div>
                                 </div>
                                 
-                                <!-- Chính sách -->
+                                <!-- Các option phòng với price packages - Hiển thị dạng bảng nhỏ gọn -->
+                                <div style='margin-top: 8px;'>";
+                    
+                    // Hiển thị các option phòng dạng bảng
+                    if (roomPrices.Any())
+                    {
+                        roomsHtml += @"
+                                    <div style='overflow-x: auto; margin-top: 8px;'>
+                                        <table style='width: 100%; border-collapse: collapse; background: #fff; font-size: 0.8rem;'>
+                                            <thead>
+                                                <tr style='background: #f8f9fa; border-bottom: 1px solid #e6e6e6;'>
+                                                    <th style='padding: 6px 8px; text-align: left; font-weight: 600; font-size: 0.75rem; color: #333; white-space: nowrap;'>Lựa chọn phòng</th>
+                                                    <th style='padding: 6px 8px; text-align: left; font-weight: 600; font-size: 0.75rem; color: #333; white-space: nowrap;'>Khách</th>
+                                                    <th style='padding: 6px 8px; text-align: left; font-weight: 600; font-size: 0.75rem; color: #333; white-space: nowrap;'>Tổng giá</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>";
+                        
+                        foreach (var roomPrice in roomPrices)
+                        {
+                            var package = roomPrice.PricePackage;
+                            var paymentPolicy = "Thanh toán tại khách sạn";
+                            var cancellationPolicy = package?.CancellationPolicy switch
+                            {
+                                "refund_1" => "Có thể hoàn tiền | cho đến 1 ngày trước Ngày làm thủ tục nhận phòng",
+                                "refund_3" => "Có thể hoàn tiền | cho đến 3 ngày trước Ngày làm thủ tục nhận phòng",
+                                "refund_7" => "Có thể hoàn tiền | cho đến 7 ngày trước Ngày làm thủ tục nhận phòng",
+                                "non_refundable" => "Không thể hoàn tiền",
+                                _ => package?.CancellationPolicyDisplayName ?? "Áp dụng chính sách hủy phòng"
+                            };
+                            
+                            var breakfastText = package?.BreakfastIncluded == true ? $"Bữa sáng cho {room.CapacityAdults} người" : "";
+                            var oldPrice = roomPrice.Amount * 1.25m;
+                            var currentPrice = roomPrice.Amount;
+                            var bookingUrl = $"/Booking/Book?propertyId={propertyId}&roomId={room.Id}&roomPriceId={roomPrice.Id}&pricePackageId={package?.Id ?? 0}";
+                            
+                            var cancellationPolicyEscaped = System.Net.WebUtility.HtmlEncode(cancellationPolicy);
+                            var paymentPolicyEscaped = System.Net.WebUtility.HtmlEncode(paymentPolicy);
+                            var breakfastTextEscaped = string.IsNullOrEmpty(breakfastText) ? "" : System.Net.WebUtility.HtmlEncode(breakfastText);
+                            
+                            roomsHtml += $@"
+                                                <tr style='border-bottom: 1px solid #f0f0f0;'>
+                                                    <td style='padding: 8px; vertical-align: top; width: 50%; min-width: 200px;'>
+                                                        <div style='font-weight: 600; font-size: 0.8rem; color: #333; margin-bottom: 4px;'>{roomNameEscaped}</div>
+                                                        {(string.IsNullOrEmpty(breakfastTextEscaped) ? "" : $"<div style='font-size: 0.7rem; color: #666; line-height: 1.2; margin-bottom: 2px;'>{breakfastTextEscaped}</div>")}
+                                                        <div style='display: flex; flex-direction: column; gap: 2px;'>
+                                                            <div style='display: flex; align-items: flex-start; gap: 3px; font-size: 0.7rem; color: #666; line-height: 1.2;'>
+                                                                <span style='color: #3b82f6; margin-top: 1px; flex-shrink: 0; font-size: 0.75rem;'>💳</span>
+                                                                <span>{paymentPolicyEscaped}</span>
+                                                            </div>
+                                                            <div style='display: flex; align-items: flex-start; gap: 3px; font-size: 0.7rem; color: #666; line-height: 1.2;'>
+                                                                <span style='color: #10b981; margin-top: 1px; flex-shrink: 0; font-size: 0.75rem;'>✓</span>
+                                                                <span>{cancellationPolicyEscaped}</span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td style='padding: 8px; vertical-align: top;'>
+                                                        <div style='display: flex; align-items: center; gap: 3px;'>
+                                                            <span style='font-size: 0.85rem;'>👥</span>
+                                                            <span style='font-size: 0.8rem;'>{room.CapacityAdults}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td style='padding: 8px; vertical-align: top;'>
+                                                        <div style='text-align: right;'>
+                                                            <div style='text-decoration: line-through; color: #9ca3af; font-size: 0.75rem; margin-bottom: 2px;'>{oldPrice:N0} VND</div>
+                                                            <div style='color: #dc2626; font-size: 1.1rem; font-weight: 800; margin-bottom: 2px;'>{currentPrice:N0} VND</div>
+                                                            <div style='color: #6b7280; font-size: 0.7rem; margin-bottom: 6px;'>Bao gồm thuế và phí</div>
+                                                            <button onclick='showBookingFormInChat({propertyId}, {room.Id}, {roomPrice.Id}, {package?.Id ?? 0}, {System.Text.Json.JsonSerializer.Serialize(room.Name)}, {System.Text.Json.JsonSerializer.Serialize(hotelName)}, {roomPrice.Amount.ToString("F0", System.Globalization.CultureInfo.InvariantCulture)})' style='background: #006ce4; color: white; border: none; padding: 6px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 0.8rem; width: 100%;'>
+                                                                Chọn
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>";
+                        }
+                        
+                        roomsHtml += @"
+                                            </tbody>
+                                        </table>
+                                    </div>";
+                    }
+                    else
+                    {
+                        // Fallback nếu không có price packages
+                        roomsHtml += @"
                                 <div style='font-size: 12px; color: #6b7280; margin-bottom: 12px;'>
                                     <div style='display: flex; align-items: center; gap: 4px; margin-bottom: 4px;'>
                                         <span>✅</span>
@@ -1205,43 +1294,59 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
                                     </div>
                                     <div style='display: flex; align-items: center; gap: 4px;'>
                                         <span>✅</span>
-                                        <span>Có thể hủy miễn phí</span>
+                                            <span>Áp dụng chính sách hủy phòng</span>
                                     </div>
                                 </div>
+                                    <div style='text-align: center; padding: 12px; background: #f8f9fa; border-radius: 6px;'>
+                                        <div style='color: #6b7280; font-size: 14px;'>Giá đang cập nhật</div>
+                                        <a href='/Public/Hotel/" + propertyId + @"' style='background: #3b82f6; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 14px; margin-top: 8px; display: inline-block;'>
+                                            Xem chi tiết
+                                        </a>
                             </div>";
+                    }
                         
                         roomsHtml += @"
-                            <!-- Giá và nút chọn -->
-                            <div style='flex: 0 0 150px; padding: 16px; text-align: center; background: #f8f9fa; display: flex; flex-direction: column; justify-content: space-between;'>
-                                <div>
-                                    <div style='font-size: 18px; font-weight: bold; color: #dc2626; margin-bottom: 4px;'>" + formattedPrice + @"</div>
-                                    <div style='font-size: 12px; color: #6b7280;'>Bao gồm thuế và phí</div>
                                 </div>
-                                <button style='background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; margin-top: 8px;' 
-                                        onclick='alert(&quot;Tính năng đặt phòng sẽ được phát triển!&quot;)'>
-                                    Chọn phòng
-                                </button>
                             </div>
                         </div>";
                 }
+
+                // Thêm phần gợi ý chung ở cuối tất cả các card phòng (chỉ 1 lần)
+                roomsHtml += @"
+                    <div style='margin-top: 12px; padding: 12px; background: #f0f9ff; border-radius: 6px; border-left: 4px solid #006ce4;'>
+                        <p style='margin: 0 0 8px 0; font-weight: 600; color: #1e40af; font-size: 12px;'><strong>💡 Hướng dẫn:</strong></p>
+                        <p style='margin: 0 0 6px 0; font-size: 11px; color: #374151;'>• Hỏi mình đặt phòng: <strong>'Giúp tôi đặt phòng [tên phòng] ở [tên khách sạn] từ [ngày] đến [ngày] cho [số] người'</strong></p>
+                        <p style='margin: 0; font-size: 11px; color: #374151;'>• Hoặc ấn vào nút <strong>'Chọn'</strong> ở trên để điền thông tin đặt phòng</p>
+                        <p style='margin: 8px 0 0 0; font-size: 11px; color: #6b7280;'>Mình luôn sẵn sàng giúp bạn tìm được nơi ở ưng ý nhất! 😊</p>
+                    </div>";
 
                 roomsHtml += "</div>";
                 return roomsHtml;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating room cards for property {PropertyId}", propertyId);
-                return "<p>Xin lỗi, có lỗi xảy ra khi tải thông tin phòng.</p>";
+                _logger.LogError(ex, "Error creating room cards for property {PropertyId}. Error: {ErrorMessage}, StackTrace: {StackTrace}", 
+                    propertyId, ex.Message, ex.StackTrace);
+                
+                // Trả về thông báo lỗi chi tiết hơn trong development, hoặc thông báo chung trong production
+                var errorMessage = _env.IsDevelopment() 
+                    ? $"<p>Xin lỗi, có lỗi xảy ra khi tải thông tin phòng. Lỗi: {System.Net.WebUtility.HtmlEncode(ex.Message)}</p>"
+                    : "<p>Xin lỗi, có lỗi xảy ra khi tải thông tin phòng. Vui lòng thử lại sau hoặc <a href='/Public/Hotel/" + propertyId + "'>xem chi tiết tại đây</a>.</p>";
+                
+                return errorMessage;
             }
         }
 
         private bool IsRoomInquiryRequest(string message)
         {
-            var roomKeywords = new[] { "phòng", "room", "xem phòng", "ảnh phòng", "hình ảnh phòng", "phòng như thế nào", "phòng ra sao" };
-            var hotelKeywords = new[] { "citadines", "legacy", "khách sạn 2", "hotel 2", "marina", "vinpearl" };
+            var roomKeywords = new[] { "phòng", "room", "xem phòng", "ảnh phòng", "hình ảnh phòng", "phòng như thế nào", "phòng ra sao", "cho tôi xem phòng", "hiển thị phòng", "các phòng" };
+            var hotelKeywords = new[] { "citadines", "legacy", "khách sạn 2", "hotel 2", "marina", "vinpearl", "khách sạn", "hotel", "resort", "flc", "halong" };
             
-            return roomKeywords.Any(rk => message.Contains(rk)) && 
-                   hotelKeywords.Any(hk => message.Contains(hk));
+            // Nếu có từ khóa phòng và từ khóa khách sạn/hotel/resort
+            var hasRoomKeyword = roomKeywords.Any(rk => message.ToLower().Contains(rk));
+            var hasHotelKeyword = hotelKeywords.Any(hk => message.ToLower().Contains(hk));
+            
+            return hasRoomKeyword && hasHotelKeyword;
         }
 
         private bool IsRoomBookingRequest(string message)
@@ -1273,7 +1378,7 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
 
         private string ExtractHotelNameFromMessage(string message)
         {
-            var hotelNames = new[] { "citadines", "legacy", "khách sạn 2", "hotel 2", "marina", "vinpearl" };
+            var hotelNames = new[] { "citadines", "legacy", "khách sạn 2", "hotel 2", "marina", "vinpearl", "flc", "halong" };
             var lowerMessage = message.ToLower();
             
             foreach (var hotelName in hotelNames)
@@ -1282,6 +1387,34 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
                 {
                     return hotelName;
                 }
+            }
+            
+            // Nếu không tìm thấy trong danh sách, thử tìm từ database
+            // Tìm các property có tên chứa từ khóa trong message
+            try
+            {
+                var properties = _context.Properties
+                    .Where(p => p.Status == PropertyStatus.Approved)
+                    .ToList();
+                
+                foreach (var prop in properties)
+                {
+                    var propNameLower = prop.Name.ToLower();
+                    // Kiểm tra xem message có chứa tên property không
+                    var words = propNameLower.Split(new[] { ' ', '-', ',', '.' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var word in words)
+                    {
+                        if (word.Length > 3 && lowerMessage.Contains(word))
+                        {
+                            _logger.LogInformation("Found hotel name from database: {HotelName}", prop.Name);
+                            return prop.Name;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error extracting hotel name from database");
             }
             
             return "";
@@ -1293,10 +1426,18 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
             {
                 _logger.LogInformation("Handling room image request for hotel: {HotelName}", hotelName);
 
-                // Find the property by name
+                // Find the property by name - try exact match first, then partial match
                 var property = await _context.Properties
+                    .Where(p => p.Status == PropertyStatus.Approved)
+                    .FirstOrDefaultAsync(p => p.Name.ToLower() == hotelName.ToLower());
+
+                if (property == null)
+                {
+                    // Try partial match
+                    property = await _context.Properties
                     .Where(p => p.Name.ToLower().Contains(hotelName.ToLower()) && p.Status == PropertyStatus.Approved)
                     .FirstOrDefaultAsync();
+                }
 
                 if (property == null)
                 {
@@ -1320,7 +1461,10 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
                 // Create HTML with room cards
                 var roomCardsHtml = await CreateRoomCardsHtml(property.Id, property.Name);
                 
-                var reply = $"<p><strong>🏨 Đây là các loại phòng tại {property.Name}:</strong></p>{roomCardsHtml}";
+                // Thêm JavaScript function để hiển thị form đặt phòng
+                var bookingFormScript = GetBookingFormScript();
+                
+                var reply = $"<p><strong>🏨 Đây là các loại phòng tại {property.Name}:</strong></p>{roomCardsHtml}{bookingFormScript}";
                 
                 return Json(new { 
                     success = true, 
@@ -1411,7 +1555,8 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
                 {
                     // Nếu không tìm thấy phòng cụ thể, hiển thị tất cả phòng
                     var roomCardsHtml = await CreateRoomCardsHtml(property.Id, property.Name);
-                    var reply = $"<p><strong>🏨 Mình không tìm thấy phòng cụ thể bạn yêu cầu, nhưng đây là các phòng có sẵn tại {property.Name}:</strong></p>{roomCardsHtml}";
+                    var bookingFormScript = GetBookingFormScript();
+                    var reply = $"<p><strong>🏨 Mình không tìm thấy phòng cụ thể bạn yêu cầu, nhưng đây là các phòng có sẵn tại {property.Name}:</strong></p>{roomCardsHtml}{bookingFormScript}";
                     
                     return Json(new { 
                         success = true, 
@@ -1628,6 +1773,255 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
+        private string GetBookingFormScript()
+        {
+            return @"
+<script>
+function showBookingFormInChat(propertyId, roomId, roomPriceId, pricePackageId, roomName, hotelName, roomPriceAmount) {
+    // Kiểm tra xem đã có form chưa, nếu có thì xóa
+    const existingForm = document.querySelector('[id^=""chatBookingForm_""]');
+    if (existingForm) {
+        existingForm.remove();
+    }
+    
+    // Set min date là ngày mai
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const minDate = tomorrow.toISOString().split('T')[0];
+    
+    // Tạo form ID unique
+    const formId = 'chatBookingForm_' + propertyId + '_' + roomId + '_' + Date.now();
+    const formIdJson = JSON.stringify(formId);
+    const propertyNameJson = JSON.stringify(hotelName);
+    const roomNameJson = JSON.stringify(roomName);
+    
+    // Lưu giá phòng vào biến global để sử dụng sau
+    window.currentRoomPriceAmount = roomPriceAmount || 2000000;
+    
+    // Tạo form HTML - giống hệt form câu lệnh nhưng có thêm trường ngày
+    const formHtml = `
+        <div id='${formId}' style='margin-top: 20px; padding: 20px; background: rgba(255, 255, 255, 0.9); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1); backdrop-filter: blur(10px); max-width: 920px; width: 100%;'>
+            <h4 style='color: #1e40af; margin-bottom: 20px; display: flex; align-items: center;'>
+                <span style='margin-right: 10px;'>📝</span>
+                Thu thập thông tin đặt phòng
+            </h4>
+            
+            <div style='background: #f0f9ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #3b82f6;'>
+                <p style='margin: 0; color: #1e40af; font-weight: 500;'>
+                    💬 <strong>Nếu bạn muốn tôi đặt phòng cho bạn, hãy cung cấp các thông tin sau:</strong>
+                </p>
+            </div>
+            
+            <div style='display: grid; gap: 15px;'>
+                <div>
+                    <label style='display: block; font-weight: 600; color: #374151; margin-bottom: 5px;'>👤 Họ và tên*</label>
+                    <input type='text' name='bookingFullName' placeholder='Nhập họ tên như trên CMND (không dấu)' 
+                           style='width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;' />
+                </div>
+                
+                <div>
+                    <label style='display: block; font-weight: 600; color: #374151; margin-bottom: 5px;'>📱 Số điện thoại*</label>
+                    <input type='tel' name='bookingPhone' placeholder='VD: +84 8012345678' 
+                           style='width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;' />
+                </div>
+                
+                <div>
+                    <label style='display: block; font-weight: 600; color: #374151; margin-bottom: 5px;'>📧 Email*</label>
+                    <input type='email' name='bookingEmail' placeholder='VD: email@example.com' 
+                           style='width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;' />
+                </div>
+                
+                <div>
+                    <label style='display: block; font-weight: 600; color: #374151; margin-bottom: 5px;'>📅 Ngày đến*</label>
+                    <input type='date' name='bookingCheckIn' min='${minDate}' 
+                           style='width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;' />
+                </div>
+                
+                <div>
+                    <label style='display: block; font-weight: 600; color: #374151; margin-bottom: 5px;'>📅 Ngày đi*</label>
+                    <input type='date' name='bookingCheckOut' min='${minDate}' 
+                           style='width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;' />
+                </div>
+                
+                <div>
+                    <label style='display: block; font-weight: 600; color: #374151; margin-bottom: 5px;'>💬 Yêu cầu đặc biệt (tùy chọn)</label>
+                    <textarea name='bookingSpecialRequests' placeholder='Nhập yêu cầu đặc biệt của bạn (không bắt buộc)' 
+                              style='width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; height: 80px; resize: vertical;'></textarea>
+                </div>
+            </div>
+            
+            <div style='margin-top: 20px; text-align: center;'>
+                <button onclick='collectBookingInfoFromChat(""${formId}"", ${propertyId}, ${roomId}, ${propertyNameJson}, ${roomNameJson}, ${roomPriceId}, ${pricePackageId}, ${roomPriceAmount || 2000000})' 
+                        style='background: #3b82f6; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;'>
+                    📋 Thu thập thông tin
+                </button>
+            </div>
+            
+            <div class='booking-summary' style='display: none; margin-top: 20px; padding: 15px; background: #f0f9ff; border-radius: 8px; border: 1px solid #3b82f6;'>
+                <h5 style='color: #1e40af; margin-bottom: 15px;'>📋 Thông tin đặt phòng của bạn:</h5>
+                <div class='booking-details'></div>
+                <div style='margin-top: 15px; text-align: center;'>
+                    <button onclick='confirmBooking()' 
+                            style='background: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-right: 10px;'>
+                        ✅ Xác nhận đặt phòng
+                    </button>
+                    <button onclick='editBookingInfo(""${formId}"")' 
+                            style='background: #6b7280; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;'>
+                        ✏️ Chỉnh sửa
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Tìm chatbot messages container và thêm form vào cuối - wrap trong bot-message để có cùng styling với form 2
+    const messagesContainer = document.getElementById('chatbot-messages');
+    if (messagesContainer) {
+        // Wrap form trong bot-message structure giống như form 2
+        const messageWrapper = document.createElement('div');
+        messageWrapper.className = 'message bot-message';
+        const messageContent = document.createElement('div');
+        messageContent.className = 'message-content';
+        messageContent.innerHTML = formHtml;
+        messageWrapper.appendChild(messageContent);
+        messagesContainer.appendChild(messageWrapper);
+        
+        // Set min date cho ngày đi khi ngày đến thay đổi
+        const checkInInput = messageContent.querySelector('[name=""bookingCheckIn""]');
+        const checkOutInput = messageContent.querySelector('[name=""bookingCheckOut""]');
+        if (checkInInput && checkOutInput) {
+            checkInInput.addEventListener('change', function() {
+                if (this.value) {
+                    const nextDay = new Date(this.value);
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    checkOutInput.min = nextDay.toISOString().split('T')[0];
+                    if (checkOutInput.value && checkOutInput.value <= this.value) {
+                        checkOutInput.value = '';
+                    }
+                }
+            });
+        }
+        
+        // Scroll xuống cuối
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+}
+
+function collectBookingInfoFromChat(formId, propertyId, roomId, propertyName, roomName, roomPriceId, pricePackageId, roomPriceAmount) {
+    const formRoot = document.getElementById(formId);
+    if (!formRoot) {
+        alert('Không thể tìm thấy form đặt phòng.');
+        return;
+    }
+
+    const fullName = (formRoot.querySelector('[name=""bookingFullName""]')?.value || '').trim();
+    const phone = (formRoot.querySelector('[name=""bookingPhone""]')?.value || '').trim();
+    const email = (formRoot.querySelector('[name=""bookingEmail""]')?.value || '').trim();
+    const checkIn = (formRoot.querySelector('[name=""bookingCheckIn""]')?.value || '').trim();
+    const checkOut = (formRoot.querySelector('[name=""bookingCheckOut""]')?.value || '').trim();
+    const specialRequests = (formRoot.querySelector('[name=""bookingSpecialRequests""]')?.value || '').trim();
+    
+    if (!fullName || !phone || !email || !checkIn || !checkOut) {
+        alert('Vui lòng điền đầy đủ thông tin bắt buộc (Họ tên, Số điện thoại, Email, Ngày đến, Ngày đi)');
+        return;
+    }
+    
+    // Validate ngày đi phải sau ngày đến
+    if (new Date(checkOut) <= new Date(checkIn)) {
+        alert('Ngày đi phải sau ngày đến');
+        return;
+    }
+    
+    // Format ngày để hiển thị - giống form câu lệnh
+    const checkInDate = new Date(checkIn + 'T00:00:00');
+    const checkOutDate = new Date(checkOut + 'T00:00:00');
+    const checkInFormatted = checkInDate.toLocaleDateString('vi-VN');
+    const checkOutFormatted = checkOutDate.toLocaleDateString('vi-VN');
+    
+    // Hiển thị thông tin đã thu thập - giống hệt form câu lệnh
+    const summaryDiv = formRoot.querySelector('.booking-summary');
+    const detailsDiv = formRoot.querySelector('.booking-details');
+    
+    detailsDiv.innerHTML = `
+        <div style='margin-bottom: 10px;'><strong>👤 Họ tên:</strong> ${fullName}</div>
+        <div style='margin-bottom: 10px;'><strong>📱 Số điện thoại:</strong> ${phone}</div>
+        <div style='margin-bottom: 10px;'><strong>📧 Email:</strong> ${email}</div>
+        <div style='margin-bottom: 10px;'><strong>📅 Ngày nhận phòng:</strong> ${checkInFormatted}</div>
+        <div style='margin-bottom: 10px;'><strong>📅 Ngày trả phòng:</strong> ${checkOutFormatted}</div>
+        <div style='margin-bottom: 10px;'><strong>👥 Số khách:</strong> 2 người</div>
+        ${specialRequests ? `<div style='margin-bottom: 10px;'><strong>💬 Yêu cầu đặc biệt:</strong> ${specialRequests}</div>` : ''}
+    `;
+    
+    if (summaryDiv) {
+        summaryDiv.style.display = 'block';
+    }
+    
+    // Lưu thông tin vào localStorage để sử dụng sau - giống hệt form câu lệnh, bao gồm giá phòng
+    const bookingData = {
+        formId: formId,
+        propertyId: propertyId,
+        propertyName: propertyName,
+        roomId: roomId,
+        roomName: roomName,
+        roomPriceId: roomPriceId,
+        pricePackageId: pricePackageId,
+        roomPriceAmount: roomPriceAmount ? parseFloat(roomPriceAmount) : 2000000,
+        checkIn: checkIn,
+        checkOut: checkOut,
+        guests: 2,
+        fullName: fullName,
+        phone: phone,
+        email: email,
+        specialRequests: specialRequests
+    };
+    
+    console.log('Saving bookingInfo to localStorage:', bookingData);
+    console.log('roomPriceAmount:', bookingData.roomPriceAmount);
+    
+    localStorage.setItem('bookingInfo', JSON.stringify(bookingData));
+}
+
+function confirmBooking() {
+    const bookingInfo = JSON.parse(localStorage.getItem('bookingInfo') || '{}');
+    console.log('confirmBooking (from ChatController) - bookingInfo:', bookingInfo);
+    console.log('confirmBooking (from ChatController) - roomPriceAmount:', bookingInfo.roomPriceAmount);
+    
+    if (bookingInfo.propertyId) {
+        // Đảm bảo bookingInfo có đầy đủ thông tin từ localStorage
+        if (!bookingInfo.roomPriceAmount && window.currentRoomPriceAmount) {
+            bookingInfo.roomPriceAmount = window.currentRoomPriceAmount;
+            console.log('confirmBooking - Set roomPriceAmount from window:', bookingInfo.roomPriceAmount);
+        }
+        
+        // Load booking payment script dynamically - giống hệt form câu lệnh
+        // Xóa script cũ và object cũ để đảm bảo load lại file mới
+        const oldScript = document.querySelector('script[src*=""booking-payment.js""]');
+        if (oldScript) {
+            oldScript.remove();
+        }
+        if (typeof BookingPayment !== 'undefined') {
+            delete window.BookingPayment;
+        }
+        
+        // Load script mới với cache busting
+        const script = document.createElement('script');
+        script.src = '/js/booking-payment.js?v=' + Date.now();
+        script.onload = function() {
+            BookingPayment.showPaymentForm(bookingInfo);
+        };
+        document.head.appendChild(script);
+    }
+}
+
+function editBookingInfo(formId) {
+    const formRoot = document.getElementById(formId);
+    if (!formRoot) return;
+    const summary = formRoot.querySelector('.booking-summary');
+    if (summary) summary.style.display = 'none';
+}
+</script>";
+        }
+
         private string CreateBookingFormHtml(int propertyId, int roomId, string propertyName, string roomName, DateTime checkIn, DateTime checkOut, int guests)
         {
             var propertyNameJson = JsonSerializer.Serialize(propertyName);
@@ -1636,7 +2030,7 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
             var formIdJson = JsonSerializer.Serialize(formId);
 
             return $@"
-            <div id='{formId}' style='margin-top: 20px; padding: 20px; background: rgba(255, 255, 255, 0.9); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1); backdrop-filter: blur(10px);'>
+            <div id='{formId}' style='margin-top: 20px; padding: 20px; background: rgba(255, 255, 255, 0.9); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1); backdrop-filter: blur(10px); max-width: 920px; width: 100%;'>
                 <h4 style='color: #1e40af; margin-bottom: 20px; display: flex; align-items: center;'>
                     <span style='margin-right: 10px;'>📝</span>
                     Thu thập thông tin đặt phòng
@@ -1754,16 +2148,22 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
                 const bookingInfo = JSON.parse(localStorage.getItem('bookingInfo') || '{{}}');
                 if (bookingInfo.propertyId) {{
                     // Load booking payment script dynamically
-                    if (typeof BookingPayment === 'undefined') {{
-                        const script = document.createElement('script');
-                        script.src = '/js/booking-payment.js';
-                        script.onload = function() {{
-                            BookingPayment.showPaymentForm(bookingInfo);
-                        }};
-                        document.head.appendChild(script);
-                    }} else {{
-                        BookingPayment.showPaymentForm(bookingInfo);
+                    // Xóa script cũ và object cũ để đảm bảo load lại file mới
+                    const oldScript = document.querySelector('script[src*=""booking-payment.js""]');
+                    if (oldScript) {{
+                        oldScript.remove();
                     }}
+                    if (typeof BookingPayment !== 'undefined') {{
+                        delete window.BookingPayment;
+                    }}
+                    
+                    // Load script mới với cache busting
+                    const script = document.createElement('script');
+                    script.src = '/js/booking-payment.js?v=' + Date.now();
+                    script.onload = function() {{
+                        BookingPayment.showPaymentForm(bookingInfo);
+                    }};
+                    document.head.appendChild(script);
                 }}
             }}
             

@@ -3,6 +3,7 @@ using System;
 using HotelBooking.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBooking.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251122130706_AddReviewUniqueConstraint")]
+    partial class AddReviewUniqueConstraint
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
@@ -886,13 +889,6 @@ namespace HotelBooking.Migrations
                         .HasMaxLength(8)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("OptionName")
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("PricePackageId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int>("PropertyId")
                         .HasColumnType("INTEGER");
 
@@ -904,11 +900,10 @@ namespace HotelBooking.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PricePackageId");
-
-                    b.HasIndex("PropertyId");
-
                     b.HasIndex("RoomId");
+
+                    b.HasIndex("PropertyId", "RoomId")
+                        .IsUnique();
 
                     b.ToTable("RoomPrices");
                 });
@@ -1167,11 +1162,6 @@ namespace HotelBooking.Migrations
 
             modelBuilder.Entity("HotelBooking.Models.RoomPrice", b =>
                 {
-                    b.HasOne("HotelBooking.Models.PricePackage", "PricePackage")
-                        .WithMany()
-                        .HasForeignKey("PricePackageId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("HotelBooking.Models.Property", null)
                         .WithMany()
                         .HasForeignKey("PropertyId")
@@ -1183,8 +1173,6 @@ namespace HotelBooking.Migrations
                         .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("PricePackage");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

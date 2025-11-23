@@ -36,6 +36,8 @@ namespace HotelBooking.ViewModels
         public decimal PricePerNight { get; set; }
         public int TotalNights { get; set; }
         public decimal TotalPrice { get; set; }
+        public int? RoomPriceId { get; set; }  // ID của RoomPrice được chọn
+        public int? PricePackageId { get; set; }  // ID của PricePackage được chọn
 
         // Contact Information
         [Required(ErrorMessage = "Please Enter Full Name")]

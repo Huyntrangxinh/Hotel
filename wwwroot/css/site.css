@@ -1115,6 +1115,12 @@ aside.col-lg-3.sticky-top {
     overflow: hidden;
     border: 1px solid var(--border-color);
     transform-origin: bottom right;
+    outline: none !important;
+}
+
+.chatbot-panel:focus {
+    outline: none !important;
+    box-shadow: var(--shadow);
 }
 
 .chatbot-panel.show {
@@ -1405,11 +1411,17 @@ aside.col-lg-3.sticky-top {
     padding: 6px;
     border-radius: 50%;
     transition: all 0.2s ease;
+    outline: none !important;
 }
 
 .btn-icon:hover {
     opacity: 1;
     background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-icon:focus {
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .chatbot-header h6 {
@@ -1428,10 +1440,16 @@ aside.col-lg-3.sticky-top {
     padding: 0;
     width: 20px;
     height: 20px;
+    outline: none !important;
 }
 
 .chatbot-header .btn-close:hover {
     opacity: 1;
+}
+
+.chatbot-header .btn-close:focus {
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .chatbot-messages {
@@ -1877,4 +1895,12 @@ aside.col-lg-3.sticky-top {
     .hotel-actions {
         flex-direction: column;
     }
+}
+
+/* Ensure booking forms in message-content have proper styling */
+.bot-message .message-content > div[id^="bookingForm_"],
+.bot-message .message-content > div[id^="chatBookingForm_"] {
+    background: rgba(255, 255, 255, 0.9) !important;
+    margin: 0;
+    padding: 20px;
 }

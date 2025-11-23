@@ -1,325 +1,547 @@
 @model List<HotelBooking.Models.Room>
 @{
-    ViewData["Title"] = "Lịch giá & Phòng trống";
+    ViewData["Title"] = "Calendar - Booking Management";
     var propertyId = (int)ViewBag.PropertyId;
-    var year = (int)ViewBag.Year;
-    var month = (int)ViewBag.Month;
+    var startDate = (DateTime)ViewBag.StartDate;
+    var endDate = (DateTime)ViewBag.EndDate;
     var propertyName = (string?)ViewBag.PropertyName ?? "";
+    var roomsByType = (List<IGrouping<string, HotelBooking.Models.Room>>)ViewBag.RoomsByType;
+    var bookings = (List<HotelBooking.Models.Booking>)ViewBag.Bookings;
+    var availabilityMap = (Dictionary<string, Dictionary<DateTime, (int Available, int Total)>>)ViewBag.AvailabilityMap;
+    
+    var days = new List<DateTime>();
+    for (var d = startDate; d < endDate; d = d.AddDays(1))
+    {
+        days.Add(d);
+    }
+    
+    var weekdays = new[] { "CN", "T2", "T3", "T4", "T5", "T6", "T7" };
+    var bookingColors = new[] { "#FFD700", "#4A90E2", "#50C878" }; // Yellow, Blue, Green
 }
 
-<div class="container-fluid py-4">
-    <!-- Toolbar -->
-    <div class="calendar-toolbar mb-3">
-        <div class="left">
-            <div class="title">@propertyName</div>
-            <div class="subtitle">Lịch • tháng @month/@year</div>
+<div class="booking-calendar-container">
+    <!-- Top Navigation -->
+    <div class="calendar-header">
+        <div class="header-left">
+            <div class="logo-placeholder">
+                <i class="bi bi-building"></i>
         </div>
-        <div class="center">
-            <button id="btnPrev" class="btn btn-outline-primary btn-sm"><i class="bi bi-chevron-left"></i></button>
-            <div class="range-pill">16 tháng @month, @year – 15 tháng @(month == 12 ? 1 : month + 1)</div>
-            <button id="btnNext" class="btn btn-outline-primary btn-sm"><i class="bi bi-chevron-right"></i></button>
+            <nav class="main-nav">
+                <a href="#" class="nav-item">Dashboard</a>
+                <a href="#" class="nav-item active">Calendar</a>
+                <a href="#" class="nav-item">Reservations</a>
+                <a href="#" class="nav-item">Clients</a>
+            </nav>
         </div>
-        <div class="right">
-            <a class="btn btn-outline-secondary btn-sm"
-                href="@Url.Action("PropertyData", "Partner", new { propertyId = propertyId, tab = "pricing" })">
-                <i class="bi bi-arrow-left me-1"></i> Quay lại
-            </a>
-            <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-gear me-1"></i> Cài đặt tình trạng
-                trống</button>
-            <button id="btnSave" class="btn btn-primary btn-sm"><i class="bi bi-save me-1"></i> Lưu thay đổi</button>
+        <div class="header-right">
+            <button class="btn-new-booking">
+                <i class="bi bi-plus-circle"></i> New
+            </button>
         </div>
     </div>
 
-    <div class="calendar-wrapper">
-        <div class="calendar-grid" id="calendarGrid"></div>
+    <!-- Main Content -->
+    <div class="calendar-main">
+        <!-- Left Sidebar -->
+        <div class="calendar-sidebar">
+            <div class="sidebar-icon"><i class="bi bi-list"></i></div>
+            <div class="sidebar-icon"><i class="bi bi-grid"></i></div>
+            <div class="sidebar-icon"><i class="bi bi-building"></i></div>
+            <div class="sidebar-icon"><i class="bi bi-bar-chart"></i></div>
+            <div class="sidebar-icon"><i class="bi bi-gear"></i></div>
+            <div class="sidebar-icon"><i class="bi bi-people"></i></div>
+        </div>
+
+        <!-- Calendar Content -->
+        <div class="calendar-content">
+            <div class="calendar-title-bar">
+                <h2>Calendar</h2>
+                <div class="date-range">
+                    @startDate.ToString("MMM dd") - @endDate.AddDays(-1).ToString("MMM dd")
+                </div>
+                <button class="btn-add-calendar">
+                    <i class="bi bi-plus"></i>
+                </button>
+            </div>
+
+            <div class="calendar-grid-wrapper">
+                <div class="calendar-grid">
+                    <!-- Header Row: Room Column + Date Columns -->
+                    <div class="grid-header">
+                        <div class="room-header-cell">Room</div>
+                        @foreach (var day in days)
+                        {
+                            var weekday = weekdays[(int)day.DayOfWeek];
+                            var isWeekend = day.DayOfWeek == DayOfWeek.Saturday || day.DayOfWeek == DayOfWeek.Sunday;
+                            <div class="date-header-cell @(isWeekend ? "weekend" : "")">
+                                <div class="weekday">@weekday</div>
+                                <div class="date">@day.ToString("MM/dd")</div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Overall Availability Row -->
+                    <div class="grid-row availability-row">
+                        <div class="room-cell availability-label">Overall Availability</div>
+                        @foreach (var day in days)
+                        {
+                            var totalAvailable = 0;
+                            var totalRooms = 0;
+                            if (availabilityMap != null && availabilityMap.ContainsKey("Overall") && availabilityMap["Overall"].ContainsKey(day))
+                            {
+                                totalAvailable = availabilityMap["Overall"][day].Available;
+                                totalRooms = availabilityMap["Overall"][day].Total;
+                            }
+                            <div class="day-cell availability-cell">
+                                <span class="availability-text">@totalAvailable/@totalRooms</span>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Room Types and Rooms -->
+                    @if (roomsByType != null)
+                    {
+                        @foreach (var roomTypeGroup in roomsByType)
+                        {
+                            var roomType = roomTypeGroup.Key;
+                            var typeRooms = roomTypeGroup.ToList();
+                            
+                            <!-- Room Type Availability Row -->
+                            <div class="grid-row room-type-availability-row">
+                                <div class="room-cell room-type-cell">@roomType</div>
+                                @foreach (var day in days)
+                                {
+                                    var available = 0;
+                                    var total = 0;
+                                    if (availabilityMap != null && availabilityMap.ContainsKey(roomType) && availabilityMap[roomType].ContainsKey(day))
+                                    {
+                                        available = availabilityMap[roomType][day].Available;
+                                        total = availabilityMap[roomType][day].Total;
+                                    }
+                                    <div class="day-cell availability-cell">
+                                        <span class="availability-text">@available/@total</span>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Individual Rooms -->
+                            @foreach (var room in typeRooms)
+                            {
+                                var roomBookings = bookings?.Where(b => b.RoomId == room.Id).ToList() ?? new List<HotelBooking.Models.Booking>();
+                                <div class="grid-row room-row" data-room-id="@room.Id">
+                                    <div class="room-cell room-name-cell">
+                                        <div class="room-number">@room.Name</div>
+                                        <div class="room-status-dot @(roomBookings.Any(b => b.CheckIn <= DateTime.Today && b.CheckOut > DateTime.Today) ? "occupied" : "available")"></div>
+                                    </div>
+                                    @foreach (var day in days)
+                                    {
+                                        var dayBookings = roomBookings.Where(b => 
+                                            b.CheckIn <= day && 
+                                            b.CheckOut > day).ToList();
+                                        
+                                        <div class="day-cell booking-cell">
+                                            @if (dayBookings.Any())
+                                            {
+                                                @foreach (var booking in dayBookings)
+                                                {
+                                                    var isStart = booking.CheckIn.Date == day.Date;
+                                                    var isEnd = booking.CheckOut.Date == day.AddDays(1).Date;
+                                                    var bookingIndex = roomBookings.IndexOf(booking) % bookingColors.Length;
+                                                    var color = bookingColors[bookingIndex];
+                                                    
+                                                    // Calculate span (number of days)
+                                                    var spanDays = (booking.CheckOut.Date - booking.CheckIn.Date).Days;
+                                                    
+                                                    @if (isStart)
+                                                    {
+                                                        var dayIndex = days.IndexOf(day);
+                                                        var leftPercent = 0;
+                                                        var widthPercent = (spanDays * 100);
+                                                        
+                                                        <div class="booking-bar" 
+                                                             style="background-color: @color; left: @(leftPercent)%; width: @(widthPercent)%;"
+                                                             data-booking-id="@booking.Id"
+                                                             data-booking-start="@dayIndex"
+                                                             data-booking-span="@spanDays"
+                                                             title="@booking.GuestName - @booking.CheckIn.ToString("MM/dd") to @booking.CheckOut.ToString("MM/dd")">
+                                                            <div class="booking-dot start-dot"></div>
+                                                            @if (spanDays == 1)
+                                                            {
+                                                                <i class="bi bi-info-circle booking-icon"></i>
+                                                            }
+                                                            @if (isEnd)
+                                                            {
+                                                                <div class="booking-dot end-dot"></div>
+                                                            }
+                                                        </div>
+                                                    }
+                                                }
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
+                    }
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <style>
-    .calendar-wrapper {
-        overflow-x: auto;
-        background: #fff;
-        border: 1px solid #e9ecef;
+    * {
+        box-sizing: border-box;
+    }
+
+    .booking-calendar-container {
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: #f5f7fa;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    /* Header */
+    .calendar-header {
+        background: white;
+        border-bottom: 1px solid #e0e6ed;
+        padding: 12px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    }
+
+    .logo-placeholder {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+    }
+
+    .main-nav {
+        display: flex;
+        gap: 8px;
+    }
+
+    .nav-item {
+        padding: 8px 16px;
+        text-decoration: none;
+        color: #4a5568;
+        font-weight: 500;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+
+    .nav-item:hover {
+        background: #f7fafc;
+        color: #2d3748;
+    }
+
+    .nav-item.active {
+        color: #667eea;
+        border-bottom: 2px solid #667eea;
+    }
+
+    .btn-new-booking {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-new-booking:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Main Layout */
+    .calendar-main {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+    }
+
+    /* Sidebar */
+    .calendar-sidebar {
+        width: 60px;
+        background: #2d3748;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 16px 0;
+        gap: 16px;
+    }
+
+    .sidebar-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #a0aec0;
+        font-size: 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .sidebar-icon:hover {
+        background: #4a5568;
+        color: white;
+    }
+
+    /* Calendar Content */
+    .calendar-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: white;
+    }
+
+    .calendar-title-bar {
+        padding: 16px 24px;
+        border-bottom: 1px solid #e0e6ed;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .calendar-title-bar h2 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: #1a202c;
+    }
+
+    .date-range {
+        color: #718096;
+        font-size: 14px;
+    }
+
+    .btn-add-calendar {
+        margin-left: auto;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1px solid #cbd5e0;
+        background: white;
+        color: #4a5568;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .btn-add-calendar:hover {
+        background: #f7fafc;
+        border-color: #a0aec0;
+    }
+
+    /* Calendar Grid */
+    .calendar-grid-wrapper {
+        flex: 1;
+        overflow: auto;
     }
 
     .calendar-grid {
         display: grid;
-        grid-auto-rows: minmax(48px, auto);
+        grid-template-columns: 200px repeat(@days.Count, 120px);
+        min-width: fit-content;
     }
 
-    .calendar-grid .header {
+    .grid-header {
+        display: contents;
+    }
+
+    .room-header-cell {
+        position: sticky;
+        left: 0;
+        z-index: 5;
+        background: #f7fafc;
+        padding: 12px 16px;
+        font-weight: 600;
+        color: #2d3748;
+        border-right: 2px solid #e0e6ed;
+        border-bottom: 2px solid #e0e6ed;
+    }
+
+    .date-header-cell {
+        padding: 12px 8px;
+        text-align: center;
+        border-bottom: 2px solid #e0e6ed;
+        border-right: 1px solid #e0e6ed;
+        background: #f7fafc;
         position: sticky;
         top: 0;
-        background: #f8f9fa;
-        z-index: 2;
-        border-bottom: 1px solid #e9ecef;
+        z-index: 4;
+    }
+
+    .date-header-cell.weekend {
+        background: #eef6ff;
+    }
+
+    .date-header-cell .weekday {
+        font-size: 11px;
+        color: #718096;
+        margin-bottom: 4px;
+    }
+
+    .date-header-cell .date {
+        font-size: 13px;
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .grid-row {
+        display: contents;
     }
 
     .room-cell {
-        background: #f8f9fa;
-        padding: 8px 10px;
-        border-right: 1px solid #e9ecef;
-        white-space: nowrap;
+        position: sticky;
+        left: 0;
+        z-index: 3;
+        background: white;
+        padding: 12px 16px;
+        border-right: 2px solid #e0e6ed;
+        border-bottom: 1px solid #e0e6ed;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .availability-label {
+        font-weight: 600;
+        color: #4a5568;
+        background: #f7fafc;
+    }
+
+    .room-type-cell {
+        font-weight: 600;
+        color: #2d3748;
+        background: #f7fafc;
+        padding-left: 24px;
+    }
+
+    .room-name-cell {
+        background: white;
+    }
+
+    .room-number {
+        font-weight: 500;
+        color: #2d3748;
+    }
+
+    .room-status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .room-status-dot.available {
+        background: #48bb78;
+    }
+
+    .room-status-dot.occupied {
+        background: #f56565;
     }
 
     .day-cell {
-        border-left: 1px solid #f1f3f5;
-        border-bottom: 1px solid #f1f3f5;
-        padding: 6px;
-        min-width: 92px;
+        border-right: 1px solid #e0e6ed;
+        border-bottom: 1px solid #e0e6ed;
+        min-height: 50px;
+        position: relative;
+        padding: 4px;
     }
 
-    .day-cell input {
-        width: 100%;
-        font-size: 12px;
-        padding: 4px 6px;
-    }
-
-    .closed {
-        background: #ffeaea;
-    }
-
-    .controls {
-        display: flex;
-        gap: 6px;
-        margin-top: 4px;
-    }
-
-    .controls .form-check {
-        font-size: 12px;
-    }
-
-    .calendar-toolbar {
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .calendar-toolbar .left .title {
-        font-weight: 700;
-        font-size: 18px;
-    }
-
-    .calendar-toolbar .left .subtitle {
-        color: #6c757d;
-        font-size: 12px;
-    }
-
-    .calendar-toolbar .center {
+    .availability-cell {
+        text-align: center;
         display: flex;
         align-items: center;
-        gap: 8px;
         justify-content: center;
+        background: #f7fafc;
     }
 
-    .range-pill {
-        background: #f1f3f5;
-        padding: 6px 10px;
-        border-radius: 999px;
+    .availability-text {
         font-size: 12px;
-        color: #495057;
+        color: #4a5568;
+        font-weight: 500;
     }
 
-    .calendar-toolbar .right {
-        display: flex;
-        gap: 8px;
-        justify-content: flex-end;
+    .booking-cell {
+        padding: 2px;
+        background: white;
     }
 
-    /* Hover effect for remaining rooms */
-    .room-cell .small.text-primary:hover {
-        background-color: #e3f2fd;
+    .booking-bar {
+        position: absolute;
+        top: 2px;
+        bottom: 2px;
+        left: 0;
+        right: 0;
         border-radius: 4px;
-        padding: 2px 4px;
-        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .booking-bar:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        z-index: 10;
+    }
+
+    .booking-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: white;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .booking-icon {
+        color: white;
+        font-size: 12px;
+        opacity: 0.9;
     }
 </style>
 
 <script>
-    const propertyId = @propertyId;
-    let currentYear = @year;
-    let currentMonth = @month; // 1-12
-    let rooms = [];
-    const changes = new Map(); // key: roomId|date -> data
-
-    async function loadMonth(y, m) {
-        const res = await fetch(`@Url.Action("FetchMonth", "Partner")?propertyId=${propertyId}&year=${y}&month=${m}`);
-        const data = await res.json();
-        rooms = data.rooms;
-        renderCalendar(y, m, data);
-    }
-
-    function dateKey(d) { return d.toISOString().slice(0, 10); }
-
-    function renderCalendar(y, m, data) {
-        const start = new Date(y, m - 1, 1);
-        const daysInMonth = new Date(y, m, 0).getDate();
-        const grid = document.getElementById('calendarGrid');
-        const cols = 1 + daysInMonth; // first column is room name
-        grid.style.gridTemplateColumns = `240px repeat(${daysInMonth}, 1fr)`;
-        grid.innerHTML = '';
-
-        // Header (weekday + date like Booking matrix)
-        const weekdays = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-        grid.appendChild(cell('header room-cell fw-semibold', 'Phòng'));
-        for (let d = 1; d <= daysInMonth; d++) {
-            const dt = new Date(y, m - 1, d);
-            const wd = dt.getDay();
-            const label = `<div class='small text-muted'>${weekdays[wd]}</div><div>${String(d).padStart(2, '0')}/${m}</div>`;
-            const el = cell('header day-cell text-center', label);
-            if (wd === 0 || wd === 6) el.style.background = '#eef6ff';
-            grid.appendChild(el);
-        }
-
-        // Availability row (editable number per day)
-        grid.appendChild(cell('room-cell', '<div class="small text-muted">Trạng thái phòng</div><div class="fw-semibold">Đặt được</div>'));
-        for (let d = 1; d <= daysInMonth; d++) {
-            const wrap = document.createElement('div');
-            wrap.className = 'day-cell';
-            const qty = document.createElement('input');
-            qty.type = 'number'; qty.min = '0'; qty.className = 'form-control form-control-sm'; qty.value = 1;
-            wrap.appendChild(qty);
-            grid.appendChild(wrap);
-        }
-
-        // Rates map
-        const rateMap = new Map();
-        for (const r of data.rates) {
-            rateMap.set(`${r.roomId}|${r.date.substring(0, 10)}`, r);
-        }
-
-        // Get room quantities from API data
-        const roomQuantities = data.roomQuantities || {};
-        console.log('Full API data:', data);
-        console.log('Room quantities from API:', roomQuantities);
-        console.log('Rooms from API:', rooms);
-
-        for (const room of rooms) {
-            // Get quantities for this room
-            const roomQty = roomQuantities[room.id] || { original: room.quantity, remaining: room.quantity };
-            const originalQuantity = roomQty.original || room.quantity || 0;
-            const remainingQuantity = roomQty.remaining || room.quantity || 0;
-
-            console.log(`Room ${room.id}:`, {
-                roomId: room.id,
-                roomName: room.name,
-                originalQuantity,
-                remainingQuantity,
-                roomQty,
-                roomQuantity: room.quantity
+    // Add click handlers for booking bars
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.booking-bar').forEach(bar => {
+            bar.addEventListener('click', function() {
+                const bookingId = this.getAttribute('data-booking-id');
+                // Navigate to booking details
+                window.location.href = '@Url.Action("BookingDetails", "Partner")?bookingCode=' + bookingId;
             });
-
-            // Room name with quantity info and remaining rooms
-            const roomInfo = `
-                <div class="fw-semibold">${room.name}</div>
-                <div class="small text-muted">Quỹ phòng: ${originalQuantity}</div>
-                <div class="small text-primary" style="cursor: pointer;" 
-                     title="Xem tất cả đặt phòng" 
-                     onclick="window.open('@Url.Action("AllBookings", "Partner")?propertyId=${propertyId}', '_blank')">
-                    Còn lại: ${remainingQuantity} phòng
-                </div>
-            `;
-            grid.appendChild(cell('room-cell', roomInfo));
-            for (let d = 1; d <= daysInMonth; d++) {
-                const cur = new Date(y, m - 1, d);
-                const key = `${room.id}|${cur.toISOString().slice(0, 10)}`;
-                const r = rateMap.get(key);
-                const wrap = document.createElement('div');
-                wrap.className = 'day-cell';
-
-                const priceInput = document.createElement('input');
-                priceInput.type = 'text';
-                priceInput.inputMode = 'numeric';
-                const base = data.basePrices[room.id] || '';
-                priceInput.placeholder = base ? formatVnd(base) : 'Giá';
-                priceInput.value = r?.price ? formatVnd(r.price) : '';
-                priceInput.addEventListener('input', () => {
-                    const num = parseNumeric(priceInput.value);
-                    priceInput.value = num ? formatVnd(num) : '';
-                });
-                priceInput.addEventListener('change', () => {
-                    const num = parseNumeric(priceInput.value);
-                    collectChange(room.id, cur, { price: Number.isFinite(num) ? Number(num) : null });
-                });
-
-                const check = document.createElement('input');
-                check.type = 'checkbox';
-                check.className = 'form-check-input ms-1';
-                check.checked = r?.isClosed ?? false;
-                check.title = 'Đóng bán';
-                check.addEventListener('change', () => {
-                    wrap.classList.toggle('closed', check.checked);
-                    collectChange(room.id, cur, { isClosed: check.checked });
-                });
-
-                const ctl = document.createElement('div');
-                ctl.className = 'controls';
-                const lbl = document.createElement('label');
-                lbl.className = 'form-check-label small';
-                lbl.textContent = 'Đóng';
-                const group = document.createElement('div');
-                group.className = 'form-check form-check-inline';
-                group.appendChild(check);
-                group.appendChild(lbl);
-
-                wrap.appendChild(priceInput);
-                wrap.appendChild(group);
-                if (check.checked) wrap.classList.add('closed');
-                grid.appendChild(wrap);
-            }
-        }
-    }
-
-    function cell(cls, html) { const d = document.createElement('div'); d.className = cls; d.innerHTML = html; return d; }
-
-    function collectChange(roomId, date, delta) {
-        const k = `${roomId}|${dateKey(date)}`;
-        const current = changes.get(k) || { roomId, date: dateKey(date) };
-        Object.assign(current, delta);
-        changes.set(k, current);
-    }
-
-    function parseNumeric(text) {
-        if (!text) return 0;
-        const raw = String(text).replace(/[^0-9]/g, '');
-        return raw === '' ? 0 : Number(raw);
-    }
-
-    function formatVnd(n) {
-        try {
-            const num = typeof n === 'number' ? n : Number(n);
-            if (!Number.isFinite(num)) return '';
-            return num.toLocaleString('vi-VN');
-        } catch { return ''; }
-    }
-
-    document.getElementById('btnPrev').addEventListener('click', () => {
-        currentMonth--; if (currentMonth === 0) { currentMonth = 12; currentYear--; }
-        loadMonth(currentYear, currentMonth);
-    });
-    document.getElementById('btnNext').addEventListener('click', () => {
-        currentMonth++; if (currentMonth === 13) { currentMonth = 1; currentYear++; }
-        loadMonth(currentYear, currentMonth);
-    });
-    document.getElementById('btnSave').addEventListener('click', async () => {
-        if (changes.size === 0) { alert('Không có thay đổi'); return; }
-        const payload = {
-            propertyId: propertyId,
-            items: Array.from(changes.values()).map(x => ({
-                roomId: x.roomId,
-                date: x.date,
-                price: x.price ?? null,
-                isClosed: x.isClosed ?? null
-            }))
-        };
-        const res = await fetch('@Url.Action("SaveRates", "Partner")', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
         });
-        if (res.ok) { changes.clear(); alert('Đã lưu'); loadMonth(currentYear, currentMonth); }
-        else { alert('Lỗi lưu'); }
     });
-
-    loadMonth(currentYear, currentMonth);
 </script>

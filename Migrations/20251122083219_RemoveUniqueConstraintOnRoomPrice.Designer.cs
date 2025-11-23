@@ -3,6 +3,7 @@ using System;
 using HotelBooking.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HotelBooking.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251122083219_RemoveUniqueConstraintOnRoomPrice")]
+    partial class RemoveUniqueConstraintOnRoomPrice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
@@ -637,59 +640,6 @@ namespace HotelBooking.Migrations
                     b.ToTable("PropertyData");
                 });
 
-            modelBuilder.Entity("HotelBooking.Models.Review", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("BookingId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("CleanlinessRating")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Comment")
-                        .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("LocationRating")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("PropertyId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Rating")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("ServiceRating")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("ValueRating")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BookingId")
-                        .IsUnique();
-
-                    b.HasIndex("PropertyId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Reviews");
-                });
-
             modelBuilder.Entity("HotelBooking.Models.Room", b =>
                 {
                     b.Property<int>("Id")
@@ -886,10 +836,6 @@ namespace HotelBooking.Migrations
                         .HasMaxLength(8)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("OptionName")
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
                     b.Property<int?>("PricePackageId")
                         .HasColumnType("INTEGER");
 
@@ -906,9 +852,10 @@ namespace HotelBooking.Migrations
 
                     b.HasIndex("PricePackageId");
 
-                    b.HasIndex("PropertyId");
-
                     b.HasIndex("RoomId");
+
+                    b.HasIndex("PropertyId", "RoomId", "PricePackageId")
+                        .IsUnique();
 
                     b.ToTable("RoomPrices");
                 });
@@ -1096,33 +1043,6 @@ namespace HotelBooking.Migrations
                     b.Navigation("Property");
                 });
 
-            modelBuilder.Entity("HotelBooking.Models.Review", b =>
-                {
-                    b.HasOne("HotelBooking.Models.Booking", "Booking")
-                        .WithMany()
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("HotelBooking.Models.Property", "Property")
-                        .WithMany()
-                        .HasForeignKey("PropertyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("HotelBooking.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Booking");
-
-                    b.Navigation("Property");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("HotelBooking.Models.RoomAmenity", b =>
                 {
                     b.HasOne("HotelBooking.Models.Room", null)
@@ -1169,8 +1089,7 @@ namespace HotelBooking.Migrations
                 {
                     b.HasOne("HotelBooking.Models.PricePackage", "PricePackage")
                         .WithMany()
-                        .HasForeignKey("PricePackageId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("PricePackageId");
 
                     b.HasOne("HotelBooking.Models.Property", null)
                         .WithMany()

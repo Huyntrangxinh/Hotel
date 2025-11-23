@@ -562,7 +562,7 @@ public async Task<IActionResult> MyProperties()
     var myProperties = allProperties
         .OrderByDescending(p => p.CreatedAt)
         .ToList();
-    
+        
     // Load thumbnail ảnh đầu tiên cho mỗi property
     var propIds = myProperties.Select(p => p.Id).ToList();
     var thumbs = await _db.PropertyData
@@ -823,12 +823,17 @@ public async Task<IActionResult> Success()
             // Nếu đã có PropertyData, load dữ liệu cũ
             if (propertyData != null)
             {
+                Console.WriteLine($"=== Loading PropertyData ===");
+                Console.WriteLine($"PropertyData.StarRating from DB: {propertyData.StarRating}");
+                
                 viewModel.CheckInTime = propertyData.CheckInTime;
                 viewModel.CheckOutTime = propertyData.CheckOutTime;
                 viewModel.IsReception24Hours = propertyData.IsReception24Hours;
                 viewModel.NumberOfRooms = propertyData.NumberOfRooms;
                 viewModel.RoomDescription = propertyData.RoomDescription;
                 viewModel.StarRating = propertyData.StarRating;
+                
+                Console.WriteLine($"ViewModel.StarRating after assignment: {viewModel.StarRating}");
                 viewModel.PhotoCategoriesJson = propertyData.PhotoCategoriesJson;
                 // Khôi phục URL ảnh đã lưu để render lại khi quay lại
                 if (!string.IsNullOrWhiteSpace(propertyData.PhotoPaths))
@@ -886,7 +891,7 @@ public async Task<IActionResult> Success()
                 }).ToList()
             }).ToList();
 
-            // Load PricePackage nếu có
+            // Load PricePackage nếu có (lấy package đầu tiên làm mặc định)
             var pricePackage = await _db.PricePackages
                 .FirstOrDefaultAsync(p => p.PropertyId == propertyId);
             
@@ -903,12 +908,46 @@ public async Task<IActionResult> Success()
                 };
             }
 
-            // Load current room prices
+            // Load tất cả PricePackages để hiển thị trong dropdown
+            var allPricePackages = await _db.PricePackages
+                .Where(p => p.PropertyId == propertyId)
+                .ToListAsync();
+            ViewBag.AllPricePackages = allPricePackages;
+
+            // Load tất cả RoomPrices với PricePackageId
+            var roomPrices = await _db.RoomPrices
+                .Include(rp => rp.PricePackage)
+                .Where(rp => rp.PropertyId == propertyId)
+                .OrderBy(rp => rp.Id) // Order by ID để đảm bảo thứ tự
+                .ToListAsync();
+            
+            Console.WriteLine($"=== PropertyData GET: Loaded RoomPrices ===");
+            Console.WriteLine($"Total RoomPrices: {roomPrices.Count}");
+            foreach (var rp in roomPrices)
+            {
+                Console.WriteLine($"  RoomPrice {rp.Id}: Room {rp.RoomId}, Amount={rp.Amount}, PackageId={rp.PricePackageId}");
+            }
+            
+            // Tạo dictionary: RoomId -> List<RoomPrice>
+            var roomPriceMap = new Dictionary<int, List<Models.RoomPrice>>();
+            foreach (var rp in roomPrices)
+            {
+                if (!roomPriceMap.ContainsKey(rp.RoomId))
+                {
+                    roomPriceMap[rp.RoomId] = new List<Models.RoomPrice>();
+                }
+                roomPriceMap[rp.RoomId].Add(rp);
+            }
+            ViewBag.RoomPriceMap = roomPriceMap;
+
+            // Load current room prices (giữ lại để tương thích với code cũ)
+            // Lấy giá đầu tiên cho mỗi RoomId (có thể có nhiều RoomPrice cho cùng RoomId)
             var priceMap = await _db.RoomPrices
                 .Where(p => p.PropertyId == propertyId)
-                .ToDictionaryAsync(p => p.RoomId, p => p.Amount);
+                .GroupBy(p => p.RoomId)
+                .ToDictionaryAsync(g => g.Key, g => g.First().Amount);
 
-            ViewBag.RoomPriceMap = priceMap;
+            ViewBag.RoomPriceMapLegacy = priceMap; // Đổi tên để tránh conflict
 
             return View(viewModel);
         }
@@ -1089,7 +1128,50 @@ public async Task<IActionResult> Success()
             propertyData.IsReception24Hours = viewModel.IsReception24Hours;
             propertyData.NumberOfRooms = viewModel.NumberOfRooms;
             propertyData.RoomDescription = viewModel.RoomDescription;
+            
+            // Xử lý StarRating: Request.Form["StarRating"] có thể trả về nhiều giá trị (tất cả radio buttons)
+            // Cần lấy giá trị cuối cùng (radio được checked) hoặc giá trị duy nhất
+            if (Request.Form.ContainsKey("StarRating"))
+            {
+                var starRatingValues = Request.Form["StarRating"].ToString();
+                Console.WriteLine($"StarRating from Request.Form (raw): '{starRatingValues}'");
+                
+                // Nếu có nhiều giá trị (ví dụ: "1,2,3,4,5"), lấy giá trị cuối cùng (radio được checked)
+                string starRatingValue;
+                if (starRatingValues.Contains(','))
+                {
+                    var values = starRatingValues.Split(',');
+                    starRatingValue = values[values.Length - 1].Trim(); // Lấy giá trị cuối cùng
+                    Console.WriteLine($"StarRating has multiple values, using last one: '{starRatingValue}'");
+                }
+                else
+                {
+                    starRatingValue = starRatingValues.Trim();
+                }
+                
+                if (string.IsNullOrWhiteSpace(starRatingValue))
+                {
+                    propertyData.StarRating = null;
+                    Console.WriteLine("StarRating set to null (empty string)");
+                }
+                else if (int.TryParse(starRatingValue, out int rating) && rating >= 1 && rating <= 5)
+                {
+                    propertyData.StarRating = rating;
+                    Console.WriteLine($"StarRating set to {rating}");
+                }
+                else
+                {
+                    propertyData.StarRating = viewModel.StarRating; // Fallback to viewModel value
+                    Console.WriteLine($"StarRating fallback to viewModel value: {viewModel.StarRating}");
+                }
+            }
+            else
+            {
             propertyData.StarRating = viewModel.StarRating;
+                Console.WriteLine($"StarRating from viewModel (form key not found): {viewModel.StarRating}");
+            }
+            
+            Console.WriteLine($"Final StarRating value: {propertyData.StarRating}");
             
             // Cập nhật amenities
             propertyData.HasSmokingArea = viewModel.HasSmokingArea;
@@ -1264,15 +1346,15 @@ public async Task<IActionResult> Success()
                 var it = sortedManifest.FirstOrDefault(m => m.Order == i);
                 if (it.Url != null || it.NewIndex.HasValue)
                 {
-                    if (!string.IsNullOrEmpty(it.Url))
-                    {
+                if (!string.IsNullOrEmpty(it.Url))
+                {
                         // Ảnh cũ: giữ nguyên URL
                         finalUrls.Add(it.Url);
                         finalCategories.Add(it.Category);
                         Console.WriteLine($"  Processed existing photo at order {i}: {it.Url}");
-                    }
-                    else if (it.NewIndex.HasValue)
-                    {
+                }
+                else if (it.NewIndex.HasValue)
+                {
                         // Sử dụng files từ Request.Form.Files thay vì model binding để đảm bảo lấy đúng tất cả files
                         var fileList = allUploadedFiles.Count > 0 ? allUploadedFiles : (viewModel.PropertyPhotos ?? new List<IFormFile>());
                         Console.WriteLine($"  Trying to get file at index {it.NewIndex.Value} from {fileList.Count} files (source: {(allUploadedFiles.Count > 0 ? "Request.Form.Files" : "Model binding")})");
@@ -1280,14 +1362,14 @@ public async Task<IActionResult> Success()
                         if (it.NewIndex.Value >= 0 && it.NewIndex.Value < fileList.Count)
                         {
                             var file = fileList[it.NewIndex.Value];
-                            if (file != null && file.Length > 0 && file.ContentType.StartsWith("image/"))
-                            {
-                                var fileName = Guid.NewGuid().ToString("N") + Path.GetExtension(file.FileName);
-                                var filePath = Path.Combine(uploadsDir2, fileName);
-                                using (var fs = new FileStream(filePath, FileMode.Create))
-                                {
-                                    await file.CopyToAsync(fs);
-                                }
+                    if (file != null && file.Length > 0 && file.ContentType.StartsWith("image/"))
+                    {
+                        var fileName = Guid.NewGuid().ToString("N") + Path.GetExtension(file.FileName);
+                        var filePath = Path.Combine(uploadsDir2, fileName);
+                        using (var fs = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(fs);
+                        }
                                 var photoUrl = $"/uploads/properties/{viewModel.PropertyId}/{fileName}";
                                 finalUrls.Add(photoUrl);
                                 finalCategories.Add(it.Category);
@@ -1330,7 +1412,18 @@ public async Task<IActionResult> Success()
 
             propertyData.UpdatedAt = DateTime.UtcNow;
 
+            // Log trước khi save
+            Console.WriteLine($"=== Before SaveAsync ===");
+            Console.WriteLine($"PropertyData.StarRating: {propertyData.StarRating}");
+            Console.WriteLine($"PropertyData.Id: {propertyData.Id}");
+            Console.WriteLine($"PropertyData.PropertyId: {propertyData.PropertyId}");
+
             await _db.SaveChangesAsync();
+
+            // Verify sau khi save
+            var savedData = await _db.PropertyData.FirstOrDefaultAsync(pd => pd.Id == propertyData.Id);
+            Console.WriteLine($"=== After SaveAsync ===");
+            Console.WriteLine($"Saved PropertyData.StarRating: {savedData?.StarRating}");
 
             TempData["success"] = "Thông tin cơ sở lưu trú đã được lưu thành công!";
             
@@ -1834,7 +1927,7 @@ public async Task<IActionResult> Success()
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreatePricePackage(int propertyId, string? cancellationPolicy, bool breakfastIncluded, string returnTab = "pricing")
+        public async Task<IActionResult> CreatePricePackage(int propertyId, string? cancellationPolicy, bool breakfastIncluded, int? packageId = null, string returnTab = "pricing")
         {
             try
             {
@@ -1851,13 +1944,16 @@ public async Task<IActionResult> Success()
                     return NotFound();
                 }
 
-                // Tải gói hiện có (nếu có)
-                var existingPackage = await _db.PricePackages.FirstOrDefaultAsync(p => p.PropertyId == propertyId);
-
-                // Nếu người dùng không chọn chính sách hủy, giữ nguyên giá trị cũ hoặc dùng mặc định
+                // Nếu người dùng không chọn chính sách hủy, dùng mặc định
                 var finalCancellationPolicy = string.IsNullOrWhiteSpace(cancellationPolicy)
-                    ? (existingPackage?.CancellationPolicy ?? "refund_1")
+                    ? "refund_1"
                     : cancellationPolicy;
+
+                // Nếu có packageId, cập nhật; nếu không, tạo mới
+                if (packageId.HasValue && packageId.Value > 0)
+                {
+                    var existingPackage = await _db.PricePackages
+                        .FirstOrDefaultAsync(p => p.Id == packageId.Value && p.PropertyId == propertyId);
 
                 if (existingPackage != null)
                 {
@@ -1868,6 +1964,21 @@ public async Task<IActionResult> Success()
                 }
                 else
                 {
+                        Console.WriteLine("PackageId không tồn tại, tạo mới");
+                        var pricePackage = new PricePackage
+                        {
+                            PropertyId = propertyId,
+                            CancellationPolicy = finalCancellationPolicy,
+                            BreakfastIncluded = breakfastIncluded,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        };
+                        _db.PricePackages.Add(pricePackage);
+                    }
+                }
+                else
+                {
+                    // Luôn tạo gói giá mới (cho phép nhiều gói giá)
                     Console.WriteLine("Tạo price package mới");
                     var pricePackage = new PricePackage
                     {
@@ -1885,6 +1996,7 @@ public async Task<IActionResult> Success()
                 Console.WriteLine("Đã lưu price package thành công vào database");
                 Console.WriteLine("=== KẾT THÚC CREATEPRICEPACKAGE POST ===");
 
+                TempData["Success"] = packageId.HasValue ? "Đã cập nhật gói giá thành công" : "Đã tạo gói giá thành công";
                 return RedirectToAction(nameof(PropertyData), new { propertyId = propertyId, tab = returnTab });
             }
             catch (Exception ex)
@@ -1895,21 +2007,225 @@ public async Task<IActionResult> Success()
         }
 
         [HttpPost]
-        public async Task<IActionResult> SaveRoomPrices(int propertyId, Dictionary<int, decimal> prices)
+        public async Task<IActionResult> DeletePricePackage(int propertyId, int packageId, string returnTab = "pricing")
         {
             try
             {
+                var package = await _db.PricePackages
+                    .FirstOrDefaultAsync(p => p.Id == packageId && p.PropertyId == propertyId);
+                
+                if (package == null)
+                {
+                    return NotFound();
+                }
+
+                // Kiểm tra xem có RoomPrice nào đang sử dụng gói giá này không
+                var hasRoomPrices = await _db.RoomPrices
+                    .AnyAsync(rp => rp.PricePackageId == packageId);
+                
+                if (hasRoomPrices)
+                {
+                    TempData["Error"] = "Không thể xóa gói giá này vì đang được sử dụng bởi một hoặc nhiều giá phòng.";
+                    return RedirectToAction(nameof(PropertyData), new { propertyId = propertyId, tab = returnTab });
+                }
+
+                _db.PricePackages.Remove(package);
+                await _db.SaveChangesAsync();
+
+                TempData["Success"] = "Đã xóa gói giá thành công.";
+                return RedirectToAction(nameof(PropertyData), new { propertyId = propertyId, tab = returnTab });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi khi xóa price package: {ex.Message}");
+                TempData["Error"] = "Có lỗi xảy ra khi xóa gói giá.";
+                return RedirectToAction(nameof(PropertyData), new { propertyId = propertyId, tab = returnTab });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveRoomPrices(int propertyId)
+        {
+            try
+            {
+                Console.WriteLine("=== SaveRoomPrices START ===");
+                Console.WriteLine($"Request.ContentType: {Request.ContentType}");
+                Console.WriteLine($"Request.Form.Keys.Count: {Request.Form.Keys.Count}");
+                Console.WriteLine("All Form Keys:");
+                foreach (var key in Request.Form.Keys)
+                {
+                    var values = Request.Form[key];
+                    Console.WriteLine($"  {key}: [{string.Join(", ", values)}]");
+                }
+                
+                // Đọc dữ liệu từ Request.Form vì model binding có thể không hoạt động đúng với Dictionary<int, List<T>>
+                var prices = new Dictionary<int, List<decimal>>();
+                var pricePackages = new Dictionary<int, List<int?>>();
+                var priceIds = new Dictionary<int, List<int>>();
+
+                // Parse prices - format: prices[17][]
+                foreach (var key in Request.Form.Keys)
+                {
+                    Console.WriteLine($"Checking key: {key}");
+                    if (key.StartsWith("prices[") && key.Contains("]"))
+                    {
+                        // Extract roomId from "prices[17][]" or "prices[17]"
+                        var startIdx = 7; // "prices[".Length
+                        var endIdx = key.IndexOf(']', startIdx);
+                        if (endIdx > startIdx)
+                        {
+                            var roomIdStr = key.Substring(startIdx, endIdx - startIdx);
+                            Console.WriteLine($"  Found price key: {key}, roomIdStr: {roomIdStr}");
+                            if (int.TryParse(roomIdStr, out int roomId))
+                            {
+                                var values = Request.Form[key];
+                                Console.WriteLine($"  Room {roomId} has {values.Count} price values");
+                                if (!prices.ContainsKey(roomId))
+                                    prices[roomId] = new List<decimal>();
+                                
+                                foreach (var value in values)
+                                {
+                                    // Remove all non-numeric characters
+                                    var cleanValue = value.ToString().Replace(",", "").Replace(".", "").Trim();
+                                    Console.WriteLine($"    Parsing value: '{value}' -> cleaned: '{cleanValue}'");
+                                    if (decimal.TryParse(cleanValue, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out decimal price))
+                                    {
+                                        prices[roomId].Add(price);
+                                        Console.WriteLine($"    ✓ Parsed price for Room {roomId}: {price}");
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine($"    ✗ Failed to parse price for Room {roomId}: '{value}' (cleaned: '{cleanValue}')");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Parse pricePackages - format: pricePackages[17][]
+                foreach (var key in Request.Form.Keys)
+                {
+                    if (key.StartsWith("pricePackages[") && key.Contains("]"))
+                    {
+                        // Extract roomId from "pricePackages[17][]"
+                        var startIdx = 14; // "pricePackages[".Length
+                        var endIdx = key.IndexOf(']', startIdx);
+                        if (endIdx > startIdx)
+                        {
+                            var roomIdStr = key.Substring(startIdx, endIdx - startIdx);
+                            Console.WriteLine($"  Found package key: {key}, roomIdStr: {roomIdStr}");
+                            if (int.TryParse(roomIdStr, out int roomId))
+                            {
+                                var values = Request.Form[key];
+                                Console.WriteLine($"  Room {roomId} has {values.Count} package values");
+                                if (!pricePackages.ContainsKey(roomId))
+                                    pricePackages[roomId] = new List<int?>();
+                                
+                                foreach (var value in values)
+                                {
+                                    if (string.IsNullOrWhiteSpace(value))
+                                    {
+                                        pricePackages[roomId].Add(null);
+                                        Console.WriteLine($"    Added null package for Room {roomId}");
+                                    }
+                                    else if (int.TryParse(value, out int packageId))
+                                    {
+                                        pricePackages[roomId].Add(packageId);
+                                        Console.WriteLine($"    Added package {packageId} for Room {roomId}");
+                                    }
+                                    else
+                                    {
+                                        pricePackages[roomId].Add(null);
+                                        Console.WriteLine($"    Failed to parse package, added null for Room {roomId}");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Parse priceIds - format: priceIds[17][]
+                foreach (var key in Request.Form.Keys)
+                {
+                    if (key.StartsWith("priceIds[") && key.Contains("]"))
+                    {
+                        // Extract roomId from "priceIds[17][]"
+                        var startIdx = 9; // "priceIds[".Length
+                        var endIdx = key.IndexOf(']', startIdx);
+                        if (endIdx > startIdx)
+                        {
+                            var roomIdStr = key.Substring(startIdx, endIdx - startIdx);
+                            Console.WriteLine($"  Found priceId key: {key}, roomIdStr: {roomIdStr}");
+                            if (int.TryParse(roomIdStr, out int roomId))
+                            {
+                                var values = Request.Form[key];
+                                Console.WriteLine($"  Room {roomId} has {values.Count} priceId values");
+                                if (!priceIds.ContainsKey(roomId))
+                                    priceIds[roomId] = new List<int>();
+                                
+                                foreach (var value in values)
+                                {
+                                    if (int.TryParse(value, out int priceId))
+                                    {
+                                        priceIds[roomId].Add(priceId);
+                                        Console.WriteLine($"    Added priceId {priceId} for Room {roomId}");
+                                    }
+                                    else
+                                    {
+                                        priceIds[roomId].Add(0);
+                                        Console.WriteLine($"    Added priceId 0 (new) for Room {roomId}");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Console.WriteLine($"=== SaveRoomPrices Debug ===");
+                Console.WriteLine($"PropertyId: {propertyId}");
+                Console.WriteLine($"Prices count: {prices.Count}");
+                foreach (var kvp in prices)
+                {
+                    Console.WriteLine($"  Room {kvp.Key}: {kvp.Value.Count} prices");
+                    for (int i = 0; i < kvp.Value.Count; i++)
+                    {
+                        Console.WriteLine($"    Price {i}: {kvp.Value[i]}");
+                    }
+                }
+                Console.WriteLine($"PricePackages count: {pricePackages.Count}");
+                foreach (var kvp in pricePackages)
+                {
+                    Console.WriteLine($"  Room {kvp.Key}: {kvp.Value.Count} packages");
+                    for (int i = 0; i < kvp.Value.Count; i++)
+                    {
+                        Console.WriteLine($"    Package {i}: {kvp.Value[i]}");
+                    }
+                }
+                Console.WriteLine($"PriceIds count: {priceIds.Count}");
+                foreach (var kvp in priceIds)
+                {
+                    Console.WriteLine($"  Room {kvp.Key}: {kvp.Value.Count} ids");
+                    for (int i = 0; i < kvp.Value.Count; i++)
+                    {
+                        Console.WriteLine($"    Id {i}: {kvp.Value[i]}");
+                    }
+                }
+
                 // Validation: Kiểm tra giá phòng phải cao hơn mức bảo hộ
                 var rooms = await _db.Rooms.Where(r => r.PropertyId == propertyId).ToListAsync();
                 var validationErrors = new List<string>();
 
                 foreach (var room in rooms)
                 {
-                    if (prices.TryGetValue(room.Id, out var amount))
+                    if (prices.TryGetValue(room.Id, out var priceList))
+                    {
+                        foreach (var amount in priceList)
                     {
                         if (room.SecurityDeposit.HasValue && amount < room.SecurityDeposit.Value)
                         {
                             validationErrors.Add($"Phòng '{room.Name}': Giá phải cao hơn mức bảo hộ {room.SecurityDeposit.Value:N0} VND");
+                            }
                         }
                     }
                 }
@@ -1917,40 +2233,303 @@ public async Task<IActionResult> Success()
                 if (validationErrors.Any())
                 {
                     TempData["Error"] = string.Join("; ", validationErrors);
-                    return RedirectToAction("PropertyData", new { propertyId, tab = "pricing" });
+                    return RedirectToAction("Preview", new { propertyId });
                 }
 
-                // Lưu giá phòng
-                foreach (var roomId in rooms.Select(r => r.Id))
+                // Lấy tất cả RoomPrice IDs được gửi từ form (để xóa những cái không còn trong form)
+                var submittedPriceIds = new HashSet<int>();
+                foreach (var idList in priceIds.Values)
                 {
-                    if (!prices.TryGetValue(roomId, out var amount)) continue;
-
-                    var existing = await _db.RoomPrices.FirstOrDefaultAsync(p => p.PropertyId == propertyId && p.RoomId == roomId);
-                    if (existing == null)
+                    foreach (var id in idList)
                     {
-                        _db.RoomPrices.Add(new Models.RoomPrice
+                        if (id > 0)
                         {
-                            PropertyId = propertyId,
-                            RoomId = roomId,
-                            Amount = amount,
-                            Currency = "VND"
-                        });
+                            submittedPriceIds.Add(id);
+                        }
+                    }
+                }
+
+                Console.WriteLine($"=== Submitted Price IDs ===");
+                Console.WriteLine($"Total submitted IDs: {submittedPriceIds.Count}");
+                foreach (var id in submittedPriceIds)
+                {
+                    Console.WriteLine($"  PriceId: {id}");
+                }
+
+                // Lấy tất cả RoomIds có trong form (để chỉ xóa RoomPrice của các phòng này)
+                var submittedRoomIds = new HashSet<int>();
+                submittedRoomIds.UnionWith(prices.Keys);
+                submittedRoomIds.UnionWith(pricePackages.Keys);
+                submittedRoomIds.UnionWith(priceIds.Keys);
+
+                Console.WriteLine($"=== Submitted Room IDs ===");
+                Console.WriteLine($"Total submitted Room IDs: {submittedRoomIds.Count}");
+                foreach (var roomId in submittedRoomIds)
+                {
+                    Console.WriteLine($"  RoomId: {roomId}");
+                }
+
+                Console.WriteLine("=== [CHECKPOINT] Đã đến trước log [11] ===");
+                
+                // ===== LOG QUAN TRỌNG: Kiểm tra giá phòng trước khi lưu =====
+                Console.WriteLine("=== [11] Giá phòng trước khi lưu vào DB ===");
+                Console.WriteLine($"PropertyId: {propertyId}");
+                Console.WriteLine($"Tổng số phòng: {rooms.Count}");
+                
+                // Load all price packages để lấy tên
+                Console.WriteLine("=== [11-1] Đang load price packages... ===");
+                var allPackagesDict = await _db.PricePackages
+                    .Where(p => p.PropertyId == propertyId)
+                    .ToDictionaryAsync(p => p.Id, p => p.CancellationPolicyDisplayName);
+                Console.WriteLine($"=== [11-2] Đã load {allPackagesDict.Count} price packages ===");
+                
+                foreach (var room in rooms)
+                {
+                    if (prices.TryGetValue(room.Id, out var priceList))
+                    {
+                        pricePackages.TryGetValue(room.Id, out var packageList);
+                        priceIds.TryGetValue(room.Id, out var idList);
+                        Console.WriteLine($"  Room {room.Id} ({room.Name}):");
+                        Console.WriteLine($"    - Số lượng giá: {priceList.Count}");
+                        Console.WriteLine($"    - Số lượng packages: {packageList?.Count ?? 0}");
+                        Console.WriteLine($"    - Số lượng priceIds: {idList?.Count ?? 0}");
+                        
+                        // Log chi tiết packages
+                        if (packageList != null && packageList.Any())
+                        {
+                            Console.WriteLine($"    - [DEBUG GÓI GIÁ] Danh sách packages:");
+                            for (int pkgIdx = 0; pkgIdx < packageList.Count; pkgIdx++)
+                            {
+                                var pkgId = packageList[pkgIdx];
+                                var pkgName = pkgId.HasValue && allPackagesDict.ContainsKey(pkgId.Value)
+                                    ? allPackagesDict[pkgId.Value]
+                                    : (pkgId.HasValue ? "NOT FOUND" : "NULL");
+                                Console.WriteLine($"      Package[{pkgIdx}]: Id={pkgId}, Name={pkgName}");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"    - [DEBUG GÓI GIÁ] KHÔNG CÓ PACKAGES");
+                        }
+                        
+                        for (int i = 0; i < priceList.Count; i++)
+                        {
+                            var amount = priceList[i];
+                            var packageId = i < (packageList?.Count ?? 0) ? packageList[i] : null;
+                            var priceId = i < (idList?.Count ?? 0) ? idList[i] : 0;
+                            
+                            // Log chi tiết package cho mỗi price
+                            var packageInfo = packageId.HasValue && allPackagesDict.ContainsKey(packageId.Value)
+                                ? allPackagesDict[packageId.Value]
+                                : (packageId.HasValue ? "NOT FOUND" : "NULL");
+                            
+                            Console.WriteLine($"    - Giá {i + 1}: {amount:N0} VND | PackageId: {packageId} | PackageName: {packageInfo} | PriceId: {priceId} | Status: {(priceId > 0 ? "UPDATE" : "CREATE NEW")}");
+                        }
                     }
                     else
                     {
-                        existing.Amount = amount;
-                        existing.UpdatedAt = DateTime.UtcNow;
+                        Console.WriteLine($"  Room {room.Id} ({room.Name}): KHÔNG CÓ GIÁ");
+                    }
+                }
+                Console.WriteLine("=== [END DEBUG] ===");
+                
+                // Lưu giá phòng - hỗ trợ nhiều giá cho mỗi phòng với PricePackageId khác nhau
+                // TẠO MỚI VÀ CẬP NHẬT TRƯỚC, SAU ĐÓ MỚI XÓA
+                var updatedPriceIds = new HashSet<int>();
+                
+                foreach (var room in rooms)
+                {
+                    if (!prices.TryGetValue(room.Id, out var priceList)) 
+                    {
+                        Console.WriteLine($"  Room {room.Id}: No prices found, skipping");
+                        continue;
+                    }
+                    if (!pricePackages.TryGetValue(room.Id, out var packageList)) packageList = new List<int?>();
+                    if (!priceIds.TryGetValue(room.Id, out var idList)) idList = new List<int>();
+
+                    Console.WriteLine($"  Processing Room {room.Id}: {priceList.Count} prices, {packageList.Count} packages, {idList.Count} ids");
+
+                    // Chỉ xử lý theo số lượng prices (đây là số lượng thực tế)
+                    for (int i = 0; i < priceList.Count; i++)
+                    {
+                        var amount = priceList[i];
+                        // Lấy package tương ứng với index i
+                        // Nếu không có package ở index i, chỉ lấy null (KHÔNG lấy package đầu tiên để tránh nhầm lẫn)
+                        var packageId = i < packageList.Count ? packageList[i] : null;
+                        var priceId = i < idList.Count ? idList[i] : 0;
+
+                        Console.WriteLine($"  Processing Room {room.Id}, Price {i}: Amount={amount}, PackageId={packageId}, PriceId={priceId}");
+                        if (i >= packageList.Count)
+                        {
+                            Console.WriteLine($"    WARNING: No package at index {i}, using null (packageList.Count={packageList.Count})");
+                        }
+
+                        // Validate amount > 0
+                        if (amount <= 0)
+                        {
+                            Console.WriteLine($"    WARNING: Amount is {amount}, skipping this price entry");
+                            continue;
+                        }
+
+                        // Nếu priceId > 0, cập nhật existing; nếu = 0, tạo mới
+                        if (priceId > 0)
+                        {
+                            var existing = await _db.RoomPrices
+                                .Include(rp => rp.PricePackage)
+                                .FirstOrDefaultAsync(p => p.Id == priceId && p.PropertyId == propertyId && p.RoomId == room.Id);
+                            if (existing != null)
+                            {
+                                var oldPackageId = existing.PricePackageId;
+                                var oldPackageName = existing.PricePackage?.CancellationPolicyDisplayName ?? "NULL";
+                                
+                                existing.Amount = amount;
+                                existing.PricePackageId = packageId;
+                                existing.UpdatedAt = DateTime.UtcNow;
+                                updatedPriceIds.Add(existing.Id);
+                                
+                                var newPackageName = packageId.HasValue 
+                                    ? (await _db.PricePackages.FirstOrDefaultAsync(p => p.Id == packageId.Value))?.CancellationPolicyDisplayName ?? "NOT FOUND"
+                                    : "NULL";
+                                
+                                Console.WriteLine($"    ✓ Updated existing RoomPrice {priceId}: Amount={amount}, PackageId={packageId}");
+                                Console.WriteLine($"    [DEBUG GÓI GIÁ] PackageId: {oldPackageId} ({oldPackageName}) -> {packageId} ({newPackageName})");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"    WARNING: RoomPrice {priceId} not found, creating new one");
+                                var newPrice = new Models.RoomPrice
+                        {
+                            PropertyId = propertyId,
+                                    RoomId = room.Id,
+                            Amount = amount,
+                                    Currency = "VND",
+                                    PricePackageId = packageId
+                                };
+                                _db.RoomPrices.Add(newPrice);
+                                
+                                var newPackageName = packageId.HasValue 
+                                    ? (await _db.PricePackages.FirstOrDefaultAsync(p => p.Id == packageId.Value))?.CancellationPolicyDisplayName ?? "NOT FOUND"
+                                    : "NULL";
+                                
+                                Console.WriteLine($"    ✓ Created new RoomPrice for Room {room.Id}, Package {packageId} ({newPackageName}), Amount={amount}");
+                            }
+                    }
+                    else
+                    {
+                            var newPrice = new Models.RoomPrice
+                            {
+                                PropertyId = propertyId,
+                                RoomId = room.Id,
+                                Amount = amount,
+                                Currency = "VND",
+                                PricePackageId = packageId
+                            };
+                            _db.RoomPrices.Add(newPrice);
+                            
+                            var newPackageName = packageId.HasValue 
+                                ? (await _db.PricePackages.FirstOrDefaultAsync(p => p.Id == packageId.Value))?.CancellationPolicyDisplayName ?? "NOT FOUND"
+                                : "NULL";
+                            
+                            Console.WriteLine($"    ✓ Created new RoomPrice for Room {room.Id}, Package {packageId} ({newPackageName}), Amount={amount}");
+                        }
+                    }
+                }
+                
+                // Save changes để có ID cho các RoomPrice mới
+                await _db.SaveChangesAsync();
+                Console.WriteLine("=== Saved new/updated RoomPrices ===");
+                
+                // Sau khi save, lấy ID của các RoomPrice mới vừa tạo và thêm vào updatedPriceIds
+                // Để tránh bị xóa nhầm
+                foreach (var room in rooms)
+                {
+                    if (!prices.TryGetValue(room.Id, out var priceList)) continue;
+                    if (!priceIds.TryGetValue(room.Id, out var idList)) idList = new List<int>();
+
+                    for (int i = 0; i < priceList.Count; i++)
+                    {
+                        var amount = priceList[i];
+                        var priceId = i < idList.Count ? idList[i] : 0;
+
+                        // Nếu priceId = 0 (new price), tìm RoomPrice vừa tạo bằng cách match Amount và RoomId
+                        if (priceId == 0 && amount > 0)
+                        {
+                            var packageId = i < (pricePackages.TryGetValue(room.Id, out var pkgList) ? pkgList.Count : 0) 
+                                ? (pricePackages[room.Id][i]) 
+                                : (pricePackages.TryGetValue(room.Id, out var pkgList2) && pkgList2.Count > 0 ? pkgList2[0] : null);
+                            
+                            var newlyCreated = await _db.RoomPrices
+                                .Where(p => p.PropertyId == propertyId 
+                                    && p.RoomId == room.Id 
+                                    && p.Amount == amount 
+                                    && p.PricePackageId == packageId
+                                    && !updatedPriceIds.Contains(p.Id))
+                                .OrderByDescending(p => p.Id)
+                                .FirstOrDefaultAsync();
+                            
+                            if (newlyCreated != null)
+                            {
+                                updatedPriceIds.Add(newlyCreated.Id);
+                                Console.WriteLine($"    ✓ Added newly created RoomPrice {newlyCreated.Id} to updatedPriceIds");
+                            }
+                        }
                     }
                 }
 
+                // BÂY GIỜ MỚI XÓA các RoomPrice không còn trong form
+                // CHỈ xóa các RoomPrice của các phòng có trong form, và không có trong updatedPriceIds
+                var existingRoomPrices = await _db.RoomPrices
+                    .Where(p => p.PropertyId == propertyId && submittedRoomIds.Contains(p.RoomId))
+                    .ToListAsync();
+                
+                var toDelete = existingRoomPrices
+                    .Where(p => !updatedPriceIds.Contains(p.Id))
+                    .ToList();
+                
+                Console.WriteLine($"=== Existing RoomPrices ===");
+                Console.WriteLine($"Total existing: {existingRoomPrices.Count}");
+                foreach (var rp in existingRoomPrices)
+                {
+                    Console.WriteLine($"  RoomPrice {rp.Id}: Room {rp.RoomId}, Amount {rp.Amount}, PackageId {rp.PricePackageId}");
+                }
+                
+                Console.WriteLine($"=== To Delete ===");
+                Console.WriteLine($"Total to delete: {toDelete.Count}");
+                foreach (var rp in toDelete)
+                {
+                    Console.WriteLine($"  RoomPrice {rp.Id}: Room {rp.RoomId}, Amount {rp.Amount}");
+                }
+                
+                if (toDelete.Any())
+                {
+                    Console.WriteLine($"  Deleting {toDelete.Count} RoomPrices that are no longer in form");
+                    _db.RoomPrices.RemoveRange(toDelete);
+                }
+
+                // Save changes lần cuối (cho các RoomPrice bị xóa)
                 await _db.SaveChangesAsync();
+                
+                // Verify saved data
+                var savedRoomPrices = await _db.RoomPrices
+                    .Include(rp => rp.PricePackage)
+                    .Where(p => p.PropertyId == propertyId)
+                    .ToListAsync();
+                Console.WriteLine($"=== Final Saved RoomPrices ===");
+                Console.WriteLine($"Total saved: {savedRoomPrices.Count}");
+                foreach (var rp in savedRoomPrices)
+                {
+                    var packageName = rp.PricePackage != null ? rp.PricePackage.CancellationPolicyDisplayName : "NULL";
+                    Console.WriteLine($"  RoomPrice {rp.Id}: Room {rp.RoomId}, Amount={rp.Amount}, PackageId={rp.PricePackageId}, PackageName={packageName}");
+                }
+                
+                Console.WriteLine("=== SaveRoomPrices Completed ===");
                 TempData["Success"] = "Đã lưu giá phòng thành công";
                 return RedirectToAction("Preview", new { propertyId });
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Lỗi khi lưu giá phòng: {ex.Message}";
-                return RedirectToAction("PropertyData", new { propertyId, tab = "pricing" });
+                return RedirectToAction("Preview", new { propertyId });
             }
         }
 
@@ -1967,10 +2546,30 @@ public async Task<IActionResult> Success()
                 .Include(r => r.Beds)
                 .Where(r => r.PropertyId == propertyId)
                 .ToListAsync();
-            var pricePackage = await _db.PricePackages.FirstOrDefaultAsync(p => p.PropertyId == propertyId);
-            var roomPrices = await _db.RoomPrices
+            // Load tất cả PricePackages
+            var allPricePackages = await _db.PricePackages
                 .Where(p => p.PropertyId == propertyId)
-                .ToDictionaryAsync(p => p.RoomId, p => p.Amount);
+                .ToListAsync();
+            
+            // Load tất cả RoomPrices với PricePackage
+            var allRoomPrices = await _db.RoomPrices
+                .Include(rp => rp.PricePackage)
+                .Where(p => p.PropertyId == propertyId)
+                .OrderBy(rp => rp.Id)
+                .ToListAsync();
+            
+            Console.WriteLine($"=== Preview GET: Loaded RoomPrices ===");
+            Console.WriteLine($"Total RoomPrices: {allRoomPrices.Count}");
+            foreach (var rp in allRoomPrices)
+            {
+                var packageName = rp.PricePackage != null ? rp.PricePackage.CancellationPolicyDisplayName : "NULL";
+                Console.WriteLine($"  RoomPrice {rp.Id}: Room {rp.RoomId}, Amount={rp.Amount}, PackageId={rp.PricePackageId}, PackageName={packageName}");
+            }
+            
+            // Group RoomPrices by RoomId
+            var roomPricesByRoom = allRoomPrices
+                .GroupBy(rp => rp.RoomId)
+                .ToDictionary(g => g.Key, g => g.ToList());
 
             var viewModel = new PreviewViewModel
             {
@@ -1978,9 +2577,13 @@ public async Task<IActionResult> Success()
                 PropertyName = property.Name,
                 PropertyData = propertyData,
                 Rooms = rooms,
-                PricePackage = pricePackage,
-                RoomPrices = roomPrices
+                PricePackage = allPricePackages.FirstOrDefault(), // Giữ lại để tương thích
+                RoomPrices = roomPricesByRoom.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.First().Amount) // Giữ lại để tương thích
             };
+            
+            // Pass additional data via ViewBag
+            ViewBag.AllPricePackages = allPricePackages;
+            ViewBag.RoomPricesByRoom = roomPricesByRoom;
 
             return View(viewModel);
         }
@@ -2173,40 +2776,93 @@ public async Task<IActionResult> Success()
 
         // ========== LỊCH GIÁ & PHÒNG TRỐNG ==========
         [HttpGet]
-        public async Task<IActionResult> Calendar(int propertyId, int? year = null, int? month = null)
+        public async Task<IActionResult> Calendar(int propertyId, int? year = null, int? month = null, DateTime? startDate = null, DateTime? endDate = null)
         {
             await SetUserHasPropertiesAsync();
             var meId = _users.GetUserId(User);
             var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == propertyId && p.UserId == meId);
             if (property == null) return NotFound();
 
-            var now = DateTime.Today;
-            var y = year ?? now.Year;
-            var m = month ?? now.Month;
+            // Support both year/month and startDate/endDate parameters
+            DateTime start, end;
+            if (startDate.HasValue && endDate.HasValue)
+            {
+                start = startDate.Value;
+                end = endDate.Value;
+            }
+            else if (year.HasValue && month.HasValue)
+            {
+                start = new DateTime(year.Value, month.Value, 1);
+                end = start.AddMonths(1);
+            }
+            else
+            {
+                // Default to next 30 days
+                start = DateTime.Today;
+                end = start.AddDays(30);
+            }
 
             ViewBag.PropertyId = propertyId;
-            ViewBag.Year = y;
-            ViewBag.Month = m;
+            ViewBag.StartDate = start;
+            ViewBag.EndDate = end;
             ViewBag.PropertyName = property.Name;
 
-            // Rooms for sidebar/rows with remaining count
-            var rooms = await _db.Rooms.Where(r => r.PropertyId == propertyId)
-                                        .OrderBy(r => r.Name)
-                                        .ToListAsync();
+            // Load all rooms grouped by type
+            var rooms = await _db.Rooms
+                .Where(r => r.PropertyId == propertyId)
+                .OrderBy(r => r.Name)
+                .ToListAsync();
+
+            var roomsByType = rooms
+                .GroupBy(r => r.Name.Split(' ').FirstOrDefault() ?? "Other")
+                .OrderBy(g => g.Key)
+                .ToList();
+
+            // Load all bookings for the date range
+            var bookings = await _db.Bookings
+                .Where(b => b.PropertyId == propertyId && 
+                           b.Status != BookingStatus.Cancelled &&
+                           b.CheckIn < end && 
+                           b.CheckOut > start)
+                .OrderBy(b => b.CheckIn)
+                .ToListAsync();
+
+            // Calculate availability map: roomType -> date -> (available, total)
+            var availabilityMap = new Dictionary<string, Dictionary<DateTime, (int Available, int Total)>>();
             
-            // Calculate remaining rooms for each room type
-            var roomQuantities = new Dictionary<int, (int Original, int Remaining)>();
-            foreach (var room in rooms)
+            for (var date = start; date < end; date = date.AddDays(1))
             {
-                var bookedCount = await _db.Bookings
-                    .Where(b => b.RoomId == room.Id && b.Status != BookingStatus.Cancelled)
-                    .CountAsync();
-                var originalQuantity = room.Quantity;
-                var remainingQuantity = originalQuantity - bookedCount;
-                roomQuantities[room.Id] = (originalQuantity, remainingQuantity);
+                // Overall availability
+                if (!availabilityMap.ContainsKey("Overall"))
+                    availabilityMap["Overall"] = new Dictionary<DateTime, (int, int)>();
+
+                var totalRooms = rooms.Sum(r => r.Quantity);
+                var bookedOnDate = bookings.Count(b => b.CheckIn <= date && b.CheckOut > date);
+                var availableOnDate = totalRooms - bookedOnDate;
+                availabilityMap["Overall"][date] = (availableOnDate, totalRooms);
+
+                // Per room type availability
+                foreach (var typeGroup in roomsByType)
+                {
+                    var typeName = typeGroup.Key;
+                    if (!availabilityMap.ContainsKey(typeName))
+                        availabilityMap[typeName] = new Dictionary<DateTime, (int, int)>();
+
+                    var typeRooms = typeGroup.ToList();
+                    var typeTotal = typeRooms.Sum(r => r.Quantity);
+                    var typeBooked = bookings.Count(b => 
+                        typeRooms.Any(r => r.Id == b.RoomId) && 
+                        b.CheckIn <= date && 
+                        b.CheckOut > date);
+                    var typeAvailable = typeTotal - typeBooked;
+                    availabilityMap[typeName][date] = (typeAvailable, typeTotal);
+                }
             }
-            
-            ViewBag.RoomQuantities = roomQuantities;
+
+            ViewBag.RoomsByType = roomsByType;
+            ViewBag.Bookings = bookings;
+            ViewBag.AvailabilityMap = availabilityMap;
+
             return View("Calendar", rooms);
         }
 
@@ -2261,9 +2917,11 @@ public async Task<IActionResult> Success()
                 })
                 .ToListAsync();
 
+            // Lấy giá đầu tiên cho mỗi RoomId (có thể có nhiều RoomPrice cho cùng RoomId)
             var basePrices = await _db.RoomPrices
                 .Where(p => p.PropertyId == propertyId)
-                .ToDictionaryAsync(p => p.RoomId, p => p.Amount);
+                .GroupBy(p => p.RoomId)
+                .ToDictionaryAsync(g => g.Key, g => g.First().Amount);
 
             return Json(new { rooms, rates, basePrices, roomQuantities });
         }

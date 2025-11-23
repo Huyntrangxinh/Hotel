@@ -10,6 +10,7 @@ using HotelBooking.Models;
 using HotelBooking.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using HotelBooking.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HotelBooking.Controllers
 {
@@ -30,7 +31,7 @@ namespace HotelBooking.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Book(int propertyId, int roomId, DateTime? checkIn, DateTime? checkOut, int? guests)
+        public async Task<IActionResult> Book(int propertyId, int roomId, DateTime? checkIn, DateTime? checkOut, int? guests, int? roomPriceId, int? pricePackageId)
         {
             var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == propertyId);
             if (property == null) return NotFound();
@@ -41,8 +42,14 @@ namespace HotelBooking.Controllers
                 .FirstOrDefaultAsync(r => r.Id == roomId && r.PropertyId == propertyId);
             if (room == null) return NotFound();
 
-            var roomPrice = await _db.RoomPrices
-                .FirstOrDefaultAsync(rp => rp.RoomId == roomId && rp.PropertyId == propertyId);
+            // Load RoomPrice theo roomPriceId nếu có, nếu không thì lấy đầu tiên
+            var roomPrice = roomPriceId.HasValue && roomPriceId.Value > 0
+                ? await _db.RoomPrices
+                    .Include(rp => rp.PricePackage)
+                    .FirstOrDefaultAsync(rp => rp.Id == roomPriceId.Value && rp.RoomId == roomId && rp.PropertyId == propertyId)
+                : await _db.RoomPrices
+                    .Include(rp => rp.PricePackage)
+                    .FirstOrDefaultAsync(rp => rp.RoomId == roomId && rp.PropertyId == propertyId);
 
             var ci = checkIn ?? DateTime.Today.AddDays(1);
             var co = checkOut ?? ci.AddDays(1);
@@ -65,7 +72,9 @@ namespace HotelBooking.Controllers
                 Guests = guests ?? 2,
                 PricePerNight = roomPrice?.Amount ?? 0,
                 TotalNights = nights,
-                TotalPrice = (roomPrice?.Amount ?? 0) * nights
+                TotalPrice = (roomPrice?.Amount ?? 0) * nights,
+                RoomPriceId = roomPriceId,
+                PricePackageId = pricePackageId ?? roomPrice?.PricePackageId
             };
 
             return View(viewModel);
@@ -90,8 +99,14 @@ namespace HotelBooking.Controllers
                     .Include(r => r.Photos)
                     .Include(r => r.Amenities)
                     .FirstOrDefaultAsync(r => r.Id == model.RoomId && r.PropertyId == model.PropertyId);
-                var roomPrice = await _db.RoomPrices
-                    .FirstOrDefaultAsync(rp => rp.RoomId == model.RoomId && rp.PropertyId == model.PropertyId);
+                // Try to load RoomPrice by ID if provided, otherwise load first available
+                var roomPrice = model.RoomPriceId.HasValue && model.RoomPriceId.Value > 0
+                    ? await _db.RoomPrices
+                        .Include(rp => rp.PricePackage)
+                        .FirstOrDefaultAsync(rp => rp.Id == model.RoomPriceId.Value && rp.RoomId == model.RoomId && rp.PropertyId == model.PropertyId)
+                    : await _db.RoomPrices
+                        .Include(rp => rp.PricePackage)
+                        .FirstOrDefaultAsync(rp => rp.RoomId == model.RoomId && rp.PropertyId == model.PropertyId);
 
                 model.PropertyName = property?.Name;
                 model.RoomName = room?.Name;
@@ -263,6 +278,179 @@ namespace HotelBooking.Controllers
             ViewBag.BreakfastIncluded = pricePackage?.BreakfastIncluded ?? false;
             ViewBag.CancellationPolicyDisplayName = pricePackage?.CancellationPolicyDisplayName ?? "";
             return View();
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> MyBookings()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Lấy tất cả bookings của user (theo UserId hoặc Email)
+            var bookings = await _db.Bookings
+                .Where(b => b.UserId == user.Id || b.Email == user.Email)
+                .OrderByDescending(b => b.CreatedAt)
+                .ToListAsync();
+
+            // Load thông tin Property và Room cho mỗi booking
+            var bookingList = new List<dynamic>();
+            var bookingIds = bookings.Select(b => b.Id).ToList();
+            
+            // Lấy danh sách booking đã có review
+            var reviewedBookingIds = await _db.Reviews
+                .Where(r => bookingIds.Contains(r.BookingId))
+                .Select(r => r.BookingId)
+                .ToListAsync();
+            
+            foreach (var booking in bookings)
+            {
+                var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == booking.PropertyId);
+                var room = await _db.Rooms.FirstOrDefaultAsync(r => r.Id == booking.RoomId);
+                
+                bookingList.Add(new
+                {
+                    Booking = booking,
+                    Property = property,
+                    Room = room
+                });
+            }
+
+            ViewBag.Bookings = bookingList;
+            ViewBag.ReviewIds = reviewedBookingIds;
+            return View();
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> Details(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var booking = await _db.Bookings.FirstOrDefaultAsync(b => b.Id == id);
+            if (booking == null)
+            {
+                return NotFound();
+            }
+
+            // Kiểm tra quyền truy cập
+            if (booking.UserId != user.Id && booking.Email != user.Email)
+            {
+                return Forbid();
+            }
+
+            var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == booking.PropertyId);
+            var room = await _db.Rooms.FirstOrDefaultAsync(r => r.Id == booking.RoomId);
+
+            ViewBag.Booking = booking;
+            ViewBag.Property = property;
+            ViewBag.Room = room;
+
+            return View();
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> Review(int bookingId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var booking = await _db.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
+            if (booking == null)
+            {
+                return NotFound();
+            }
+
+            // Kiểm tra quyền truy cập
+            if (booking.UserId != user.Id && booking.Email != user.Email)
+            {
+                return Forbid();
+            }
+
+            // Kiểm tra đã qua ngày check-out chưa
+            if (booking.CheckOut >= DateTime.Now)
+            {
+                return RedirectToAction("MyBookings");
+            }
+
+            // Kiểm tra đã có review chưa
+            var existingReview = await _db.Reviews.FirstOrDefaultAsync(r => r.BookingId == bookingId);
+            if (existingReview != null)
+            {
+                return RedirectToAction("MyBookings");
+            }
+
+            var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == booking.PropertyId);
+            var room = await _db.Rooms.FirstOrDefaultAsync(r => r.Id == booking.RoomId);
+
+            ViewBag.Booking = booking;
+            ViewBag.Property = property;
+            ViewBag.Room = room;
+
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Review(int bookingId, int rating, string? comment, int? cleanlinessRating, int? serviceRating, int? valueRating, int? locationRating)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var booking = await _db.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId);
+            if (booking == null)
+            {
+                return NotFound();
+            }
+
+            // Kiểm tra quyền truy cập
+            if (booking.UserId != user.Id && booking.Email != user.Email)
+            {
+                return Forbid();
+            }
+
+            // Kiểm tra đã có review chưa
+            var existingReview = await _db.Reviews.FirstOrDefaultAsync(r => r.BookingId == bookingId);
+            if (existingReview != null)
+            {
+                return RedirectToAction("MyBookings");
+            }
+
+            // Tạo review mới
+            var review = new Review
+            {
+                BookingId = bookingId,
+                PropertyId = booking.PropertyId,
+                UserId = user.Id,
+                Rating = rating,
+                Comment = comment,
+                CleanlinessRating = cleanlinessRating,
+                ServiceRating = serviceRating,
+                ValueRating = valueRating,
+                LocationRating = locationRating,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.Reviews.Add(review);
+            await _db.SaveChangesAsync();
+
+            TempData["ReviewSuccess"] = "Cảm ơn bạn đã đánh giá!";
+            return RedirectToAction("MyBookings");
         }
 
         private string GenerateBookingCode()
