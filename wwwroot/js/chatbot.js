@@ -152,6 +152,29 @@ $(document).ready(function () {
         const messageClass = isBot ? 'bot-message' : 'user-message';
         const messageHtml = `<div class="message ${messageClass}"><div class="message-content">${content}</div></div>`;
         $chatbotMessages.append(messageHtml);
+        
+        // Execute any scripts in the appended content - IMPORTANT: Scripts must be executed after append
+        const messageElement = $chatbotMessages.children().last();
+        const scripts = messageElement.find('script');
+        scripts.each(function() {
+            const scriptElement = this;
+            const script = document.createElement('script');
+            
+            // Copy all attributes
+            Array.from(scriptElement.attributes).forEach(attr => {
+                script.setAttribute(attr.name, attr.value);
+            });
+            
+            // Copy content
+            script.text = scriptElement.text || scriptElement.innerHTML;
+            
+            // Remove old script
+            scriptElement.parentNode.removeChild(scriptElement);
+            
+            // Append new script to head to execute it
+            document.head.appendChild(script);
+        });
+        
         scrollToBottom();
     }
 
@@ -521,4 +544,90 @@ $(document).ready(function () {
             closeImageModal();
         }
     });
+
+    // Function to show booking form in chat - defined here to ensure it's always available
+    window.showBookingFormInChat = function(propertyId, roomId, roomPriceId, pricePackageId, roomName, hotelName, roomPriceAmount) {
+        console.log('showBookingFormInChat called with:', { propertyId, roomId, roomPriceId, pricePackageId, roomName, hotelName, roomPriceAmount });
+        
+        try {
+            // Kiểm tra xem đã có form chưa, nếu có thì xóa
+            const existingForm = document.querySelector('[id^="chatBookingForm_"]');
+            if (existingForm) {
+                existingForm.remove();
+            }
+            
+            // Load booking form via API
+            fetch('/Chat/GetBookingForm', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    propertyId: propertyId,
+                    roomId: roomId,
+                    propertyName: hotelName,
+                    roomName: roomName,
+                    checkIn: null,
+                    checkOut: null,
+                    guests: 2,
+                    roomPriceId: roomPriceId,
+                    pricePackageId: pricePackageId,
+                    roomPriceAmount: roomPriceAmount || 2000000
+                })
+            })
+            .then(response => response.text())
+            .then(html => {
+                // Tìm chatbot messages container và thêm form vào cuối - wrap trong bot-message để có cùng styling với form 2
+                const messagesContainer = document.getElementById('chatbot-messages');
+                if (messagesContainer) {
+                    // Wrap form trong bot-message structure giống như form 2
+                    const messageWrapper = document.createElement('div');
+                    messageWrapper.className = 'message bot-message';
+                    const messageContent = document.createElement('div');
+                    messageContent.className = 'message-content';
+                    messageContent.innerHTML = html;
+                    messageWrapper.appendChild(messageContent);
+                    messagesContainer.appendChild(messageWrapper);
+                    
+                    // Execute any scripts in the injected HTML
+                    const scripts = messageContent.querySelectorAll('script');
+                    scripts.forEach(function(oldScript) {
+                        const script = document.createElement('script');
+                        Array.from(oldScript.attributes).forEach(attr => {
+                            script.setAttribute(attr.name, attr.value);
+                        });
+                        script.text = oldScript.text || oldScript.innerHTML;
+                        oldScript.parentNode.removeChild(oldScript);
+                        document.head.appendChild(script);
+                    });
+                    
+                    // Set min date cho ngày đi khi ngày đến thay đổi
+                    const checkInInput = messageContent.querySelector('[name="bookingCheckIn"]');
+                    const checkOutInput = messageContent.querySelector('[name="bookingCheckOut"]');
+                    if (checkInInput && checkOutInput) {
+                        checkInInput.addEventListener('change', function() {
+                            if (this.value) {
+                                const nextDay = new Date(this.value);
+                                nextDay.setDate(nextDay.getDate() + 1);
+                                checkOutInput.min = nextDay.toISOString().split('T')[0];
+                                if (checkOutInput.value && checkOutInput.value <= this.value) {
+                                    checkOutInput.value = '';
+                                }
+                            }
+                        });
+                    }
+                    
+                    // Scroll xuống cuối
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading booking form:', error);
+                alert('Có lỗi xảy ra khi tải form đặt phòng. Vui lòng thử lại.');
+            });
+        } catch (error) {
+            console.error('Error in showBookingFormInChat:', error);
+            alert('Có lỗi xảy ra khi hiển thị form đặt phòng. Vui lòng thử lại.');
+        }
+    };
 });

@@ -8,6 +8,7 @@ using HotelBooking.Models;
 using Microsoft.Extensions.Localization;
 using HotelBooking.Resources;
 using HotelBooking.Services;
+using Microsoft.AspNetCore.Identity;
 
 namespace HotelBooking.Controllers
 {
@@ -20,6 +21,7 @@ namespace HotelBooking.Controllers
         private readonly IWebHostEnvironment _env;
         private readonly IStringLocalizer<SharedResource> _localizer;
         private readonly IBookingEmailService _bookingEmailService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public ChatController(
             IConfiguration configuration,
@@ -28,7 +30,8 @@ namespace HotelBooking.Controllers
             ApplicationDbContext context,
             IWebHostEnvironment env,
             IStringLocalizer<SharedResource> localizer,
-            IBookingEmailService bookingEmailService)
+            IBookingEmailService bookingEmailService,
+            UserManager<ApplicationUser> userManager)
         {
             _configuration = configuration;
             _httpClient = httpClient;
@@ -37,6 +40,210 @@ namespace HotelBooking.Controllers
             _env = env;
             _localizer = localizer;
             _bookingEmailService = bookingEmailService;
+            _userManager = userManager;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateBookingFromChat([FromBody] ChatBookingRequest request)
+        {
+            try
+            {
+                _logger.LogInformation("CreateBookingFromChat called with: PropertyId={PropertyId}, RoomId={RoomId}", 
+                    request.PropertyId, request.RoomId);
+
+                // Validate required fields
+                if (request.PropertyId <= 0 || request.RoomId <= 0)
+                {
+                    return Json(new { success = false, message = "Thông tin phòng không hợp lệ" });
+                }
+
+                if (string.IsNullOrWhiteSpace(request.FullName) || 
+                    string.IsNullOrWhiteSpace(request.Email) || 
+                    string.IsNullOrWhiteSpace(request.Phone))
+                {
+                    return Json(new { success = false, message = "Vui lòng điền đầy đủ thông tin bắt buộc" });
+                }
+
+                if (!request.CheckIn.HasValue || !request.CheckOut.HasValue)
+                {
+                    return Json(new { success = false, message = "Vui lòng chọn ngày đến và ngày đi" });
+                }
+
+                if (request.CheckOut.Value <= request.CheckIn.Value)
+                {
+                    return Json(new { success = false, message = "Ngày đi phải sau ngày đến" });
+                }
+
+                // Get property and room
+                var property = await _context.Properties.FirstOrDefaultAsync(p => p.Id == request.PropertyId);
+                if (property == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy khách sạn" });
+                }
+
+                var room = await _context.Rooms.FirstOrDefaultAsync(r => r.Id == request.RoomId && r.PropertyId == request.PropertyId);
+                if (room == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy phòng" });
+                }
+
+                // Calculate nights and total price
+                var nights = Math.Max(1, (request.CheckOut.Value - request.CheckIn.Value).Days);
+                var roomPricePerNight = request.RoomPriceAmount ?? 2000000m;
+                var subtotal = roomPricePerNight * nights;
+                var tax = Math.Round(subtotal * 0.1m);
+                
+                // Calculate discount
+                decimal discountAmount = 0;
+                if (!string.IsNullOrWhiteSpace(request.DiscountCode))
+                {
+                    var discount = await _context.Discounts
+                        .FirstOrDefaultAsync(d => d.Code.ToUpper() == request.DiscountCode.ToUpper().Trim() && d.IsActive);
+                    
+                    if (discount != null)
+                    {
+                        var now = DateTime.UtcNow;
+                        if ((!discount.StartDate.HasValue || now >= discount.StartDate.Value) &&
+                            (!discount.EndDate.HasValue || now <= discount.EndDate.Value))
+                        {
+                            if (discount.DiscountPercent.HasValue)
+                            {
+                                discountAmount = Math.Round(subtotal * (discount.DiscountPercent.Value / 100m));
+                            }
+                            else if (discount.DiscountAmount.HasValue)
+                            {
+                                discountAmount = discount.DiscountAmount.Value;
+                            }
+                        }
+                    }
+                }
+                
+                var totalPrice = subtotal + tax - discountAmount;
+
+                // Generate booking code
+                var bookingCode = GenerateBookingCode();
+
+                // Get current user if logged in
+                string userId = "guest";
+                if (User.Identity?.IsAuthenticated == true)
+                {
+                    var user = await _userManager.GetUserAsync(User);
+                    if (user != null)
+                    {
+                        userId = user.Id;
+                    }
+                }
+                else
+                {
+                    // Try to find user by email even if not logged in
+                    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+                    if (user != null)
+                    {
+                        userId = user.Id;
+                    }
+                }
+
+                // Create booking
+                var booking = new Booking
+                {
+                    PropertyId = request.PropertyId,
+                    RoomId = request.RoomId,
+                    UserId = userId,
+                    BookingCode = bookingCode,
+                    FullName = request.FullName,
+                    GuestName = request.FullName,
+                    PhoneNumber = request.Phone,
+                    Email = request.Email,
+                    CheckIn = request.CheckIn.Value,
+                    CheckOut = request.CheckOut.Value,
+                    Guests = request.Guests,
+                    SpecialRequests = request.SpecialRequests ?? string.Empty,
+                    PricePerNight = roomPricePerNight,
+                    TotalNights = nights,
+                    TotalPrice = totalPrice,
+                    DiscountCode = request.DiscountCode ?? string.Empty,
+                    DiscountAmount = discountAmount,
+                    DiscountPercentage = request.DiscountPercent ?? 0,
+                    Status = BookingStatus.Confirmed,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.Bookings.Add(booking);
+                
+                // Trừ số lượng phòng
+                if (room.Quantity > 0)
+                {
+                    room.Quantity -= 1;
+                    _context.Rooms.Update(room);
+                }
+                
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Booking created successfully: BookingId={BookingId}, BookingCode={BookingCode}", 
+                    booking.Id, booking.BookingCode);
+
+                // Send confirmation email
+                try
+                {
+                    await _bookingEmailService.SendBookingConfirmationAsync(new BookingConfirmationEmailModel
+                    {
+                        Email = booking.Email,
+                        FullName = booking.FullName,
+                        GuestName = booking.GuestName,
+                        PhoneNumber = booking.PhoneNumber,
+                        BookingCode = booking.BookingCode,
+                        PropertyName = property.Name,
+                        RoomName = room.Name,
+                        CheckIn = booking.CheckIn,
+                        CheckOut = booking.CheckOut,
+                        TotalNights = booking.TotalNights,
+                        Guests = booking.Guests,
+                        TotalPrice = booking.TotalPrice
+                    });
+                }
+                catch (Exception emailEx)
+                {
+                    _logger.LogError(emailEx, "Error sending confirmation email for booking {BookingId}", booking.Id);
+                    // Continue even if email fails
+                }
+
+                return Json(new 
+                { 
+                    success = true, 
+                    bookingId = booking.Id,
+                    bookingCode = booking.BookingCode,
+                    message = "Đặt phòng thành công!"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating booking from chat");
+                return Json(new { success = false, message = "Có lỗi xảy ra khi đặt phòng. Vui lòng thử lại." });
+            }
+        }
+
+        public class ChatBookingRequest
+        {
+            public int PropertyId { get; set; }
+            public int RoomId { get; set; }
+            public string FullName { get; set; } = string.Empty;
+            public string Phone { get; set; } = string.Empty;
+            public string Email { get; set; } = string.Empty;
+            public DateTime? CheckIn { get; set; }
+            public DateTime? CheckOut { get; set; }
+            public int Guests { get; set; }
+            public string? SpecialRequests { get; set; }
+            public string? DiscountCode { get; set; }
+            public int? DiscountPercent { get; set; }
+            public decimal? RoomPriceAmount { get; set; }
+        }
+
+        private string GenerateBookingCode()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, 8)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
         [HttpPost]
@@ -1461,10 +1668,10 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
                 // Create HTML with room cards
                 var roomCardsHtml = await CreateRoomCardsHtml(property.Id, property.Name);
                 
-                // Thêm JavaScript function để hiển thị form đặt phòng
+                // Thêm JavaScript function để hiển thị form đặt phòng - đặt script trước HTML để đảm bảo function được định nghĩa trước
                 var bookingFormScript = GetBookingFormScript();
                 
-                var reply = $"<p><strong>🏨 Đây là các loại phòng tại {property.Name}:</strong></p>{roomCardsHtml}{bookingFormScript}";
+                var reply = $"{bookingFormScript}<p><strong>🏨 Đây là các loại phòng tại {property.Name}:</strong></p>{roomCardsHtml}";
                 
                 return Json(new { 
                     success = true, 
@@ -1556,7 +1763,7 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
                     // Nếu không tìm thấy phòng cụ thể, hiển thị tất cả phòng
                     var roomCardsHtml = await CreateRoomCardsHtml(property.Id, property.Name);
                     var bookingFormScript = GetBookingFormScript();
-                    var reply = $"<p><strong>🏨 Mình không tìm thấy phòng cụ thể bạn yêu cầu, nhưng đây là các phòng có sẵn tại {property.Name}:</strong></p>{roomCardsHtml}{bookingFormScript}";
+                    var reply = $"{bookingFormScript}<p><strong>🏨 Mình không tìm thấy phòng cụ thể bạn yêu cầu, nhưng đây là các phòng có sẵn tại {property.Name}:</strong></p>{roomCardsHtml}";
                     
                     return Json(new { 
                         success = true, 
@@ -1765,24 +1972,119 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
             return 0;
         }
 
-        private string GenerateBookingCode()
+        [HttpPost]
+        public async Task<IActionResult> ValidateDiscountCode([FromBody] DiscountCodeRequest request)
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            var random = new Random();
-            return new string(Enumerable.Repeat(chars, 8)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
+            try
+            {
+                if (string.IsNullOrWhiteSpace(request.Code))
+                {
+                    return Json(new { success = false, message = "Vui lòng nhập mã giảm giá" });
+                }
+
+                var discount = await _context.Discounts
+                    .FirstOrDefaultAsync(d => d.Code.ToUpper() == request.Code.ToUpper().Trim() && d.IsActive);
+
+                if (discount == null)
+                {
+                    return Json(new { success = false, message = "Mã giảm giá không hợp lệ hoặc đã hết hạn" });
+                }
+
+                // Kiểm tra ngày hiệu lực
+                var now = DateTime.UtcNow;
+                if (discount.StartDate.HasValue && now < discount.StartDate.Value)
+                {
+                    return Json(new { success = false, message = "Mã giảm giá chưa có hiệu lực" });
+                }
+
+                if (discount.EndDate.HasValue && now > discount.EndDate.Value)
+                {
+                    return Json(new { success = false, message = "Mã giảm giá đã hết hạn" });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    discount = new
+                    {
+                        code = discount.Code,
+                        title = discount.Title,
+                        description = discount.Description,
+                        discountPercent = discount.DiscountPercent,
+                        discountAmount = discount.DiscountAmount
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error validating discount code");
+                return Json(new { success = false, message = "Có lỗi xảy ra khi kiểm tra mã giảm giá" });
+            }
+        }
+
+        public class DiscountCodeRequest
+        {
+            public string Code { get; set; } = string.Empty;
+        }
+
+        [HttpPost]
+        public IActionResult GetBookingForm([FromBody] BookingFormRequest request)
+        {
+            try
+            {
+                // Nếu checkIn và checkOut là null, tạo form với date inputs
+                // Nếu có giá trị, tạo form không có date inputs (đã có từ câu lệnh)
+                var formHtml = CreateBookingFormHtml(
+                    request.PropertyId,
+                    request.RoomId,
+                    request.PropertyName,
+                    request.RoomName,
+                    request.CheckIn,
+                    request.CheckOut,
+                    request.Guests,
+                    request.RoomPriceId,
+                    request.PricePackageId,
+                    request.RoomPriceAmount
+                );
+
+                return Content(formHtml, "text/html");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting booking form");
+                return Content("<p style='color: red;'>Có lỗi xảy ra khi tải form đặt phòng. Vui lòng thử lại.</p>", "text/html");
+            }
+        }
+
+        public class BookingFormRequest
+        {
+            public int PropertyId { get; set; }
+            public int RoomId { get; set; }
+            public string PropertyName { get; set; } = string.Empty;
+            public string RoomName { get; set; } = string.Empty;
+            public DateTime? CheckIn { get; set; }
+            public DateTime? CheckOut { get; set; }
+            public int Guests { get; set; }
+            public int? RoomPriceId { get; set; }
+            public int? PricePackageId { get; set; }
+            public decimal? RoomPriceAmount { get; set; }
         }
 
         private string GetBookingFormScript()
         {
             return @"
-<script>
-function showBookingFormInChat(propertyId, roomId, roomPriceId, pricePackageId, roomName, hotelName, roomPriceAmount) {
-    // Kiểm tra xem đã có form chưa, nếu có thì xóa
-    const existingForm = document.querySelector('[id^=""chatBookingForm_""]');
-    if (existingForm) {
-        existingForm.remove();
-    }
+<script type=""text/javascript"">
+// Đảm bảo function được định nghĩa toàn cục - sử dụng IIFE để execute ngay
+(function() {
+    window.showBookingFormInChat = function(propertyId, roomId, roomPriceId, pricePackageId, roomName, hotelName, roomPriceAmount) {
+    console.log('showBookingFormInChat called with:', { propertyId, roomId, roomPriceId, pricePackageId, roomName, hotelName, roomPriceAmount });
+    
+    try {
+        // Kiểm tra xem đã có form chưa, nếu có thì xóa
+        const existingForm = document.querySelector('[id^=""chatBookingForm_""]');
+        if (existingForm) {
+            existingForm.remove();
+        }
     
     // Set min date là ngày mai
     const tomorrow = new Date();
@@ -1848,6 +2150,19 @@ function showBookingFormInChat(propertyId, roomId, roomPriceId, pricePackageId, 
                     <textarea name='bookingSpecialRequests' placeholder='Nhập yêu cầu đặc biệt của bạn (không bắt buộc)' 
                               style='width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; height: 80px; resize: vertical;'></textarea>
                 </div>
+                
+                <div>
+                    <label style='display: block; font-weight: 600; color: #374151; margin-bottom: 5px;'>🎟️ Mã giảm giá (tùy chọn)</label>
+                    <div style='display: flex; gap: 8px;'>
+                        <input type='text' name='bookingDiscountCode' id='discountCode_${formId}' placeholder='Nhập mã giảm giá' 
+                               style='flex: 1; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; text-transform: uppercase;' />
+                        <button type='button' onclick='applyDiscountCode(""${formId}"")' 
+                                style='background: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; white-space: nowrap;'>
+                            Áp dụng
+                        </button>
+                    </div>
+                    <div id='discountMessage_${formId}' style='margin-top: 5px; font-size: 13px; min-height: 20px;'></div>
+                </div>
             </div>
             
             <div style='margin-top: 20px; text-align: center;'>
@@ -1904,6 +2219,75 @@ function showBookingFormInChat(propertyId, roomId, roomPriceId, pricePackageId, 
         
         // Scroll xuống cuối
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    } catch (error) {
+        console.error('Error in showBookingFormInChat:', error);
+        alert('Có lỗi xảy ra khi hiển thị form đặt phòng. Vui lòng thử lại.');
+    }
+}
+};
+
+// Global variable to store discount info
+window.currentDiscountInfo = null;
+
+async function applyDiscountCode(formId) {
+    const formRoot = document.getElementById(formId);
+    if (!formRoot) return;
+    
+    const discountInput = formRoot.querySelector('[name=""bookingDiscountCode""]');
+    const messageDiv = formRoot.querySelector('#discountMessage_' + formId);
+    const applyButton = discountInput?.nextElementSibling;
+    
+    if (!discountInput || !messageDiv) return;
+    
+    const code = discountInput.value.trim().toUpperCase();
+    if (!code) {
+        messageDiv.innerHTML = '<span style=""color: #dc2626;"">Vui lòng nhập mã giảm giá</span>';
+        return;
+    }
+    
+    try {
+        const response = await fetch('/Chat/ValidateDiscountCode', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ code: code })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.discount) {
+            const discount = data.discount;
+            window.currentDiscountInfo = {
+                code: discount.code,
+                title: discount.title,
+                discountPercent: discount.discountPercent,
+                discountAmount: discount.discountAmount
+            };
+            
+            let discountText = '';
+            if (discount.discountPercent) {
+                discountText = `Giảm ${discount.discountPercent}%`;
+            } else if (discount.discountAmount) {
+                discountText = `Giảm ${parseInt(discount.discountAmount).toLocaleString('vi-VN')} VND`;
+            }
+            
+            messageDiv.innerHTML = '<span style=""color: #10b981; font-weight: 600;"">✓ ' + discountText + ' đã được áp dụng!</span>';
+            if (applyButton) {
+                applyButton.textContent = 'Đã áp dụng';
+                applyButton.style.background = '#6b7280';
+            }
+        } else {
+            window.currentDiscountInfo = null;
+            messageDiv.innerHTML = '<span style=""color: #dc2626;"">' + (data.message || 'Mã giảm giá không hợp lệ') + '</span>';
+            if (applyButton) {
+                applyButton.textContent = 'Áp dụng';
+                applyButton.style.background = '#10b981';
+            }
+        }
+    } catch (error) {
+        console.error('Error validating discount code:', error);
+        messageDiv.innerHTML = '<span style=""color: #dc2626;"">Có lỗi xảy ra khi kiểm tra mã giảm giá</span>';
     }
 }
 
@@ -1920,6 +2304,7 @@ function collectBookingInfoFromChat(formId, propertyId, roomId, propertyName, ro
     const checkIn = (formRoot.querySelector('[name=""bookingCheckIn""]')?.value || '').trim();
     const checkOut = (formRoot.querySelector('[name=""bookingCheckOut""]')?.value || '').trim();
     const specialRequests = (formRoot.querySelector('[name=""bookingSpecialRequests""]')?.value || '').trim();
+    const discountCode = (formRoot.querySelector('[name=""bookingDiscountCode""]')?.value || '').trim().toUpperCase();
     
     if (!fullName || !phone || !email || !checkIn || !checkOut) {
         alert('Vui lòng điền đầy đủ thông tin bắt buộc (Họ tên, Số điện thoại, Email, Ngày đến, Ngày đi)');
@@ -1956,7 +2341,11 @@ function collectBookingInfoFromChat(formId, propertyId, roomId, propertyName, ro
         summaryDiv.style.display = 'block';
     }
     
-    // Lưu thông tin vào localStorage để sử dụng sau - giống hệt form câu lệnh, bao gồm giá phòng
+    // Lấy discount code từ input hoặc từ window.currentDiscountInfo
+    const discountCodeInput = formRoot.querySelector('[name=""bookingDiscountCode""]');
+    const discountCode = discountCodeInput ? discountCodeInput.value.trim().toUpperCase() : '';
+    
+    // Lưu thông tin vào localStorage để sử dụng sau - giống hệt form câu lệnh, bao gồm giá phòng và mã giảm giá
     const bookingData = {
         formId: formId,
         propertyId: propertyId,
@@ -1972,11 +2361,15 @@ function collectBookingInfoFromChat(formId, propertyId, roomId, propertyName, ro
         fullName: fullName,
         phone: phone,
         email: email,
-        specialRequests: specialRequests
+        specialRequests: specialRequests,
+        discountCode: discountCode || (window.currentDiscountInfo?.code || ''),
+        discountPercent: window.currentDiscountInfo?.discountPercent || null,
+        discountAmount: window.currentDiscountInfo?.discountAmount || null
     };
     
     console.log('Saving bookingInfo to localStorage:', bookingData);
     console.log('roomPriceAmount:', bookingData.roomPriceAmount);
+    console.log('discountCode:', bookingData.discountCode);
     
     localStorage.setItem('bookingInfo', JSON.stringify(bookingData));
 }
@@ -2019,15 +2412,20 @@ function editBookingInfo(formId) {
     const summary = formRoot.querySelector('.booking-summary');
     if (summary) summary.style.display = 'none';
 }
+};
+})(); // End IIFE
 </script>";
         }
 
-        private string CreateBookingFormHtml(int propertyId, int roomId, string propertyName, string roomName, DateTime checkIn, DateTime checkOut, int guests)
+        private string CreateBookingFormHtml(int propertyId, int roomId, string propertyName, string roomName, DateTime? checkIn, DateTime? checkOut, int guests, int? roomPriceId = null, int? pricePackageId = null, decimal? roomPriceAmount = null)
         {
             var propertyNameJson = JsonSerializer.Serialize(propertyName);
             var roomNameJson = JsonSerializer.Serialize(roomName);
             var formId = $"bookingForm_{propertyId}_{roomId}_{Guid.NewGuid().ToString("N")[..6]}";
             var formIdJson = JsonSerializer.Serialize(formId);
+            
+            // Nếu checkIn hoặc checkOut là null, hiển thị date inputs
+            bool showDateInputs = !checkIn.HasValue || !checkOut.HasValue;
 
             return $@"
             <div id='{formId}' style='margin-top: 20px; padding: 20px; background: rgba(255, 255, 255, 0.9); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1); backdrop-filter: blur(10px); max-width: 920px; width: 100%;'>
@@ -2061,15 +2459,42 @@ function editBookingInfo(formId) {
                                style='width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;' />
                     </div>
                     
+                    {(showDateInputs ? $@"
+                    <div>
+                        <label style='display: block; font-weight: 600; color: #374151; margin-bottom: 5px;'>📅 Ngày đến*</label>
+                        <input type='date' name='bookingCheckIn' min='{DateTime.Today.AddDays(1):yyyy-MM-dd}' 
+                               style='width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;' />
+                    </div>
+                    
+                    <div>
+                        <label style='display: block; font-weight: 600; color: #374151; margin-bottom: 5px;'>📅 Ngày đi*</label>
+                        <input type='date' name='bookingCheckOut' min='{DateTime.Today.AddDays(1):yyyy-MM-dd}' 
+                               style='width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;' />
+                    </div>
+                    " : "")}
+                    
                     <div>
                         <label style='display: block; font-weight: 600; color: #374151; margin-bottom: 5px;'>💬 Yêu cầu đặc biệt (tùy chọn)</label>
                         <textarea name='bookingSpecialRequests' placeholder='Nhập yêu cầu đặc biệt của bạn (không bắt buộc)' 
                                   style='width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; height: 80px; resize: vertical;'></textarea>
                     </div>
+                    
+                    <div>
+                        <label style='display: block; font-weight: 600; color: #374151; margin-bottom: 5px;'>🎟️ Mã giảm giá (tùy chọn)</label>
+                        <div style='display: flex; gap: 8px;'>
+                            <input type='text' name='bookingDiscountCode' id='discountCode_{formId}' placeholder='Nhập mã giảm giá' 
+                                   style='flex: 1; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; text-transform: uppercase;' />
+                            <button type='button' onclick='applyDiscountCode({formIdJson})' 
+                                    style='background: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; white-space: nowrap;'>
+                                Áp dụng
+                            </button>
+                        </div>
+                        <div id='discountMessage_{formId}' style='margin-top: 5px; font-size: 13px; min-height: 20px;'></div>
+                    </div>
                 </div>
                 
                 <div style='margin-top: 20px; text-align: center;'>
-                    <button onclick='collectBookingInfo({formIdJson}, {propertyId}, {roomId}, {propertyNameJson}, {roomNameJson}, ""{checkIn:yyyy-MM-dd}"", ""{checkOut:yyyy-MM-dd}"", {guests})' 
+                    <button onclick='collectBookingInfo({formIdJson}, {propertyId}, {roomId}, {propertyNameJson}, {roomNameJson}, {(showDateInputs ? "null" : $"\"{checkIn.Value:yyyy-MM-dd}\"")}, {(showDateInputs ? "null" : $"\"{checkOut.Value:yyyy-MM-dd}\"")}, {guests}, {roomPriceId ?? 0}, {pricePackageId ?? 0}, {roomPriceAmount ?? 2000000})' 
                             style='background: #3b82f6; color: white; padding: 12px 24px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;'>
                         📋 Thu thập thông tin
                     </button>
@@ -2092,7 +2517,69 @@ function editBookingInfo(formId) {
             </div>
             
             <script>
-            function collectBookingInfo(formId, propertyId, roomId, propertyName, roomName, checkIn, checkOut, guests) {{
+            async function applyDiscountCode(formId) {{
+                const formRoot = document.getElementById(formId);
+                if (!formRoot) return;
+                
+                const discountInput = formRoot.querySelector(""[name='bookingDiscountCode']"");
+                const messageDiv = formRoot.querySelector('#discountMessage_' + formId);
+                const applyButton = discountInput?.nextElementSibling;
+                
+                if (!discountInput || !messageDiv) return;
+                
+                const code = discountInput.value.trim().toUpperCase();
+                if (!code) {{
+                    messageDiv.innerHTML = '<span style=""color: #dc2626;"">Vui lòng nhập mã giảm giá</span>';
+                    return;
+                }}
+                
+                try {{
+                    const response = await fetch('/Chat/ValidateDiscountCode', {{
+                        method: 'POST',
+                        headers: {{
+                            'Content-Type': 'application/json',
+                        }},
+                        body: JSON.stringify({{ code: code }})
+                    }});
+                    
+                    const data = await response.json();
+                    
+                    if (data.success && data.discount) {{
+                        const discount = data.discount;
+                        window.currentDiscountInfo = {{
+                            code: discount.code,
+                            title: discount.title,
+                            discountPercent: discount.discountPercent,
+                            discountAmount: discount.discountAmount
+                        }};
+                        
+                        let discountText = '';
+                        if (discount.discountPercent) {{
+                            discountText = `Giảm ${{discount.discountPercent}}%`;
+                        }} else if (discount.discountAmount) {{
+                            discountText = `Giảm ${{parseInt(discount.discountAmount).toLocaleString('vi-VN')}} VND`;
+                        }}
+                        
+                        messageDiv.innerHTML = '<span style=""color: #10b981; font-weight: 600;"">✓ ' + discountText + ' đã được áp dụng!</span>';
+                        if (applyButton) {{
+                            applyButton.textContent = 'Đã áp dụng';
+                            applyButton.style.background = '#6b7280';
+                        }}
+                    }} else {{
+                        window.currentDiscountInfo = null;
+                        messageDiv.innerHTML = '<span style=""color: #dc2626;"">' + (data.message || 'Mã giảm giá không hợp lệ') + '</span>';
+                        if (applyButton) {{
+                            applyButton.textContent = 'Áp dụng';
+                            applyButton.style.background = '#10b981';
+                        }}
+                    }}
+                }} catch (error) {{
+                    console.error('Error validating discount code:', error);
+                    messageDiv.innerHTML = '<span style=""color: #dc2626;"">Có lỗi xảy ra khi kiểm tra mã giảm giá</span>';
+                }}
+            }}
+            
+            function collectBookingInfo(formId, propertyId, roomId, propertyName, roomName, checkIn, checkOut, guests, roomPriceId, pricePackageId, roomPriceAmount) {{
                 const formRoot = document.getElementById(formId);
                 if (!formRoot) {{
                     alert('Không thể tìm thấy form đặt phòng.');
@@ -2103,9 +2590,32 @@ function editBookingInfo(formId) {
                 const phone = (formRoot.querySelector(""[name='bookingPhone']"")?.value || '').trim();
                 const email = (formRoot.querySelector(""[name='bookingEmail']"")?.value || '').trim();
                 const specialRequests = (formRoot.querySelector(""[name='bookingSpecialRequests']"")?.value || '').trim();
+                const discountCodeInput = formRoot.querySelector(""[name='bookingDiscountCode']"");
+                const discountCode = discountCodeInput ? discountCodeInput.value.trim().toUpperCase() : '';
+                
+                // Nếu checkIn hoặc checkOut là null, lấy từ input
+                let finalCheckIn = checkIn;
+                let finalCheckOut = checkOut;
+                if (checkIn === null || checkIn === 'null' || checkOut === null || checkOut === 'null') {{
+                    const checkInInput = formRoot.querySelector(""[name='bookingCheckIn']"");
+                    const checkOutInput = formRoot.querySelector(""[name='bookingCheckOut']"");
+                    finalCheckIn = checkInInput ? checkInInput.value.trim() : '';
+                    finalCheckOut = checkOutInput ? checkOutInput.value.trim() : '';
+                }}
                 
                 if (!fullName || !phone || !email) {{
                     alert('Vui lòng điền đầy đủ thông tin bắt buộc (Họ tên, Số điện thoại, Email)');
+                    return;
+                }}
+                
+                // Nếu có date inputs, validate dates
+                if ((checkIn === null || checkIn === 'null') && (!finalCheckIn || !finalCheckOut)) {{
+                    alert('Vui lòng điền đầy đủ thông tin bắt buộc (Họ tên, Số điện thoại, Email, Ngày đến, Ngày đi)');
+                    return;
+                }}
+                
+                if (finalCheckIn && finalCheckOut && new Date(finalCheckOut) <= new Date(finalCheckIn)) {{
+                    alert('Ngày đi phải sau ngày đến');
                     return;
                 }}
                 
@@ -2113,34 +2623,57 @@ function editBookingInfo(formId) {
                 const summaryDiv = formRoot.querySelector('.booking-summary');
                 const detailsDiv = formRoot.querySelector('.booking-details');
                 
-                detailsDiv.innerHTML = `
-                    <div style='margin-bottom: 10px;'><strong>👤 Họ tên:</strong> ${{fullName}}</div>
-                    <div style='margin-bottom: 10px;'><strong>📱 Số điện thoại:</strong> ${{phone}}</div>
-                    <div style='margin-bottom: 10px;'><strong>📧 Email:</strong> ${{email}}</div>
-                    <div style='margin-bottom: 10px;'><strong>📅 Ngày nhận phòng:</strong> ${{checkIn}}</div>
-                    <div style='margin-bottom: 10px;'><strong>📅 Ngày trả phòng:</strong> ${{checkOut}}</div>
-                    <div style='margin-bottom: 10px;'><strong>👥 Số khách:</strong> ${{guests}} người</div>
-                    ${{specialRequests ? `<div style='margin-bottom: 10px;'><strong>💬 Yêu cầu đặc biệt:</strong> ${{specialRequests}}</div>` : ''}}
-                `;
+                // Format dates để hiển thị
+                let checkInFormatted = finalCheckIn;
+                let checkOutFormatted = finalCheckOut;
+                if (finalCheckIn && finalCheckOut) {{
+                    const checkInDate = new Date(finalCheckIn + 'T00:00:00');
+                    const checkOutDate = new Date(finalCheckOut + 'T00:00:00');
+                    checkInFormatted = checkInDate.toLocaleDateString('vi-VN');
+                    checkOutFormatted = checkOutDate.toLocaleDateString('vi-VN');
+                }}
+                
+                let dateHtml = '';
+                if (finalCheckIn) {{
+                    dateHtml += '<div style=\""margin-bottom: 10px;\""><strong>📅 Ngày nhận phòng:</strong> ' + checkInFormatted + '</div>';
+                }}
+                if (finalCheckOut) {{
+                    dateHtml += '<div style=\""margin-bottom: 10px;\""><strong>📅 Ngày trả phòng:</strong> ' + checkOutFormatted + '</div>';
+                }}
+                
+                let specialRequestsHtml = specialRequests ? '<div style=\""margin-bottom: 10px;\""><strong>💬 Yêu cầu đặc biệt:</strong> ' + specialRequests + '</div>' : '';
+                
+                detailsDiv.innerHTML = '<div style=\""margin-bottom: 10px;\""><strong>👤 Họ tên:</strong> ' + fullName + '</div>' +
+                    '<div style=\""margin-bottom: 10px;\""><strong>📱 Số điện thoại:</strong> ' + phone + '</div>' +
+                    '<div style=\""margin-bottom: 10px;\""><strong>📧 Email:</strong> ' + email + '</div>' +
+                    dateHtml +
+                    '<div style=\""margin-bottom: 10px;\""><strong>👥 Số khách:</strong> ' + guests + ' người</div>' +
+                    specialRequestsHtml;
                 
                 if (summaryDiv) {{
                     summaryDiv.style.display = 'block';
                 }}
                 
-                // Lưu thông tin vào localStorage để sử dụng sau
+                // Lưu thông tin vào localStorage để sử dụng sau, bao gồm mã giảm giá
                 localStorage.setItem('bookingInfo', JSON.stringify({{
                     formId: formId,
                     propertyId: propertyId,
                     propertyName: propertyName,
                     roomId: roomId,
                     roomName: roomName,
-                    checkIn: checkIn,
-                    checkOut: checkOut,
+                    roomPriceId: roomPriceId || 0,
+                    pricePackageId: pricePackageId || 0,
+                    roomPriceAmount: roomPriceAmount || 2000000,
+                    checkIn: finalCheckIn,
+                    checkOut: finalCheckOut,
                     guests: guests,
                     fullName: fullName,
                     phone: phone,
                     email: email,
-                    specialRequests: specialRequests
+                    specialRequests: specialRequests,
+                    discountCode: discountCode || (window.currentDiscountInfo?.code || ''),
+                    discountPercent: window.currentDiscountInfo?.discountPercent || null,
+                    discountAmount: window.currentDiscountInfo?.discountAmount || null
                 }}));
             }}
             
@@ -2158,12 +2691,12 @@ function editBookingInfo(formId) {
                     }}
                     
                     // Load script mới với cache busting
-                    const script = document.createElement('script');
+                        const script = document.createElement('script');
                     script.src = '/js/booking-payment.js?v=' + Date.now();
-                    script.onload = function() {{
-                        BookingPayment.showPaymentForm(bookingInfo);
-                    }};
-                    document.head.appendChild(script);
+                        script.onload = function() {{
+                            BookingPayment.showPaymentForm(bookingInfo);
+                        }};
+                        document.head.appendChild(script);
                 }}
             }}
             

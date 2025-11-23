@@ -27,7 +27,21 @@ window.BookingPayment = {
         const nights = BookingPayment.calculateNights(bookingInfo.checkIn, bookingInfo.checkOut);
         const subtotal = nights * roomPricePerNight;
         const tax = Math.round(subtotal * 0.1);
-        const total = subtotal + tax;
+
+        // Tính discount
+        let discountAmount = 0;
+        let discountText = '';
+        if (bookingInfo.discountCode) {
+            if (bookingInfo.discountPercent) {
+                discountAmount = Math.round(subtotal * (bookingInfo.discountPercent / 100));
+                discountText = `Giảm ${bookingInfo.discountPercent}%`;
+            } else if (bookingInfo.discountAmount) {
+                discountAmount = parseFloat(bookingInfo.discountAmount);
+                discountText = `Giảm ${discountAmount.toLocaleString('vi-VN')} VND`;
+            }
+        }
+
+        const total = subtotal + tax - discountAmount;
 
         console.log('showPaymentForm - Calculated values:', {
             roomPricePerNight,
@@ -90,6 +104,12 @@ window.BookingPayment = {
                                     <span>💸 Thuế (10%):</span>
                                     <span>${tax.toLocaleString('vi-VN')} VND</span>
                                 </div>
+                                ${discountAmount > 0 ? `
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #10b981;">
+                                    <span>🎟️ ${discountText} (Mã: ${bookingInfo.discountCode}):</span>
+                                    <span>-${discountAmount.toLocaleString('vi-VN')} VND</span>
+                                </div>
+                                ` : ''}
                             </div>
                             <div style="font-size: 16px; font-weight: bold; color: #1e40af; border-top: 1px solid #d1d5db; padding-top: 8px;">
                                 💰 Tổng tiền: ${total.toLocaleString('vi-VN')} VND
@@ -210,8 +230,69 @@ window.BookingPayment = {
         const bookingInfo = JSON.parse(localStorage.getItem('bookingInfo') || '{}');
         const paymentMethod = selectedPayment.value;
 
-        // Hiển thị màn hình thành công thay vì chuyển hướng
-        BookingPayment.showBookingSuccess(bookingInfo);
+        // Lưu booking vào database trước khi hiển thị success
+        BookingPayment.saveBookingToDatabase(bookingInfo)
+            .then(result => {
+                if (result.success) {
+                    // Cập nhật bookingId và bookingCode vào bookingInfo
+                    bookingInfo.bookingId = result.bookingId;
+                    bookingInfo.bookingCode = result.bookingCode;
+                    localStorage.setItem('bookingInfo', JSON.stringify(bookingInfo));
+
+                    // Hiển thị màn hình thành công
+                    BookingPayment.showBookingSuccess(bookingInfo, result.bookingCode);
+                } else {
+                    alert(result.message || 'Có lỗi xảy ra khi đặt phòng. Vui lòng thử lại.');
+                }
+            })
+            .catch(error => {
+                console.error('Error saving booking:', error);
+                alert('Có lỗi xảy ra khi đặt phòng. Vui lòng thử lại.');
+            });
+    },
+
+    saveBookingToDatabase: async function (bookingInfo) {
+        try {
+            // Parse dates if they are strings
+            let checkIn = bookingInfo.checkIn;
+            let checkOut = bookingInfo.checkOut;
+
+            if (typeof checkIn === 'string') {
+                checkIn = checkIn.split('T')[0]; // Remove time if present
+            }
+            if (typeof checkOut === 'string') {
+                checkOut = checkOut.split('T')[0]; // Remove time if present
+            }
+
+            const requestData = {
+                propertyId: bookingInfo.propertyId,
+                roomId: bookingInfo.roomId,
+                fullName: bookingInfo.fullName,
+                phone: bookingInfo.phone,
+                email: bookingInfo.email,
+                checkIn: checkIn,
+                checkOut: checkOut,
+                guests: bookingInfo.guests || 2,
+                specialRequests: bookingInfo.specialRequests || '',
+                discountCode: bookingInfo.discountCode || '',
+                discountPercent: bookingInfo.discountPercent || null,
+                roomPriceAmount: bookingInfo.roomPriceAmount || 2000000
+            };
+
+            const response = await fetch('/Chat/CreateBookingFromChat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('Error in saveBookingToDatabase:', error);
+            return { success: false, message: 'Có lỗi xảy ra khi lưu đặt phòng' };
+        }
     },
 
     goBackToBooking: function () {
@@ -301,7 +382,18 @@ BookingPayment.calculateTotalAmountValue = function (checkIn, checkOut, bookingI
     const roomPricePerNight = BookingPayment.getRoomPricePerNight(bookingInfo || {});
     const subtotal = nights * roomPricePerNight;
     const tax = Math.round(subtotal * 0.1); // 10% thuế
-    return subtotal + tax;
+
+    // Tính discount
+    let discountAmount = 0;
+    if (bookingInfo && bookingInfo.discountCode) {
+        if (bookingInfo.discountPercent) {
+            discountAmount = Math.round(subtotal * (bookingInfo.discountPercent / 100));
+        } else if (bookingInfo.discountAmount) {
+            discountAmount = parseFloat(bookingInfo.discountAmount);
+        }
+    }
+
+    return subtotal + tax - discountAmount;
 };
 
 BookingPayment.calculateTotalAmount = function (checkIn, checkOut, bookingInfo) {
@@ -590,9 +682,9 @@ BookingPayment.showEmailNotification = function (message) {
 };
 
 // Hiển thị màn hình thành công giống /Booking/Success
-BookingPayment.showBookingSuccess = function (bookingInfo) {
-    // Tạo mã đặt phòng ngẫu nhiên
-    const bookingId = 'KP' + Math.random().toString(36).substr(2, 6).toUpperCase();
+BookingPayment.showBookingSuccess = function (bookingInfo, bookingCode) {
+    // Sử dụng bookingCode từ server hoặc tạo mã ngẫu nhiên nếu không có
+    const finalBookingCode = bookingCode || bookingInfo.bookingCode || ('KP' + Math.random().toString(36).substr(2, 6).toUpperCase());
 
     const successHtml = `
         <div id="bookingSuccess" style="margin-top: 20px; padding: 30px; background: rgba(255, 255, 255, 0.95); border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center;">
@@ -606,7 +698,7 @@ BookingPayment.showBookingSuccess = function (bookingInfo) {
 
             <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #3b82f6;">
                 <h5 style="color: #1f2937; margin-bottom: 10px; font-size: 18px;">Mã đặt phòng</h5>
-                <p style="color: #3b82f6; font-size: 24px; font-weight: bold; margin: 0;">${bookingId}</p>
+                <p style="color: #3b82f6; font-size: 24px; font-weight: bold; margin: 0;">${finalBookingCode}</p>
             </div>
 
             <div style="display: flex; gap: 20px; margin-bottom: 25px; text-align: left;">
@@ -647,7 +739,7 @@ BookingPayment.showBookingSuccess = function (bookingInfo) {
             </div>
 
             <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 20px;">
-                <button onclick="BookingPayment.downloadInvoice('${bookingId}', '${bookingInfo.fullName}', '${bookingInfo.checkIn}', '${bookingInfo.checkOut}', '${bookingInfo.guests}')" 
+                <button onclick="BookingPayment.downloadInvoice('${finalBookingCode}', '${bookingInfo.fullName}', '${bookingInfo.checkIn}', '${bookingInfo.checkOut}', '${bookingInfo.guests}')" 
                         style="background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 8px;">
                     📄 Tải hóa đơn PDF
                 </button>
@@ -689,8 +781,7 @@ BookingPayment.showBookingSuccess = function (bookingInfo) {
         paymentForm.style.display = 'none';
     }
 
-    // Gửi email xác nhận
-    BookingPayment.sendConfirmationEmail(bookingInfo, bookingId);
+    // Email đã được gửi từ server trong CreateBookingFromChat, nên không cần gửi lại ở đây
 };
 
 // Tạo và tải hóa đơn PDF
@@ -784,6 +875,26 @@ BookingPayment.downloadInvoice = function (bookingId, fullName, checkIn, checkOu
                             <div class="info-label">Thuế (10%):</div>
                             <div class="info-value">${Math.round(BookingPayment.calculateNights(checkIn, checkOut) * BookingPayment.getRoomPricePerNight(bookingInfo || {}) * 0.1).toLocaleString('vi-VN')} VND</div>
                         </div>
+                        ${bookingInfo && bookingInfo.discountCode ? (() => {
+            const nights = BookingPayment.calculateNights(checkIn, checkOut);
+            const roomPricePerNight = BookingPayment.getRoomPricePerNight(bookingInfo || {});
+            const subtotal = nights * roomPricePerNight;
+            let discountAmount = 0;
+            let discountText = '';
+            if (bookingInfo.discountPercent) {
+                discountAmount = Math.round(subtotal * (bookingInfo.discountPercent / 100));
+                discountText = `Giảm ${bookingInfo.discountPercent}%`;
+            } else if (bookingInfo.discountAmount) {
+                discountAmount = parseFloat(bookingInfo.discountAmount);
+                discountText = `Giảm ${discountAmount.toLocaleString('vi-VN')} VND`;
+            }
+            return discountAmount > 0 ? `
+                        <div class="info-row" style="color: #10b981;">
+                            <div class="info-label">🎟️ ${discountText} (Mã: ${bookingInfo.discountCode}):</div>
+                            <div class="info-value">-${discountAmount.toLocaleString('vi-VN')} VND</div>
+                        </div>
+                            ` : '';
+        })() : ''}
                         <div class="total">
                             Tổng tiền: ${BookingPayment.calculateTotalAmount(checkIn, checkOut, bookingInfo)} VND
                         </div>
