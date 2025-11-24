@@ -1,9 +1,10 @@
+@model HotelBooking.ViewModels.PartnerBookingDetailsViewModel
 @{
-    var booking = ViewBag.Booking as HotelBooking.Models.Booking;
-    var room = ViewBag.Room as HotelBooking.Models.Room;
-    var property = ViewBag.Property as HotelBooking.Models.Property;
-    ViewData["Title"] = "Chi tiết đặt phòng - " + booking?.BookingCode;
+    var booking = Model;
+    ViewData["Title"] = "Chi tiết đặt phòng - " + booking.BookingCode;
     Layout = null;
+    var commission = booking.TotalPrice * 0.2m;
+    var payout = booking.TotalPrice - commission;
 }
 
 <!DOCTYPE html>
@@ -70,6 +71,10 @@
         .info-value {
             color: #333;
         }
+
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
     </style>
 </head>
 
@@ -79,12 +84,19 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h4 class="mb-0">Chi tiết đặt phòng</h4>
-                    <small>Mã đặt phòng: @booking?.BookingCode</small>
+                    <small>Mã đặt phòng: @booking.BookingCode</small>
                 </div>
-                <a href="@Url.Action("PropertyHub", "Partner", new { propertyId = property?.Id })"
-                    class="btn btn-light">
-                    <i class="bi bi-arrow-left"></i> Quay lại
-                </a>
+                <div>
+                    @if (booking.Status != "Cancelled")
+                    {
+                        <button type="button" class="btn btn-danger me-2" id="cancel-booking-btn">
+                            <i class="bi bi-x-circle"></i> Hủy đặt phòng
+                        </button>
+                    }
+                    <a href="javascript:history.back()" class="btn btn-light">
+                        <i class="bi bi-arrow-left"></i> Quay lại
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -104,7 +116,17 @@
                                     <span class="info-label">Mã đặt phòng:</span>
                                 </div>
                                 <div class="col-sm-9">
-                                    <span class="info-value booking-code">@booking?.BookingCode</span>
+                                    <span class="info-value booking-code">@booking.BookingCode</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <span class="info-label">Cơ sở lưu trú:</span>
+                                </div>
+                                <div class="col-sm-9">
+                                    <span class="info-value">@booking.PropertyName</span>
                                 </div>
                             </div>
                         </div>
@@ -114,7 +136,7 @@
                                     <span class="info-label">Trạng thái:</span>
                                 </div>
                                 <div class="col-sm-9">
-                                    <span class="badge bg-success status-badge">@booking?.Status.ToString()</span>
+                                    <span class="badge bg-success status-badge">@booking.Status</span>
                                 </div>
                             </div>
                         </div>
@@ -124,7 +146,7 @@
                                     <span class="info-label">Phòng:</span>
                                 </div>
                                 <div class="col-sm-9">
-                                    <span class="info-value">@room?.Name</span>
+                                    <span class="info-value">@booking.RoomName</span>
                                 </div>
                             </div>
                         </div>
@@ -134,7 +156,7 @@
                                     <span class="info-label">Ngày nhận phòng:</span>
                                 </div>
                                 <div class="col-sm-9">
-                                    <span class="info-value">@booking?.CheckIn.ToString("dd/MM/yyyy")</span>
+                                    <span class="info-value">@booking.CheckIn.ToString("dd/MM/yyyy")</span>
                                 </div>
                             </div>
                         </div>
@@ -144,7 +166,7 @@
                                     <span class="info-label">Ngày trả phòng:</span>
                                 </div>
                                 <div class="col-sm-9">
-                                    <span class="info-value">@booking?.CheckOut.ToString("dd/MM/yyyy")</span>
+                                    <span class="info-value">@booking.CheckOut.ToString("dd/MM/yyyy")</span>
                                 </div>
                             </div>
                         </div>
@@ -154,7 +176,7 @@
                                     <span class="info-label">Số đêm:</span>
                                 </div>
                                 <div class="col-sm-9">
-                                    <span class="info-value">@booking?.TotalNights đêm</span>
+                                    <span class="info-value">@booking.TotalNights đêm</span>
                                 </div>
                             </div>
                         </div>
@@ -164,7 +186,7 @@
                                     <span class="info-label">Số khách:</span>
                                 </div>
                                 <div class="col-sm-9">
-                                    <span class="info-value">@booking?.Guests người</span>
+                                    <span class="info-value">@booking.Guests người</span>
                                 </div>
                             </div>
                         </div>
@@ -183,7 +205,7 @@
                                     <span class="info-label">Họ tên:</span>
                                 </div>
                                 <div class="col-sm-9">
-                                    <span class="info-value">@booking?.FullName</span>
+                                    <span class="info-value">@booking.ContactName</span>
                                 </div>
                             </div>
                         </div>
@@ -193,7 +215,7 @@
                                     <span class="info-label">Tên khách:</span>
                                 </div>
                                 <div class="col-sm-9">
-                                    <span class="info-value">@booking?.GuestName</span>
+                                    <span class="info-value">@booking.GuestName</span>
                                 </div>
                             </div>
                         </div>
@@ -203,7 +225,7 @@
                                     <span class="info-label">Số điện thoại:</span>
                                 </div>
                                 <div class="col-sm-9">
-                                    <span class="info-value">@booking?.PhoneNumber</span>
+                                    <span class="info-value">@booking.PhoneNumber</span>
                                 </div>
                             </div>
                         </div>
@@ -213,11 +235,11 @@
                                     <span class="info-label">Email:</span>
                                 </div>
                                 <div class="col-sm-9">
-                                    <span class="info-value">@booking?.Email</span>
+                                    <span class="info-value">@booking.Email</span>
                                 </div>
                             </div>
                         </div>
-                        @if (!string.IsNullOrEmpty(booking?.SpecialRequests))
+                        @if (!string.IsNullOrEmpty(booking.SpecialRequests))
                         {
                             <div class="info-row">
                                 <div class="row">
@@ -225,7 +247,7 @@
                                         <span class="info-label">Yêu cầu đặc biệt:</span>
                                     </div>
                                     <div class="col-sm-9">
-                                        <span class="info-value">@booking.SpecialRequests</span>
+                                    <span class="info-value">@booking.SpecialRequests</span>
                                     </div>
                                 </div>
                             </div>
@@ -247,7 +269,7 @@
                                     <span class="info-label">Giá/đêm:</span>
                                 </div>
                                 <div class="col-sm-6">
-                                    <span class="info-value">@booking?.PricePerNight.ToString("N0") VND</span>
+                                    <span class="info-value">@booking.PricePerNight.ToString("N0") VND</span>
                                 </div>
                             </div>
                         </div>
@@ -257,11 +279,11 @@
                                     <span class="info-label">Số đêm:</span>
                                 </div>
                                 <div class="col-sm-6">
-                                    <span class="info-value">@booking?.TotalNights</span>
+                                    <span class="info-value">@booking.TotalNights</span>
                                 </div>
                             </div>
                         </div>
-                        @if (!string.IsNullOrEmpty(booking?.DiscountCode))
+                        @if (!string.IsNullOrEmpty(booking.DiscountCode))
                         {
                             <div class="info-row">
                                 <div class="row">
@@ -279,8 +301,7 @@
                                         <span class="info-label">Giảm giá:</span>
                                     </div>
                                     <div class="col-sm-6">
-                                        <span class="info-value text-success">-@booking.DiscountAmount.ToString("N0")
-                                            VND</span>
+                                        <span class="info-value text-success">-@booking.DiscountAmount.ToString("N0") VND</span>
                                     </div>
                                 </div>
                             </div>
@@ -292,8 +313,7 @@
                                     <span class="info-label fw-bold">Tổng cộng:</span>
                                 </div>
                                 <div class="col-sm-6">
-                                    <span class="info-value fw-bold text-primary">@booking?.TotalPrice.ToString("N0")
-                                        VND</span>
+                                    <span class="info-value fw-bold text-primary">@booking.TotalPrice.ToString("N0") VND</span>
                                 </div>
                             </div>
                         </div>
@@ -304,8 +324,7 @@
                                     <span class="info-label">Hoa hồng (20%):</span>
                                 </div>
                                 <div class="col-sm-6">
-                                    <span class="info-value text-warning fw-bold">@((booking?.TotalPrice *
-                                                                                0.2m)?.ToString("N0")) VND</span>
+                                    <span class="info-value text-warning fw-bold">@commission.ToString("N0") VND</span>
                                 </div>
                             </div>
                         </div>
@@ -315,8 +334,7 @@
                                     <span class="info-label fw-bold">Số tiền về khách sạn:</span>
                                 </div>
                                 <div class="col-sm-6">
-                                    <span class="info-value fw-bold text-success">@((booking?.TotalPrice *
-                                                                                0.8m)?.ToString("N0")) VND</span>
+                                    <span class="info-value fw-bold text-success">@payout.ToString("N0") VND</span>
                                 </div>
                             </div>
                         </div>
@@ -335,7 +353,7 @@
                                     <span class="info-label">Ngày đặt:</span>
                                 </div>
                                 <div class="col-sm-6">
-                                    <span class="info-value">@booking?.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                                    <span class="info-value">@booking.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                                 </div>
                             </div>
                         </div>
@@ -345,7 +363,7 @@
                                     <span class="info-label">Phòng không hút thuốc:</span>
                                 </div>
                                 <div class="col-sm-6">
-                                    <span class="info-value">@(booking?.NonSmokingRoom == true ? "Có" : "Không")</span>
+                                    <span class="info-value">@(booking.NonSmokingRoom ? "Có" : "Không")</span>
                                 </div>
                             </div>
                         </div>
@@ -355,7 +373,7 @@
                                     <span class="info-label">Phòng liên thông:</span>
                                 </div>
                                 <div class="col-sm-6">
-                                    <span class="info-value">@(booking?.ConnectingRoom == true ? "Có" : "Không")</span>
+                                    <span class="info-value">@(booking.ConnectingRoom ? "Có" : "Không")</span>
                                 </div>
                             </div>
                         </div>
@@ -365,7 +383,7 @@
                                     <span class="info-label">Tầng lầu:</span>
                                 </div>
                                 <div class="col-sm-6">
-                                    <span class="info-value">@(booking?.HighFloor == true ? "Có" : "Không")</span>
+                                    <span class="info-value">@(booking.HighFloor ? "Có" : "Không")</span>
                                 </div>
                             </div>
                         </div>
@@ -374,6 +392,78 @@
             </div>
         </div>
     </div>
+
+    <!-- Cancel Booking Confirmation Modal -->
+    <div class="modal fade" id="cancelBookingModal" tabindex="-1" aria-labelledby="cancelBookingModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cancelBookingModalLabel">Xác nhận hủy đặt phòng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn hủy đặt phòng <strong>@booking.BookingCode</strong> không?</p>
+                    <p class="text-danger"><small>Lưu ý: Quỹ phòng sẽ được cập nhật lại sau khi hủy.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Không</button>
+                    <button type="button" class="btn btn-danger" id="confirm-cancel-btn">Xác nhận hủy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cancelBtn = document.getElementById('cancel-booking-btn');
+            const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+            const cancelModal = new bootstrap.Modal(document.getElementById('cancelBookingModal'));
+
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', function() {
+                    cancelModal.show();
+                });
+            }
+
+            if (confirmCancelBtn) {
+                confirmCancelBtn.addEventListener('click', async function() {
+                    confirmCancelBtn.disabled = true;
+                    confirmCancelBtn.textContent = 'Đang xử lý...';
+
+                    try {
+                        const response = await fetch('/Partner/CancelBooking', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                bookingCode: '@booking.BookingCode'
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            cancelModal.hide();
+                            alert('Hủy đặt phòng thành công!');
+                            window.location.reload();
+                        } else {
+                            alert('Có lỗi xảy ra: ' + (result.message || 'Không thể hủy đặt phòng'));
+                            confirmCancelBtn.disabled = false;
+                            confirmCancelBtn.textContent = 'Xác nhận hủy';
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Có lỗi xảy ra khi hủy đặt phòng. Vui lòng thử lại.');
+                        confirmCancelBtn.disabled = false;
+                        confirmCancelBtn.textContent = 'Xác nhận hủy';
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
+

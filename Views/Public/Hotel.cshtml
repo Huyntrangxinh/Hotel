@@ -4,6 +4,10 @@
 @{
     ViewData["Title"] = Model?.Property?.Name ?? Localizer["Hotel"];
     Layout = "_Layout";
+    var propertySoldOut = Model?.PropertySoldOut ?? false;
+    var roomAvailability = Model?.RoomAvailability ?? new Dictionary<int, bool>();
+    var stayCheckIn = Model?.CheckInDate ?? DateTime.Today;
+    var stayCheckOut = Model?.CheckOutDate ?? stayCheckIn.AddDays(1);
 }
 
 @section Head {
@@ -1639,6 +1643,14 @@
                 <div class="rooms-list mt-3">
                         @if (Model.Rooms != null && Model.Rooms.Count > 0)
                         {
+                            if (propertySoldOut)
+                            {
+                                <div class="property-sold-out-banner">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    <span>Khách sạn hiện đã hết phòng cho khoảng ngày @stayCheckIn.ToString("dd/MM/yyyy") - @stayCheckOut.ToString("dd/MM/yyyy").</span>
+                                </div>
+                            }
+
                             foreach (var r in Model.Rooms)
                         {
                             var guests = (r.CapacityAdults + r.CapacityChildren);
@@ -1670,8 +1682,9 @@
                             _ => Model.PricePackage?.CancellationPolicyDisplayName ?? ""
                         };
                         var breakfastIncluded = Model.PricePackage?.BreakfastIncluded == true;
-                        var checkInDate = ((DateTime?)ViewBag.Checkin)?.ToString("yyyy-MM-dd");
-                        var checkOutDate = ((DateTime?)ViewBag.Checkout)?.ToString("yyyy-MM-dd");
+                        var checkInDate = stayCheckIn.ToString("yyyy-MM-dd");
+                        var checkOutDate = stayCheckOut.ToString("yyyy-MM-dd");
+                        var isRoomAvailable = roomAvailability.ContainsKey(r.Id) ? roomAvailability[r.Id] : true;
 
                         <div class="room-card">
                             <div class="room-photo-section">
@@ -1733,7 +1746,61 @@
                                             }
                                             
                                             // Tính OldPrice (giả sử là 25% cao hơn, hoặc có thể lưu trong database)
-                                            var currentPrice = roomPrice.Amount;
+                                            var basePrice = roomPrice.Amount;
+                                            var currentPrice = basePrice;
+                                            var hasPriceOverride = false;
+                                            var adjustmentDescription = "";
+                                            
+                                            // Kiểm tra giá override từ RoomDailyRates
+                                            var rateOverrideLookup = ViewBag.RateOverrideLookup as Dictionary<(int, int?), Dictionary<DateTime, decimal>>;
+                                            var adjustmentLookup = ViewBag.AdjustmentLookup as Dictionary<(int, int?, DateTime), string>;
+                                            var searchCheckIn = ViewBag.CheckInDate as DateTime? ?? stayCheckIn;
+                                            var searchCheckOut = ViewBag.CheckOutDate as DateTime? ?? stayCheckOut;
+                                            
+                                            if (rateOverrideLookup != null)
+                                            {
+                                                var overrideKey = (r.Id, (int?)roomPrice.Id);
+                                                if (rateOverrideLookup.TryGetValue(overrideKey, out var dateOverrides))
+                                                {
+                                                    // Tính tổng giá cho tất cả các ngày trong khoảng check-in/check-out
+                                                    decimal totalPrice = 0;
+                                                    int daysWithOverride = 0;
+                                                    string firstDescription = "";
+                                                    
+                                                    for (var date = searchCheckIn.Date; date < searchCheckOut.Date; date = date.AddDays(1))
+                                                    {
+                                                        if (dateOverrides.TryGetValue(date, out var overridePrice))
+                                                        {
+                                                            totalPrice += overridePrice;
+                                                            daysWithOverride++;
+                                                            hasPriceOverride = true;
+                                                            
+                                                            // Lấy description đầu tiên tìm thấy
+                                                            if (string.IsNullOrEmpty(firstDescription) && adjustmentLookup != null)
+                                                            {
+                                                                var adjKey = (r.Id, (int?)roomPrice.Id, date);
+                                                                if (adjustmentLookup.TryGetValue(adjKey, out var desc) && !string.IsNullOrEmpty(desc))
+                                                                {
+                                                                    firstDescription = desc;
+                                                                }
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            totalPrice += basePrice;
+                                                        }
+                                                    }
+                                                    
+                                                    if (hasPriceOverride)
+                                                    {
+                                                        // Tính giá trung bình cho mỗi đêm
+                                                        var totalNights = (searchCheckOut.Date - searchCheckIn.Date).Days;
+                                                        currentPrice = totalNights > 0 ? totalPrice / totalNights : basePrice;
+                                                        adjustmentDescription = firstDescription;
+                                                    }
+                                                }
+                                            }
+                                            
                                             var oldPrice = currentPrice * 1.25m;
                                             
                                             roomOptions.Add(new {
@@ -1747,7 +1814,9 @@
                                                 IsSpecial = false,
                                                 SpecialLabel = "",
                                                 RoomPriceId = roomPrice.Id,  // ID của RoomPrice để truyền sang Booking/Book
-                                                PricePackageId = package?.Id  // ID của PricePackage
+                                                PricePackageId = package?.Id,  // ID của PricePackage
+                                                HasPriceOverride = hasPriceOverride,
+                                                AdjustmentDescription = adjustmentDescription
                                             });
                                         }
                                     }
@@ -1787,7 +1856,17 @@
                                     }
                                 }
                                 
-                                @if (roomOptions.Any())
+                                @if (!isRoomAvailable)
+                                {
+                                    <div class="room-sold-out-banner">
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                        <div>
+                                            <strong>Đã hết phòng</strong>
+                                            <div>Phòng này không còn trống trong khoảng @stayCheckIn.ToString("dd/MM/yyyy") - @stayCheckOut.ToString("dd/MM/yyyy").</div>
+                                        </div>
+                                    </div>
+                                }
+                                else if (roomOptions.Any())
                                 {
                                     <!-- Hiển thị dạng bảng cho cả 1 và nhiều options -->
                                     <div class="room-options-table-wrapper">
@@ -1854,6 +1933,24 @@
                                                                     <div class="current-price">Giá đang cập nhật</div>
                                                                 }
                                                                 <div class="price-note">@Localizer["IncludesTaxAndFees"]</div>
+                                                                @{
+                                                                    var hasOverride = option.HasPriceOverride as bool? ?? false;
+                                                                    var adjDesc = option.AdjustmentDescription as string ?? "";
+                                                                }
+                                                                @if (hasOverride && !string.IsNullOrEmpty(adjDesc))
+                                                                {
+                                                                    <div class="price-adjustment-notice" style="margin-top: 8px; padding: 8px; background-color: #fff3cd; border-left: 3px solid #ffc107; border-radius: 4px; font-size: 12px; color: #856404;">
+                                                                        <i class="bi bi-info-circle" style="margin-right: 4px;"></i>
+                                                                        <strong>Giá đã được thay đổi:</strong> @adjDesc
+                                                                    </div>
+                                                                }
+                                                                else if (hasOverride)
+                                                                {
+                                                                    <div class="price-adjustment-notice" style="margin-top: 8px; padding: 8px; background-color: #fff3cd; border-left: 3px solid #ffc107; border-radius: 4px; font-size: 12px; color: #856404;">
+                                                                        <i class="bi bi-info-circle" style="margin-right: 4px;"></i>
+                                                                        <strong>Giá đã được thay đổi</strong>
+                                                                    </div>
+                                                                }
                             </div>
                                                             <a class="btn-choose-option"
                                                                asp-controller="Booking"
@@ -1975,6 +2072,40 @@
         font-size: 0.85rem; 
     }
     .room-detail-link:hover { text-decoration: underline; }
+
+    .property-sold-out-banner {
+        background: #fff1f0;
+        border: 1px solid #ff4d4f;
+        color: #b10002;
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 600;
+    }
+
+    .property-sold-out-banner i {
+        font-size: 20px;
+    }
+
+    .room-sold-out-banner {
+        background: #fff1f0;
+        border: 1px dashed #ff4d4f;
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        color: #b10002;
+        margin-top: 12px;
+        font-weight: 500;
+    }
+
+    .room-sold-out-banner i {
+        font-size: 22px;
+    }
 
     /* Cột 2: Thông tin phòng + Options */
     .room-info-section { 
@@ -2571,8 +2702,8 @@
                 (function(){
                     const bookBtn = document.getElementById('rdmBookBtn');
                     if (bookBtn) {
-                        const ci = '@(((DateTime?)ViewBag.Checkin)?.ToString("yyyy-MM-dd"))';
-                        const co = '@(((DateTime?)ViewBag.Checkout)?.ToString("yyyy-MM-dd"))';
+                        const ci = '@Model.CheckInDate.ToString("yyyy-MM-dd")';
+                        const co = '@Model.CheckOutDate.ToString("yyyy-MM-dd")';
                         bookBtn.onclick = function(){
                             const qs = (ci || co) ? `&checkIn=${encodeURIComponent(ci)}&checkOut=${encodeURIComponent(co)}` : '';
                             const url = `/Booking/Book?propertyId=${encodeURIComponent(@Model.Property.Id)}&roomId=${encodeURIComponent(id)}${qs}`;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotelBooking.Models;
 
@@ -12,6 +13,10 @@ namespace HotelBooking.ViewModels
         public Dictionary<int, decimal> RoomPrices { get; set; } = new();
         public List<string> PhotoUrls { get; set; } = new();
         public List<string> RoomPhotoUrls { get; set; } = new();
+        public Dictionary<int, bool> RoomAvailability { get; set; } = new();
+        public bool PropertySoldOut { get; set; }
+        public DateTime CheckInDate { get; set; }
+        public DateTime CheckOutDate { get; set; }
     }
 
     public class PublicSearchResultsViewModel
@@ -25,6 +30,7 @@ namespace HotelBooking.ViewModels
         public Dictionary<int, int?> StarRatingByProperty { get; set; } = new();
         public Dictionary<int, bool> BreakfastIncludedByProperty { get; set; } = new();
         public Dictionary<int, HotelBooking.Models.Room> FeaturedRoomByProperty { get; set; } = new();
+        public Dictionary<int, bool> PropertyAvailability { get; set; } = new();
     }
 }
 

@@ -1,4 +1,6 @@
 @model List<HotelBooking.Models.Room>
+@using HotelBooking.ViewModels
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
     ViewData["Title"] = "Calendar - Booking Management";
     var propertyId = (int)ViewBag.PropertyId;
@@ -8,186 +10,540 @@
     var roomsByType = (List<IGrouping<string, HotelBooking.Models.Room>>)ViewBag.RoomsByType;
     var bookings = (List<HotelBooking.Models.Booking>)ViewBag.Bookings;
     var availabilityMap = (Dictionary<string, Dictionary<DateTime, (int Available, int Total)>>)ViewBag.AvailabilityMap;
-    
+
     var days = new List<DateTime>();
     for (var d = startDate; d < endDate; d = d.AddDays(1))
     {
         days.Add(d);
     }
-    
+
     var weekdays = new[] { "CN", "T2", "T3", "T4", "T5", "T6", "T7" };
-    var bookingColors = new[] { "#FFD700", "#4A90E2", "#50C878" }; // Yellow, Blue, Green
+    var bookingColors = new[] { "#60A5FA", "#34D399", "#F472B6", "#FBBF24", "#94A3B8" };
+    var roomRateOptions = ViewBag.RoomRateOptions as Dictionary<int, List<CalendarRoomRateOption>> ?? new();
+    var rateOverridesRaw = ViewBag.RateOverrides;
+    var rateOverrides = rateOverridesRaw != null ? 
+        ((Dictionary<(int RoomId, int? RoomPriceId), Dictionary<DateTime, decimal>>)rateOverridesRaw) : 
+        new Dictionary<(int, int?), Dictionary<DateTime, decimal>>();
+    var antiForgeryToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+    
+    // Determine current year and month from startDate
+    var currentYear = startDate.Year;
+    var currentMonth = startDate.Month;
 }
 
+<input type="hidden" id="calendar-property-id" value="@propertyId" />
+<input type="hidden" id="calendar-antiforgery" value="@antiForgeryToken" />
+
 <div class="booking-calendar-container">
-    <!-- Top Navigation -->
-    <div class="calendar-header">
-        <div class="header-left">
-            <div class="logo-placeholder">
-                <i class="bi bi-building"></i>
-        </div>
-            <nav class="main-nav">
-                <a href="#" class="nav-item">Dashboard</a>
-                <a href="#" class="nav-item active">Calendar</a>
-                <a href="#" class="nav-item">Reservations</a>
-                <a href="#" class="nav-item">Clients</a>
-            </nav>
-        </div>
-        <div class="header-right">
-            <button class="btn-new-booking">
-                <i class="bi bi-plus-circle"></i> New
-            </button>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="calendar-main">
-        <!-- Left Sidebar -->
-        <div class="calendar-sidebar">
-            <div class="sidebar-icon"><i class="bi bi-list"></i></div>
-            <div class="sidebar-icon"><i class="bi bi-grid"></i></div>
-            <div class="sidebar-icon"><i class="bi bi-building"></i></div>
-            <div class="sidebar-icon"><i class="bi bi-bar-chart"></i></div>
-            <div class="sidebar-icon"><i class="bi bi-gear"></i></div>
-            <div class="sidebar-icon"><i class="bi bi-people"></i></div>
-        </div>
-
-        <!-- Calendar Content -->
-        <div class="calendar-content">
-            <div class="calendar-title-bar">
-                <h2>Calendar</h2>
-                <div class="date-range">
-                    @startDate.ToString("MMM dd") - @endDate.AddDays(-1).ToString("MMM dd")
-                </div>
-                <button class="btn-add-calendar">
-                    <i class="bi bi-plus"></i>
-                </button>
+    <div class="calendar-content">
+        <div class="calendar-period-nav">
+            <div class="year-scroll">
+                @for (int year = DateTime.UtcNow.Year - 3; year <= DateTime.UtcNow.Year + 3; year++)
+                {
+                    <button class="year-pill @(year == currentYear ? "active" : "")" data-year="@year">@year</button>
+                }
             </div>
+            <div class="month-tabs">
+                @for (int month = 1; month <= 12; month++)
+                {
+                    var isActive = month == currentMonth;
+                    <button class="month-pill @(isActive ? "active" : "")" data-month="@month">
+                        @System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month)
+                    </button>
+                }
+            </div>
+        </div>
 
-            <div class="calendar-grid-wrapper">
-                <div class="calendar-grid">
-                    <!-- Header Row: Room Column + Date Columns -->
-                    <div class="grid-header">
-                        <div class="room-header-cell">Room</div>
-                        @foreach (var day in days)
-                        {
-                            var weekday = weekdays[(int)day.DayOfWeek];
-                            var isWeekend = day.DayOfWeek == DayOfWeek.Saturday || day.DayOfWeek == DayOfWeek.Sunday;
-                            <div class="date-header-cell @(isWeekend ? "weekend" : "")">
-                                <div class="weekday">@weekday</div>
-                                <div class="date">@day.ToString("MM/dd")</div>
-                            </div>
-                        }
-                    </div>
-
-                    <!-- Overall Availability Row -->
-                    <div class="grid-row availability-row">
-                        <div class="room-cell availability-label">Overall Availability</div>
-                        @foreach (var day in days)
-                        {
-                            var totalAvailable = 0;
-                            var totalRooms = 0;
-                            if (availabilityMap != null && availabilityMap.ContainsKey("Overall") && availabilityMap["Overall"].ContainsKey(day))
-                            {
-                                totalAvailable = availabilityMap["Overall"][day].Available;
-                                totalRooms = availabilityMap["Overall"][day].Total;
-                            }
-                            <div class="day-cell availability-cell">
-                                <span class="availability-text">@totalAvailable/@totalRooms</span>
-                            </div>
-                        }
-                    </div>
-
-                    <!-- Room Types and Rooms -->
-                    @if (roomsByType != null)
+        <div class="calendar-grid-wrapper">
+            <div class="calendar-grid">
+                <div class="grid-header">
+                    <div class="room-header-cell">Rooms</div>
+                    @foreach (var day in days)
                     {
-                        @foreach (var roomTypeGroup in roomsByType)
+                        var weekday = weekdays[(int)day.DayOfWeek];
+                        var isWeekend = day.DayOfWeek == DayOfWeek.Saturday || day.DayOfWeek == DayOfWeek.Sunday;
+                        <div class="date-header-cell @(isWeekend ? "weekend" : "")">
+                            <div class="weekday">@weekday</div>
+                            <div class="date">@day.ToString("MM/dd")</div>
+                        </div>
+                    }
+                </div>
+
+                @if (roomsByType != null)
+                {
+                    foreach (var roomTypeGroup in roomsByType)
+                    {
+                        var roomType = roomTypeGroup.Key;
+                        var typeRooms = roomTypeGroup.ToList();
+
+                        <div class="grid-row room-type-availability-row">
+                            <div class="room-cell room-type-cell">@roomType</div>
+                            @foreach (var day in days)
+                            {
+                                var available = 0;
+                                var total = 0;
+                                if (availabilityMap != null && availabilityMap.ContainsKey(roomType) &&
+                                availabilityMap[roomType].ContainsKey(day))
+                                {
+                                    available = availabilityMap[roomType][day].Available;
+                                    total = availabilityMap[roomType][day].Total;
+                                }
+                                var typeSafeAvailable = available < 0 ? 0 : available;
+                                <div class="day-cell availability-cell">
+                                    <span class="availability-text">@typeSafeAvailable/@total</span>
+                                </div>
+                            }
+                        </div>
+
+                        foreach (var room in typeRooms)
                         {
-                            var roomType = roomTypeGroup.Key;
-                            var typeRooms = roomTypeGroup.ToList();
-                            
-                            <!-- Room Type Availability Row -->
-                            <div class="grid-row room-type-availability-row">
-                                <div class="room-cell room-type-cell">@roomType</div>
+                            var roomBookings = bookings?.Where(b => b.RoomId == room.Id).ToList() ?? new
+                            List<HotelBooking.Models.Booking>();
+                            <div class="grid-row room-row" data-room-id="@room.Id">
+                                <div class="room-cell room-name-cell">
+                                    <div class="room-number">@room.Name</div>
+                                    <div
+                                        class="room-status-dot @(roomBookings.Any(b => b.CheckIn <= DateTime.Today && b.CheckOut > DateTime.Today) ? "occupied" : "available")">
+                                    </div>
+                                </div>
                                 @foreach (var day in days)
                                 {
-                                    var available = 0;
-                                    var total = 0;
-                                    if (availabilityMap != null && availabilityMap.ContainsKey(roomType) && availabilityMap[roomType].ContainsKey(day))
-                                    {
-                                        available = availabilityMap[roomType][day].Available;
-                                        total = availabilityMap[roomType][day].Total;
-                                    }
-                                    <div class="day-cell availability-cell">
-                                        <span class="availability-text">@available/@total</span>
+                                    var dayBookings = roomBookings
+                                        .Where(b => b.CheckIn <= day && b.CheckOut > day)
+                                        .ToList();
+                                    var cellHeight = 52 + Math.Max(0, (dayBookings.Count - 1) * 46);
+                                    <div class="day-cell booking-cell" style="min-height:52px;">
+                                        @if (dayBookings.Any())
+                                        {
+                                            <button type="button" 
+                                                    class="booking-list-btn" 
+                                                    data-room-id="@room.Id"
+                                                    data-room-name="@room.Name"
+                                                    data-date="@day.ToString("yyyy-MM-dd")"
+                                                    data-display-date="@day.ToString("dd/MM/yyyy")"
+                                                    data-booking-count="@dayBookings.Count">
+                                                <i class="bi bi-list-ul"></i>
+                                                <span>Danh sách đặt phòng (@dayBookings.Count)</span>
+                                            </button>
+                                        }
                                     </div>
                                 }
                             </div>
 
-                            <!-- Individual Rooms -->
-                            @foreach (var room in typeRooms)
+                            if (roomRateOptions.TryGetValue(room.Id, out var rateOptions) && rateOptions.Any())
                             {
-                                var roomBookings = bookings?.Where(b => b.RoomId == room.Id).ToList() ?? new List<HotelBooking.Models.Booking>();
-                                <div class="grid-row room-row" data-room-id="@room.Id">
-                                    <div class="room-cell room-name-cell">
-                                        <div class="room-number">@room.Name</div>
-                                        <div class="room-status-dot @(roomBookings.Any(b => b.CheckIn <= DateTime.Today && b.CheckOut > DateTime.Today) ? "occupied" : "available")"></div>
-                                    </div>
-                                    @foreach (var day in days)
-                                    {
-                                        var dayBookings = roomBookings.Where(b => 
-                                            b.CheckIn <= day && 
-                                            b.CheckOut > day).ToList();
-                                        
-                                        <div class="day-cell booking-cell">
-                                            @if (dayBookings.Any())
-                                            {
-                                                @foreach (var booking in dayBookings)
+                                foreach (var rate in rateOptions)
+                                {
+                                    <div class="grid-row room-rate-row">
+                                        <div class="room-cell room-rate-cell">
+                                            <div class="rate-name">@rate.OptionName</div>
+                                            <div class="rate-meta">
+                                                @(rate.PolicyDisplayName ?? "Gói giá")
+                                                @if (rate.BreakfastIncluded.HasValue)
                                                 {
-                                                    var isStart = booking.CheckIn.Date == day.Date;
-                                                    var isEnd = booking.CheckOut.Date == day.AddDays(1).Date;
-                                                    var bookingIndex = roomBookings.IndexOf(booking) % bookingColors.Length;
-                                                    var color = bookingColors[bookingIndex];
-                                                    
-                                                    // Calculate span (number of days)
-                                                    var spanDays = (booking.CheckOut.Date - booking.CheckIn.Date).Days;
-                                                    
-                                                    @if (isStart)
-                                                    {
-                                                        var dayIndex = days.IndexOf(day);
-                                                        var leftPercent = 0;
-                                                        var widthPercent = (spanDays * 100);
-                                                        
-                                                        <div class="booking-bar" 
-                                                             style="background-color: @color; left: @(leftPercent)%; width: @(widthPercent)%;"
-                                                             data-booking-id="@booking.Id"
-                                                             data-booking-start="@dayIndex"
-                                                             data-booking-span="@spanDays"
-                                                             title="@booking.GuestName - @booking.CheckIn.ToString("MM/dd") to @booking.CheckOut.ToString("MM/dd")">
-                                                            <div class="booking-dot start-dot"></div>
-                                                            @if (spanDays == 1)
-                                                            {
-                                                                <i class="bi bi-info-circle booking-icon"></i>
-                                                            }
-                                                            @if (isEnd)
-                                                            {
-                                                                <div class="booking-dot end-dot"></div>
-                                                            }
-                                                        </div>
-                                                    }
+                                                    <span>• @(rate.BreakfastIncluded.Value ? "Có bữa sáng" : "Không bữa sáng")</span>
                                                 }
-                                            }
+                                            </div>
+                                            <button type="button"
+                                                    class="rate-range-btn"
+                                                    data-room-id="@room.Id"
+                                                    data-room-name="@room.Name"
+                                                    data-current-price="@rate.Amount"
+                                                    data-room-price-id="@rate.RoomPriceId"
+                                                    data-rate-label="@rate.OptionName">
+                                                Điều chỉnh giá phòng
+                                            </button>
                                         </div>
-                                    }
-                                </div>
+                                        @foreach (var day in days)
+                                        {
+                                            var displayPrice = rate.Amount;
+                                            var overrideKey = (room.Id, rate.RoomPriceId);
+                                            if (rateOverrides.TryGetValue(overrideKey, out var overridesForRoom) &&
+                                                overridesForRoom.TryGetValue(day.Date, out var overridePrice))
+                                            {
+                                                displayPrice = overridePrice;
+                                            }
+                                            var dayBookingCountForPrice = roomBookings
+                                                .Count(b => b.CheckIn <= day && b.CheckOut > day);
+                                            var remainingForDay = Math.Max(0, room.Quantity - dayBookingCountForPrice);
+                                            var isSoldOutForDay = remainingForDay <= 0;
+                                            <div class="day-cell rate-price-cell">
+                                                <div class="rate-price-wrapper">
+                                                    @if (isSoldOutForDay)
+                                                    {
+                                                        <span class="rate-price sold-out-text">Đã hết phòng</span>
+                                                    }
+                                                    else
+                                                    {
+                                                    <span class="rate-price">@displayPrice.ToString("N0") @rate.Currency</span>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
                             }
                         }
                     }
+                }
+            </div>
+        </div>
+
+        <div class="calendar-legend">
+            <span><span class="legend-dot new"></span>New</span>
+            <span><span class="legend-dot confirmed"></span>Confirmed</span>
+            <span><span class="legend-dot due-in"></span>Due in</span>
+            <span><span class="legend-dot checked-in"></span>Checked in</span>
+            <span><span class="legend-dot due-out"></span>Due out</span>
+            <span><span class="legend-dot checked-out"></span>Checked out</span>
+            <span><span class="legend-dot booking-offer"></span>Booking offer</span>
+            <span><span class="legend-dot out-of-order"></span>Out of order</span>
+        </div>
+    </div>
+</div>
+
+<div id="rate-range-overlay" class="rate-edit-overlay" aria-hidden="true">
+    <div class="rate-edit-modal" role="dialog" aria-modal="true">
+        <div class="rate-modal-header">
+            <h5>Tăng/giảm giá theo khoảng ngày</h5>
+            <button type="button" id="rate-range-close" class="btn-close" aria-label="Đóng"></button>
+        </div>
+        <form id="rate-range-form">
+            <div class="modal-field">
+                <label>Phòng & gói</label>
+                <div id="rate-range-room" class="modal-value">—</div>
+            </div>
+            <div class="modal-field">
+                <label>Giá cũ (VND)</label>
+                <input type="text" id="rate-range-old-price" class="form-control" readonly style="background-color: #f5f5f5; cursor: not-allowed;" />
+            </div>
+            <div class="modal-field">
+                <label>Giá mới (VND)</label>
+                <input type="text" id="rate-range-price" class="form-control" required placeholder="24.000.000" />
+            </div>
+            <div class="modal-field">
+                <label>Ngày bắt đầu áp dụng</label>
+                <input type="date" id="rate-range-start" class="form-control" required />
+            </div>
+            <div class="modal-field">
+                <label>Ngày kết thúc áp dụng</label>
+                <input type="date" id="rate-range-end" class="form-control" required />
+            </div>
+            <div class="modal-field">
+                <label>Mô tả</label>
+                <textarea id="rate-range-note" class="form-control modal-textarea" rows="3" placeholder="Ví dụ: Giá cuối tuần, lễ Tết ..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="rate-range-cancel">Hủy</button>
+                <button type="submit" class="btn btn-primary btn-sm">Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="booking-list-overlay" class="rate-edit-overlay" aria-hidden="true">
+    <div class="rate-edit-modal" role="dialog" aria-modal="true" style="max-width: 1200px; width: 90%; max-height: 90vh; overflow-y: auto;">
+        <div class="rate-modal-header">
+            <h5 id="booking-list-title">Danh sách đặt phòng</h5>
+            <button type="button" id="booking-list-close" class="btn-close" aria-label="Đóng"></button>
+        </div>
+        <div id="booking-list-content" style="padding: 16px;">
+            <div style="text-align: center; padding: 20px;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.booking-info-btn').forEach(btn => {
+            btn.addEventListener('click', function (event) {
+                event.stopPropagation();
+            });
+        });
+
+        const propertyId = document.getElementById('calendar-property-id')?.value;
+        const antiForgery = document.getElementById('calendar-antiforgery')?.value;
+
+        // Handle year and month selection
+        let selectedYear = @currentYear;
+        let selectedMonth = @currentMonth;
+
+        document.querySelectorAll('.year-pill').forEach(pill => {
+            pill.addEventListener('click', function() {
+                selectedYear = parseInt(this.dataset.year);
+                updateCalendar();
+            });
+        });
+
+        document.querySelectorAll('.month-pill').forEach(pill => {
+            pill.addEventListener('click', function() {
+                selectedMonth = parseInt(this.dataset.month);
+                updateCalendar();
+            });
+        });
+
+        function updateCalendar() {
+            // Update active states
+            document.querySelectorAll('.year-pill').forEach(pill => {
+                if (parseInt(pill.dataset.year) === selectedYear) {
+                    pill.classList.add('active');
+                } else {
+                    pill.classList.remove('active');
+                }
+            });
+
+            document.querySelectorAll('.month-pill').forEach(pill => {
+                if (parseInt(pill.dataset.month) === selectedMonth) {
+                    pill.classList.add('active');
+                } else {
+                    pill.classList.remove('active');
+                }
+            });
+
+            // Reload calendar with selected month
+            const url = `/Partner/Calendar?propertyId=${propertyId}&year=${selectedYear}&month=${selectedMonth}`;
+            window.location.href = url;
+        }
+        const rateRangeOverlay = document.getElementById('rate-range-overlay');
+        const rateRangeClose = document.getElementById('rate-range-close');
+        const rateRangeCancel = document.getElementById('rate-range-cancel');
+        const rateRangeForm = document.getElementById('rate-range-form');
+        const rateRangeRoom = document.getElementById('rate-range-room');
+        const rateRangeOldPrice = document.getElementById('rate-range-old-price');
+        const rateRangePrice = document.getElementById('rate-range-price');
+        const rateRangeStart = document.getElementById('rate-range-start');
+        const rateRangeEnd = document.getElementById('rate-range-end');
+        const rateRangeNote = document.getElementById('rate-range-note');
+        let currentRangeData = null;
+
+        function formatNumber(num) {
+            if (!num && num !== 0) return '';
+            const numStr = num.toString().replace(/\./g, '');
+            return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        function parseFormattedNumber(str) {
+            if (!str) return 0;
+            return parseFloat(str.replace(/\./g, '')) || 0;
+        }
+
+        function openRangeModal(data) {
+            currentRangeData = data;
+            rateRangeRoom.textContent = `${data.roomName} • ${data.rateLabel}`;
+            const oldPrice = parseFloat(data.currentPrice || 0);
+            rateRangeOldPrice.value = formatNumber(oldPrice);
+            rateRangePrice.value = '';
+            rateRangeStart.value = '';
+            rateRangeEnd.value = '';
+            rateRangeNote.value = '';
+            rateRangeOverlay.classList.add('show');
+            rateRangeOverlay.setAttribute('aria-hidden', 'false');
+            rateRangePrice.focus();
+        }
+
+        function closeRangeModal() {
+            rateRangeOverlay.classList.remove('show');
+            rateRangeOverlay.setAttribute('aria-hidden', 'true');
+            currentRangeData = null;
+        }
+
+        rateRangeClose?.addEventListener('click', closeRangeModal);
+        rateRangeCancel?.addEventListener('click', closeRangeModal);
+        rateRangeOverlay?.addEventListener('click', function (event) {
+            if (event.target === rateRangeOverlay) {
+                closeRangeModal();
+            }
+        });
+
+        document.querySelectorAll('.rate-range-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const dataset = this.dataset;
+                openRangeModal({
+                    roomId: dataset.roomId,
+                    roomPriceId: dataset.roomPriceId,
+                    roomName: dataset.roomName,
+                    rateLabel: dataset.rateLabel,
+                    currentPrice: dataset.currentPrice
+                });
+            });
+        });
+
+        rateRangePrice?.addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\./g, '');
+            if (value && !isNaN(value)) {
+                e.target.value = formatNumber(value);
+            }
+        });
+
+        rateRangeForm?.addEventListener('submit', async function (event) {
+            event.preventDefault();
+            if (!currentRangeData) return;
+
+            const amount = parseFormattedNumber(rateRangePrice.value);
+            const startDate = rateRangeStart.value;
+            const endDate = rateRangeEnd.value;
+
+            if (isNaN(amount) || amount <= 0) {
+                alert('Vui lòng nhập giá hợp lệ.');
+                return;
+            }
+
+            if (!startDate || !endDate || new Date(startDate) > new Date(endDate)) {
+                alert('Ngày kết thúc phải sau ngày bắt đầu.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/Partner/ApplyRateAdjustment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': antiForgery || ''
+                    },
+                    body: JSON.stringify({
+                        propertyId: parseInt(propertyId || '0'),
+                        roomId: parseInt(currentRangeData.roomId),
+                        roomPriceId: parseInt(currentRangeData.roomPriceId),
+                        amount,
+                        startDate,
+                        endDate,
+                        description: rateRangeNote.value?.trim()
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Không thể lưu điều chỉnh giá.');
+                }
+
+                closeRangeModal();
+                window.location.reload();
+            } catch (error) {
+                console.error(error);
+                alert('Có lỗi xảy ra khi lưu điều chỉnh giá. Vui lòng thử lại.');
+            }
+        });
+
+        // Booking list modal
+        const bookingListOverlay = document.getElementById('booking-list-overlay');
+        const bookingListClose = document.getElementById('booking-list-close');
+        const bookingListTitle = document.getElementById('booking-list-title');
+        const bookingListContent = document.getElementById('booking-list-content');
+
+        function openBookingListModal(data) {
+            bookingListTitle.textContent = `Danh sách đặt phòng - ${data.roomName} - ${data.displayDate}`;
+            bookingListContent.innerHTML = '<div style="text-align: center; padding: 20px;"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+            bookingListOverlay.classList.add('show');
+            bookingListOverlay.setAttribute('aria-hidden', 'false');
+
+            // Load booking list
+            fetch(`/Partner/GetBookingsForDate?propertyId=${propertyId}&roomId=${data.roomId}&date=${data.date}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.bookings) {
+                        renderBookingList(data.bookings);
+                    } else {
+                        bookingListContent.innerHTML = '<div style="padding: 20px; text-align: center; color: #64748b;">Không có đặt phòng nào.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    bookingListContent.innerHTML = '<div style="padding: 20px; text-align: center; color: #ef4444;">Có lỗi xảy ra khi tải danh sách đặt phòng.</div>';
+                });
+        }
+
+        function renderBookingList(bookings) {
+            if (!bookings || bookings.length === 0) {
+                bookingListContent.innerHTML = '<div style="padding: 20px; text-align: center; color: #64748b;">Không có đặt phòng nào.</div>';
+                return;
+            }
+
+            let html = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+            bookings.forEach(booking => {
+                const checkIn = new Date(booking.checkIn).toLocaleDateString('vi-VN');
+                const checkOut = new Date(booking.checkOut).toLocaleDateString('vi-VN');
+                html += `
+                    <div style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; background: #fff;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                            <div>
+                                <h6 style="margin: 0; font-weight: 600; color: #0f172a;">${escapeHtml(booking.guestName)}</h6>
+                                <div style="font-size: 12px; color: #64748b; margin-top: 4px;">
+                                    ${checkIn} - ${checkOut}
+                                </div>
+                            </div>
+                            <a href="/Partner/BookingDetails?bookingCode=${booking.bookingCode}" 
+                               class="btn btn-sm btn-outline-primary" 
+                               style="text-decoration: none;">
+                                <i class="bi bi-info-circle"></i> Chi tiết
+                            </a>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px;">
+                            <div><strong>Người liên hệ:</strong> ${escapeHtml(booking.contactName || '—')}</div>
+                            <div><strong>Số điện thoại:</strong> ${escapeHtml(booking.phoneNumber || '—')}</div>
+                            <div><strong>Email:</strong> ${escapeHtml(booking.email || '—')}</div>
+                            <div><strong>Số khách:</strong> ${booking.guests || '—'}</div>
+                            <div><strong>Tổng giá:</strong> ${formatPrice(booking.totalPrice)}</div>
+                            <div><strong>Trạng thái:</strong> <span class="badge bg-${getStatusColor(booking.status)}">${escapeHtml(booking.status)}</span></div>
+                        </div>
+                        ${booking.specialRequests ? `<div style="margin-top: 12px; padding: 8px; background: #f8fafc; border-radius: 6px; font-size: 12px;"><strong>Yêu cầu đặc biệt:</strong> ${escapeHtml(booking.specialRequests)}</div>` : ''}
+                    </div>
+                `;
+            });
+            html += '</div>';
+            bookingListContent.innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatPrice(price) {
+            if (!price) return '—';
+            return new Intl.NumberFormat('vi-VN').format(price) + ' VND';
+        }
+
+        function getStatusColor(status) {
+            const statusMap = {
+                'New': 'info',
+                'Confirmed': 'primary',
+                'CheckedIn': 'success',
+                'CheckedOut': 'secondary',
+                'Cancelled': 'danger'
+            };
+            return statusMap[status] || 'secondary';
+        }
+
+        function closeBookingListModal() {
+            bookingListOverlay.classList.remove('show');
+            bookingListOverlay.setAttribute('aria-hidden', 'true');
+        }
+
+        bookingListClose?.addEventListener('click', closeBookingListModal);
+        bookingListOverlay?.addEventListener('click', function (event) {
+            if (event.target === bookingListOverlay) {
+                closeBookingListModal();
+            }
+        });
+
+        document.querySelectorAll('.booking-list-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const dataset = this.dataset;
+                openBookingListModal({
+                    roomId: dataset.roomId,
+                    roomName: dataset.roomName,
+                    date: dataset.date,
+                    displayDate: dataset.displayDate
+                });
+            });
+        });
+    });
+</script>
 
 <style>
     * {
@@ -196,184 +552,165 @@
 
     .booking-calendar-container {
         width: 100%;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
+        min-height: 100vh;
+        padding: 24px;
         background: #f5f7fa;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    }
-
-    /* Header */
-    .calendar-header {
-        background: white;
-        border-bottom: 1px solid #e0e6ed;
-        padding: 12px 24px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-
-    .header-left {
-        display: flex;
-        align-items: center;
-        gap: 24px;
-    }
-
-    .logo-placeholder {
-        width: 40px;
-        height: 40px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 20px;
-    }
-
-    .main-nav {
-        display: flex;
-        gap: 8px;
-    }
-
-    .nav-item {
-        padding: 8px 16px;
-        text-decoration: none;
-        color: #4a5568;
-        font-weight: 500;
-        border-radius: 6px;
-        transition: all 0.2s;
-    }
-
-    .nav-item:hover {
-        background: #f7fafc;
-        color: #2d3748;
-    }
-
-    .nav-item.active {
-        color: #667eea;
-        border-bottom: 2px solid #667eea;
-    }
-
-    .btn-new-booking {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 20px;
-        font-weight: 600;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s;
-        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
-    }
-
-    .btn-new-booking:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
-    }
-
-    /* Main Layout */
-    .calendar-main {
-        display: flex;
-        flex: 1;
-        overflow: hidden;
-    }
-
-    /* Sidebar */
-    .calendar-sidebar {
-        width: 60px;
-        background: #2d3748;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 16px 0;
-        gap: 16px;
-    }
-
-    .sidebar-icon {
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #a0aec0;
-        font-size: 20px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .sidebar-icon:hover {
-        background: #4a5568;
-        color: white;
-    }
-
-    /* Calendar Content */
-    .calendar-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        background: white;
-    }
-
-    .calendar-title-bar {
-        padding: 16px 24px;
-        border-bottom: 1px solid #e0e6ed;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-    }
-
-    .calendar-title-bar h2 {
-        margin: 0;
-        font-size: 20px;
-        font-weight: 600;
-        color: #1a202c;
-    }
-
-    .date-range {
-        color: #718096;
         font-size: 14px;
     }
 
-    .btn-add-calendar {
-        margin-left: auto;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        border: 1px solid #cbd5e0;
-        background: white;
-        color: #4a5568;
-        cursor: pointer;
+    .calendar-content {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: #fff;
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+    }
+
+    .calendar-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: space-between;
+        font-size: 13px;
+    }
+
+    .toolbar-dropdowns {
+        display: grid;
+        flex: 1;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 10px;
+    }
+
+    .toolbar-select {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .toolbar-select label {
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .toolbar-select .form-select {
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        padding: 6px 14px;
+        font-size: 13px;
+    }
+
+    .toolbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .search-wrapper {
+        position: relative;
+    }
+
+    .search-wrapper i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+    }
+
+    .search-wrapper .form-control {
+        border-radius: 999px;
+        padding-left: 36px;
+        min-width: 240px;
+    }
+
+    .refresh-btn {
+        border-radius: 999px;
+        width: 36px;
+        height: 36px;
         display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 13px;
+    }
+
+    .add-booking-btn {
+        border-radius: 999px;
+        padding: 8px 18px;
+        font-weight: 600;
+        border: none;
+        font-size: 13px;
+        background: linear-gradient(120deg, #35baf6, #716fff);
+        box-shadow: 0 8px 18px rgba(113, 111, 255, 0.2);
+    }
+
+    .calendar-period-nav {
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 12px;
+        background: #fbfcff;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        font-size: 13px;
+    }
+
+    .year-scroll {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .year-pill,
+    .month-pill {
+        border: none;
+        border-radius: 999px;
+        background: #f1f5f9;
+        color: #475569;
+        font-weight: 600;
+        padding: 4px 12px;
+        font-size: 12px;
+        cursor: pointer;
         transition: all 0.2s;
     }
 
-    .btn-add-calendar:hover {
-        background: #f7fafc;
-        border-color: #a0aec0;
+    .year-pill.active,
+    .month-pill.active {
+        background: #2563eb;
+        color: #fff;
     }
 
-    /* Calendar Grid */
+    .month-tabs {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        gap: 6px;
+    }
+
     .calendar-grid-wrapper {
         flex: 1;
         overflow: auto;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
     }
 
     .calendar-grid {
         display: grid;
-        grid-template-columns: 200px repeat(@days.Count, 120px);
+        grid-template-columns: 160px repeat(
+                @days.Count
+                , 100px);
         min-width: fit-content;
+        background: #fff;
+        font-size: 13px;
     }
 
-    .grid-header {
+    .grid-header,
+    .grid-row {
         display: contents;
     }
 
@@ -381,20 +718,20 @@
         position: sticky;
         left: 0;
         z-index: 5;
-        background: #f7fafc;
-        padding: 12px 16px;
+        background: #f1f5f9;
+        padding: 12px;
         font-weight: 600;
-        color: #2d3748;
-        border-right: 2px solid #e0e6ed;
-        border-bottom: 2px solid #e0e6ed;
+        color: #1f2937;
+        border-right: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
     }
 
     .date-header-cell {
-        padding: 12px 8px;
+        padding: 10px 6px;
         text-align: center;
-        border-bottom: 2px solid #e0e6ed;
-        border-right: 1px solid #e0e6ed;
-        background: #f7fafc;
+        border-bottom: 1px solid #e2e8f0;
+        border-right: 1px solid #e2e8f0;
+        background: #f8fafc;
         position: sticky;
         top: 0;
         z-index: 4;
@@ -405,29 +742,25 @@
     }
 
     .date-header-cell .weekday {
-        font-size: 11px;
-        color: #718096;
-        margin-bottom: 4px;
+        font-size: 10px;
+        color: #94a3b8;
+        margin-bottom: 2px;
     }
 
     .date-header-cell .date {
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 600;
-        color: #2d3748;
-    }
-
-    .grid-row {
-        display: contents;
+        color: #1e293b;
     }
 
     .room-cell {
         position: sticky;
         left: 0;
         z-index: 3;
-        background: white;
-        padding: 12px 16px;
-        border-right: 2px solid #e0e6ed;
-        border-bottom: 1px solid #e0e6ed;
+        background: #fff;
+        padding: 10px 12px;
+        border-right: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -435,113 +768,341 @@
 
     .availability-label {
         font-weight: 600;
-        color: #4a5568;
-        background: #f7fafc;
+        color: #475569;
+        background: #f0f9ff;
     }
 
     .room-type-cell {
         font-weight: 600;
-        color: #2d3748;
-        background: #f7fafc;
+        color: #334155;
+        background: #fff7ed;
         padding-left: 24px;
     }
 
-    .room-name-cell {
-        background: white;
-    }
-
     .room-number {
-        font-weight: 500;
-        color: #2d3748;
+        font-weight: 600;
+        color: #0f172a;
     }
 
     .room-status-dot {
-        width: 8px;
-        height: 8px;
+        width: 10px;
+        height: 10px;
         border-radius: 50%;
     }
 
     .room-status-dot.available {
-        background: #48bb78;
+        background: #22c55e;
     }
 
     .room-status-dot.occupied {
-        background: #f56565;
+        background: #ef4444;
     }
 
-    .day-cell {
-        border-right: 1px solid #e0e6ed;
-        border-bottom: 1px solid #e0e6ed;
-        min-height: 50px;
-        position: relative;
-        padding: 4px;
+    .room-rate-row .room-cell {
+        background: #f8fafc;
+        border-left: 1px solid #e2e8f0;
     }
 
-    .availability-cell {
-        text-align: center;
+    .room-rate-cell {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+
+    .rate-name {
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .rate-meta {
+        font-size: 12px;
+        color: #94a3b8;
+    }
+
+    .rate-range-btn {
+        margin-top: 6px;
+        border: 1px dashed #2563eb;
+        color: #2563eb;
+        background: #eef3ff;
+        border-radius: 999px;
+        padding: 4px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s;
+    }
+
+    .rate-range-btn:hover {
+        background: #dbe6ff;
+        color: #1d4ed8;
+    }
+
+    .rate-price-cell {
+        background: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 8px;
+    }
+
+    .rate-price-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .rate-price {
+        font-weight: 600;
+        color: #0f172a;
+        font-size: 12px;
+    }
+
+    .sold-out-text {
+        color: #b10002;
+        text-transform: uppercase;
+    }
+
+
+    .rate-edit-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.4);
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #f7fafc;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+        z-index: 2000;
+        padding: 16px;
+    }
+
+    .rate-edit-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .rate-edit-modal {
+        background: #fff;
+        border-radius: 20px;
+        padding: 24px;
+        width: min(420px, 100%);
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+    }
+
+    .rate-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+
+    .rate-modal-header h5 {
+        margin: 0;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .modal-field {
+        margin-bottom: 12px;
+    }
+
+    .modal-field label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #94a3b8;
+        font-weight: 600;
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .modal-value {
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 20px;
+    }
+
+    .rate-modal-header .btn-close {
+        border: none;
+        background: transparent;
+        font-size: 18px;
+        color: #94a3b8;
+        cursor: pointer;
+    }
+
+    .modal-textarea {
+        resize: vertical;
+    }
+
+    .day-cell {
+        border-right: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
+        min-height: 56px;
+        position: relative;
+        padding: 3px;
+        background: #fff;
+    }
+
+    .availability-cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e8f4ff;
     }
 
     .availability-text {
-        font-size: 12px;
-        color: #4a5568;
-        font-weight: 500;
+        font-weight: 600;
+        color: #0f172a;
     }
 
     .booking-cell {
-        padding: 2px;
-        background: white;
+        padding: 3px;
+    }
+
+    .booking-list-btn {
+        width: 100%;
+        height: 100%;
+        min-height: 44px;
+        border: 1px dashed #2563eb;
+        border-radius: 8px;
+        background: #eef3ff;
+        color: #2563eb;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all 0.2s;
+        padding: 8px;
+    }
+
+    .booking-list-btn:hover {
+        background: #dbe6ff;
+        border-color: #1d4ed8;
+        color: #1d4ed8;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+    }
+
+    .booking-list-btn i {
+        font-size: 14px;
     }
 
     .booking-bar {
         position: absolute;
-        top: 2px;
-        bottom: 2px;
-        left: 0;
-        right: 0;
-        border-radius: 4px;
+        left: 3px;
+        right: 3px;
+        height: 38px;
+        border-radius: 10px;
+        padding: 0 8px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 6px;
+        color: #fff;
+        font-weight: 600;
+        font-size: 11px;
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
         cursor: pointer;
-        transition: all 0.2s;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
     }
 
     .booking-bar:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-        z-index: 10;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 18px rgba(15, 23, 42, 0.2);
+    }
+
+    .booking-dot-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .booking-info-btn {
+        border: none;
+        background: rgba(255, 255, 255, 0.25);
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, transform 0.2s;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .booking-info-btn:hover {
+        background: rgba(255, 255, 255, 0.35);
+        transform: scale(1.05);
     }
 
     .booking-dot {
         width: 6px;
         height: 6px;
         border-radius: 50%;
-        background: white;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        background: #fff;
     }
 
-    .booking-icon {
-        color: white;
-        font-size: 12px;
-        opacity: 0.9;
+    .calendar-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        font-size: 13px;
+        color: #475569;
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 12px 16px;
+    }
+
+    .legend-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-right: 6px;
+    }
+
+    .legend-dot.new {
+        background: #fde68a;
+    }
+
+    .legend-dot.confirmed {
+        background: #60a5fa;
+    }
+
+    .legend-dot.due-in {
+        background: #34d399;
+    }
+
+    .legend-dot.checked-in {
+        background: #2dd4bf;
+    }
+
+    .legend-dot.due-out {
+        background: #fb923c;
+    }
+
+    .legend-dot.checked-out {
+        background: #94a3b8;
+    }
+
+    .legend-dot.booking-offer {
+        background: #c084fc;
+    }
+
+    .legend-dot.out-of-order {
+        background: #f87171;
     }
 </style>
-
-<script>
-    // Add click handlers for booking bars
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.booking-bar').forEach(bar => {
-            bar.addEventListener('click', function() {
-                const bookingId = this.getAttribute('data-booking-id');
-                // Navigate to booking details
-                window.location.href = '@Url.Action("BookingDetails", "Partner")?bookingCode=' + bookingId;
-            });
-        });
-    });
-</script>

@@ -2633,6 +2633,17 @@ public async Task<IActionResult> Success()
             var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == propertyId && p.UserId == meId);
             if (property == null) return NotFound();
 
+            var partnerProperties = await _db.Properties
+                .Where(p => p.UserId == meId && p.Status == PropertyStatus.Approved)
+                .OrderBy(p => p.Name)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Name,
+                    p.Status
+                })
+                .ToListAsync();
+
             // Lấy danh sách booking cho property này với thông tin phòng
             var bookings = await _db.Bookings
                 .Where(b => b.PropertyId == propertyId)
@@ -2688,6 +2699,7 @@ public async Task<IActionResult> Success()
             }
 
             ViewBag.Property = property;
+            ViewBag.PropertyOptions = partnerProperties;
             ViewBag.RoomCount = await _db.Rooms.CountAsync(r => r.PropertyId == propertyId);
             ViewBag.HasPricePackage = await _db.PricePackages.AnyAsync(p => p.PropertyId == propertyId);
             ViewBag.HasRoomPrices = await _db.RoomPrices.AnyAsync(p => p.PropertyId == propertyId);
@@ -2793,7 +2805,7 @@ public async Task<IActionResult> Success()
             else if (year.HasValue && month.HasValue)
             {
                 start = new DateTime(year.Value, month.Value, 1);
-                end = start.AddMonths(1);
+                end = start.AddMonths(1).AddDays(7); // Extend 7 days into next month for scrolling
             }
             else
             {
@@ -2814,7 +2826,7 @@ public async Task<IActionResult> Success()
                 .ToListAsync();
 
             var roomsByType = rooms
-                .GroupBy(r => r.Name.Split(' ').FirstOrDefault() ?? "Other")
+                .GroupBy(r => string.IsNullOrWhiteSpace(r.RoomType) ? "Loại phòng khác" : r.RoomType)
                 .OrderBy(g => g.Key)
                 .ToList();
 
@@ -2827,6 +2839,35 @@ public async Task<IActionResult> Success()
                 .OrderBy(b => b.CheckIn)
                 .ToListAsync();
 
+            var roomPriceEntities = await _db.RoomPrices
+                .Where(rp => rp.PropertyId == propertyId)
+                .Include(rp => rp.PricePackage)
+                .ToListAsync();
+            var roomRateOptions = roomPriceEntities
+                .Select(rp => new CalendarRoomRateOption
+                {
+                    RoomId = rp.RoomId,
+                    RoomPriceId = rp.Id,
+                    OptionName = string.IsNullOrWhiteSpace(rp.OptionName)
+                        ? (rp.PricePackage != null ? rp.PricePackage.CancellationPolicyDisplayName : "Gói giá")
+                        : rp.OptionName,
+                    Amount = rp.Amount,
+                    Currency = rp.Currency,
+                    PolicyDisplayName = rp.PricePackage != null ? rp.PricePackage.CancellationPolicyDisplayName : null,
+                    BreakfastIncluded = rp.PricePackage?.BreakfastIncluded
+                })
+                .ToList();
+
+            var rateOverridesRaw = await _db.RoomDailyRates
+                .Where(r => r.PropertyId == propertyId && r.Price.HasValue && r.Date >= start && r.Date < end)
+                .ToListAsync();
+
+            var rateOverrides = rateOverridesRaw
+                .GroupBy(r => new { r.RoomId, r.RoomPriceId })
+                .ToDictionary(
+                    g => (g.Key.RoomId, g.Key.RoomPriceId),
+                    g => g.ToDictionary(x => x.Date.Date, x => x.Price!.Value));
+
             // Calculate availability map: roomType -> date -> (available, total)
             var availabilityMap = new Dictionary<string, Dictionary<DateTime, (int Available, int Total)>>();
             
@@ -2838,7 +2879,7 @@ public async Task<IActionResult> Success()
 
                 var totalRooms = rooms.Sum(r => r.Quantity);
                 var bookedOnDate = bookings.Count(b => b.CheckIn <= date && b.CheckOut > date);
-                var availableOnDate = totalRooms - bookedOnDate;
+                var availableOnDate = Math.Max(0, totalRooms - bookedOnDate);
                 availabilityMap["Overall"][date] = (availableOnDate, totalRooms);
 
                 // Per room type availability
@@ -2854,7 +2895,7 @@ public async Task<IActionResult> Success()
                         typeRooms.Any(r => r.Id == b.RoomId) && 
                         b.CheckIn <= date && 
                         b.CheckOut > date);
-                    var typeAvailable = typeTotal - typeBooked;
+                    var typeAvailable = Math.Max(0, typeTotal - typeBooked);
                     availabilityMap[typeName][date] = (typeAvailable, typeTotal);
                 }
             }
@@ -2862,6 +2903,10 @@ public async Task<IActionResult> Success()
             ViewBag.RoomsByType = roomsByType;
             ViewBag.Bookings = bookings;
             ViewBag.AvailabilityMap = availabilityMap;
+            ViewBag.RoomRateOptions = roomRateOptions
+                .GroupBy(r => r.RoomId)
+                .ToDictionary(g => g.Key, g => g.OrderBy(o => o.OptionName).ToList());
+            ViewBag.RateOverrides = rateOverrides;
 
             return View("Calendar", rooms);
         }
@@ -2942,6 +2987,22 @@ public async Task<IActionResult> Success()
             public int? Allotment { get; set; }
         }
 
+        public class RateAdjustmentRequest
+        {
+            public int PropertyId { get; set; }
+            public int RoomId { get; set; }
+            public int RoomPriceId { get; set; }
+            public DateTime StartDate { get; set; }
+            public DateTime EndDate { get; set; }
+            public decimal Amount { get; set; }
+            public string? Description { get; set; }
+        }
+
+        public class CancelBookingRequest
+        {
+            public string BookingCode { get; set; } = string.Empty;
+        }
+
         [HttpPost]
         public async Task<IActionResult> SaveRates([FromBody] RateUpdateRequest req)
         {
@@ -2978,30 +3039,256 @@ public async Task<IActionResult> Success()
             return Ok(new { success = true });
         }
 
+        [HttpPost]
+        public async Task<IActionResult> ApplyRateAdjustment([FromBody] RateAdjustmentRequest req)
+        {
+            var meId = _users.GetUserId(User);
+            var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == req.PropertyId && p.UserId == meId);
+            if (property == null) return Unauthorized();
+
+            if (req.StartDate > req.EndDate)
+            {
+                return BadRequest("Ngày kết thúc phải sau ngày bắt đầu.");
+            }
+
+            var roomPrice = await _db.RoomPrices
+                .FirstOrDefaultAsync(rp => rp.Id == req.RoomPriceId && rp.PropertyId == req.PropertyId && rp.RoomId == req.RoomId);
+
+            if (roomPrice == null)
+            {
+                return BadRequest("Không tìm thấy gói giá.");
+            }
+
+            var start = req.StartDate.Date;
+            var end = req.EndDate.Date;
+
+            for (var date = start; date <= end; date = date.AddDays(1))
+            {
+                var existing = await _db.RoomDailyRates
+                    .FirstOrDefaultAsync(x => x.PropertyId == req.PropertyId && 
+                                             x.RoomId == req.RoomId && 
+                                             x.RoomPriceId == req.RoomPriceId && 
+                                             x.Date == date);
+
+                if (existing == null)
+                {
+                    existing = new RoomDailyRate
+                    {
+                        PropertyId = req.PropertyId,
+                        RoomId = req.RoomId,
+                        RoomPriceId = req.RoomPriceId,
+                        Date = date
+                    };
+                    _db.RoomDailyRates.Add(existing);
+                }
+
+                existing.Price = req.Amount;
+                existing.UpdatedAt = DateTime.UtcNow;
+            }
+
+            var adjustment = new RoomRateAdjustment
+            {
+                PropertyId = req.PropertyId,
+                RoomId = req.RoomId,
+                RoomPriceId = req.RoomPriceId,
+                StartDate = start,
+                EndDate = end,
+                Amount = req.Amount,
+                Description = string.IsNullOrWhiteSpace(req.Description) ? null : req.Description!.Trim(),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.RoomRateAdjustments.Add(adjustment);
+
+            await _db.SaveChangesAsync();
+            return Ok(new { success = true });
+        }
+
         // Xem chi tiết booking
         [HttpGet]
         public async Task<IActionResult> BookingDetails(string bookingCode)
         {
+            if (string.IsNullOrWhiteSpace(bookingCode))
+            {
+                return NotFound();
+            }
+
             await SetUserHasPropertiesAsync();
             var meId = _users.GetUserId(User);
             
             var booking = await _db.Bookings
-                .FirstOrDefaultAsync(b => b.BookingCode == bookingCode && b.PropertyId > 0);
-            
-            if (booking == null) return NotFound();
-            
-            // Kiểm tra quyền truy cập
-            var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == booking.PropertyId && p.UserId == meId);
-            if (property == null) return NotFound();
-            
-            // Lấy thông tin phòng
+                .AsNoTracking()
+                .FirstOrDefaultAsync(b => b.BookingCode == bookingCode);
+
+            if (booking == null)
+            {
+                return NotFound();
+            }
+
+            var property = await _db.Properties
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == booking.PropertyId && p.UserId == meId);
+
+            if (property == null)
+            {
+                return NotFound();
+            }
+
+            var roomName = await _db.Rooms
+                .AsNoTracking()
+                .Where(r => r.Id == booking.RoomId)
+                .Select(r => r.Name)
+                .FirstOrDefaultAsync() ?? "Room";
+
+            var model = new PartnerBookingDetailsViewModel
+            {
+                BookingCode = booking.BookingCode,
+                PropertyName = property.Name,
+                RoomName = roomName,
+                GuestName = booking.GuestName,
+                ContactName = booking.FullName,
+                PhoneNumber = booking.PhoneNumber,
+                Email = booking.Email,
+                CheckIn = booking.CheckIn,
+                CheckOut = booking.CheckOut,
+                TotalNights = booking.TotalNights,
+                Guests = booking.Guests,
+                PricePerNight = booking.PricePerNight,
+                TotalPrice = booking.TotalPrice,
+                DiscountCode = booking.DiscountCode,
+                DiscountAmount = booking.DiscountAmount,
+                Status = booking.Status.ToString(),
+                SpecialRequests = booking.SpecialRequests,
+                CreatedAt = booking.CreatedAt,
+                NonSmokingRoom = booking.NonSmokingRoom,
+                ConnectingRoom = booking.ConnectingRoom,
+                HighFloor = booking.HighFloor
+            };
+
+            return View("BookingDetails", model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetBookingsForDate(int propertyId, int roomId, DateTime date)
+        {
+            var meId = _users.GetUserId(User);
+            var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == propertyId && p.UserId == meId);
+            if (property == null) return Unauthorized();
+
+            var targetDate = date.Date;
+            var bookings = await _db.Bookings
+                .Where(b => b.PropertyId == propertyId &&
+                           b.RoomId == roomId &&
+                           b.CheckIn <= targetDate &&
+                           b.CheckOut > targetDate &&
+                           b.Status != BookingStatus.Cancelled)
+                .OrderBy(b => b.CheckIn)
+                .Select(b => new
+                {
+                    b.BookingCode,
+                    b.GuestName,
+                    b.FullName,
+                    b.PhoneNumber,
+                    b.Email,
+                    b.CheckIn,
+                    b.CheckOut,
+                    b.Guests,
+                    b.TotalPrice,
+                    Status = b.Status.ToString(),
+                    b.SpecialRequests
+                })
+                .ToListAsync();
+
+            return Json(new { success = true, bookings });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CancelBooking([FromBody] CancelBookingRequest request)
+        {
+            try
+            {
+                var meId = _users.GetUserId(User);
+                if (string.IsNullOrEmpty(meId))
+                {
+                    return Json(new { success = false, message = "Bạn cần đăng nhập để thực hiện thao tác này." });
+                }
+
+                // Find booking
+                var booking = await _db.Bookings
+                    .FirstOrDefaultAsync(b => b.BookingCode == request.BookingCode);
+
+                if (booking == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đặt phòng." });
+                }
+
+                // Load property to check ownership
+                var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == booking.PropertyId);
+                if (property == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy cơ sở lưu trú." });
+                }
+
+                // Check if user owns the property
+                if (property.UserId != meId)
+                {
+                    return Json(new { success = false, message = "Bạn không có quyền hủy đặt phòng này." });
+                }
+
+                // Check if already cancelled
+                if (booking.Status == BookingStatus.Cancelled)
+                {
+                    return Json(new { success = false, message = "Đặt phòng này đã được hủy trước đó." });
+                }
+
+                // Store original status before updating
+                var originalStatus = booking.Status;
+
+                // Update booking status
+                booking.Status = BookingStatus.Cancelled;
+                _db.Bookings.Update(booking);
+
+                // Restore room quantity if booking was confirmed or pending
+                if (originalStatus == BookingStatus.Confirmed || originalStatus == BookingStatus.Pending)
+                {
             var room = await _db.Rooms.FirstOrDefaultAsync(r => r.Id == booking.RoomId);
-            
-            ViewBag.Booking = booking;
-            ViewBag.Room = room;
-            ViewBag.Property = property;
-            
-            return View();
+                    if (room != null && room.Quantity >= 0)
+                    {
+                        room.Quantity += 1;
+                        _db.Rooms.Update(room);
+                    }
+                }
+
+                // Restore RoomDailyRate allotment for the booking period
+                var checkInDate = booking.CheckIn.Date;
+                var checkOutDate = booking.CheckOut.Date;
+                
+                for (var date = checkInDate; date < checkOutDate; date = date.AddDays(1))
+                {
+                    var dailyRates = await _db.RoomDailyRates
+                        .Where(rdr => rdr.PropertyId == booking.PropertyId &&
+                                     rdr.RoomId == booking.RoomId &&
+                                     rdr.Date.Date == date.Date)
+                        .ToListAsync();
+
+                    foreach (var dailyRate in dailyRates)
+                    {
+                        if (dailyRate.Allotment.HasValue)
+                        {
+                            dailyRate.Allotment += 1;
+                            _db.RoomDailyRates.Update(dailyRate);
+                        }
+                    }
+                }
+
+                await _db.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Hủy đặt phòng thành công. Quỹ phòng đã được cập nhật." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
         }
 
         // ========== DISCOUNT CODE MANAGEMENT ==========

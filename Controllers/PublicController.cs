@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotelBooking.Data;
@@ -38,6 +39,13 @@ namespace HotelBooking.Controllers
             var property = await _db.Properties.FirstOrDefaultAsync(p => p.Id == id);
             if (property == null) return NotFound();
 
+            var resolvedCheckIn = (checkin ?? DateTime.Today.AddDays(1)).Date;
+            var resolvedCheckOut = (checkout ?? resolvedCheckIn.AddDays(1)).Date;
+            if (resolvedCheckOut <= resolvedCheckIn)
+            {
+                resolvedCheckOut = resolvedCheckIn.AddDays(1);
+            }
+
             var pd = await _db.PropertyData.FirstOrDefaultAsync(x => x.PropertyId == id);
             var pricePackage = await _db.PricePackages.FirstOrDefaultAsync(x => x.PropertyId == id);
 
@@ -46,6 +54,9 @@ namespace HotelBooking.Controllers
                 .Include(r => r.Amenities)
                 .Where(r => r.PropertyId == id)
                 .ToListAsync();
+
+            var roomAvailability = await CalculateRoomAvailabilityAsync(id, roomsList, resolvedCheckIn, resolvedCheckOut);
+            var propertySoldOut = roomAvailability.Any() && roomAvailability.Values.All(av => !av);
 
             // Load all RoomPrices with PricePackage for displaying room options
             // Note: SQLite doesn't support ORDER BY decimal, so we load first then sort in memory
@@ -60,6 +71,47 @@ namespace HotelBooking.Controllers
                 .ThenBy(rp => rp.Amount)
                 .ToList();
             
+            // Load daily rate overrides for the check-in/check-out period
+            var dailyRateOverrides = await _db.RoomDailyRates
+                .Where(r => r.PropertyId == id &&
+                           r.Price.HasValue &&
+                           r.Date >= resolvedCheckIn &&
+                           r.Date < resolvedCheckOut)
+                .Select(r => new { r.RoomId, r.RoomPriceId, r.Date, r.Price })
+                .ToListAsync();
+            
+            // Create lookup: (RoomId, RoomPriceId, Date) -> Price
+            var rateOverrideLookup = dailyRateOverrides
+                .GroupBy(r => new { r.RoomId, r.RoomPriceId })
+                .ToDictionary(
+                    g => (g.Key.RoomId, g.Key.RoomPriceId),
+                    g => g.ToDictionary(x => x.Date.Date, x => x.Price!.Value));
+            
+            // Load rate adjustments for descriptions
+            var rateAdjustments = await _db.RoomRateAdjustments
+                .Where(ra => ra.PropertyId == id &&
+                            ra.StartDate <= resolvedCheckOut &&
+                            ra.EndDate >= resolvedCheckIn)
+                .Select(ra => new { ra.RoomId, ra.RoomPriceId, ra.StartDate, ra.EndDate, ra.Description })
+                .ToListAsync();
+            
+            // Create lookup: (RoomId, RoomPriceId, Date) -> Description
+            var adjustmentLookup = new Dictionary<(int RoomId, int? RoomPriceId, DateTime Date), string>();
+            foreach (var adj in rateAdjustments)
+            {
+                for (var date = adj.StartDate.Date; date <= adj.EndDate.Date && date < resolvedCheckOut; date = date.AddDays(1))
+                {
+                    if (date >= resolvedCheckIn)
+                    {
+                        var key = (adj.RoomId, adj.RoomPriceId, date);
+                        if (!adjustmentLookup.ContainsKey(key))
+                        {
+                            adjustmentLookup[key] = adj.Description ?? "";
+                        }
+                    }
+                }
+            }
+            
             // Group by RoomId for minimum price lookup (backward compatibility)
             var roomPrices = allRoomPrices
                 .GroupBy(rp => rp.RoomId)
@@ -69,6 +121,12 @@ namespace HotelBooking.Controllers
             var roomPricesByRoom = allRoomPrices
                 .GroupBy(rp => rp.RoomId)
                 .ToDictionary(g => g.Key, g => g.ToList());
+            
+            // Pass rate overrides and adjustments to view
+            ViewBag.RateOverrideLookup = rateOverrideLookup;
+            ViewBag.AdjustmentLookup = adjustmentLookup;
+            ViewBag.CheckInDate = resolvedCheckIn;
+            ViewBag.CheckOutDate = resolvedCheckOut;
 
             // Get all room photos for gallery
             var allRoomPhotos = roomsList
@@ -188,18 +246,130 @@ namespace HotelBooking.Controllers
                 PhotoUrls = (pd?.PhotoPaths ?? "")
                     .Split('|', System.StringSplitOptions.RemoveEmptyEntries)
                     .ToList(),
-                RoomPhotoUrls = allRoomPhotos
+                RoomPhotoUrls = allRoomPhotos,
+                RoomAvailability = roomAvailability,
+                PropertySoldOut = propertySoldOut,
+                CheckInDate = resolvedCheckIn,
+                CheckOutDate = resolvedCheckOut
             };
 
             // Pass search parameters to view
-            ViewBag.Checkin = checkin;
-            ViewBag.Checkout = checkout;
+            ViewBag.Checkin = resolvedCheckIn;
+            ViewBag.Checkout = resolvedCheckOut;
             ViewBag.Adults = adults;
             ViewBag.Children = children;
             ViewBag.PropertyAmenities = propertyAmenities;
-            ViewBag.Rooms = rooms;
+            ViewBag.Rooms = rooms ?? 1;
 
             return View(vm);
+        }
+
+        private async Task<Dictionary<int, bool>> CalculateRoomAvailabilityAsync(int propertyId, List<Room>? preloadedRooms, DateTime checkIn, DateTime checkOut)
+        {
+            var startDate = checkIn.Date;
+            var endDate = checkOut.Date;
+            if (endDate <= startDate)
+            {
+                endDate = startDate.AddDays(1);
+            }
+
+            var rooms = preloadedRooms ?? await _db.Rooms
+                .Where(r => r.PropertyId == propertyId)
+                .ToListAsync();
+
+            var roomIds = rooms.Select(r => r.Id).ToList();
+            if (!roomIds.Any())
+            {
+                return new Dictionary<int, bool>();
+            }
+
+            var bookings = await _db.Bookings
+                .Where(b => b.PropertyId == propertyId &&
+                            b.Status != BookingStatus.Cancelled &&
+                            b.CheckIn < endDate &&
+                            b.CheckOut > startDate &&
+                            roomIds.Contains(b.RoomId))
+                .Select(b => new { b.RoomId, b.CheckIn, b.CheckOut })
+                .ToListAsync();
+
+            var bookingLookup = bookings
+                .GroupBy(b => b.RoomId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            var rates = await _db.RoomDailyRates
+                .Where(r => r.PropertyId == propertyId &&
+                            r.Date >= startDate &&
+                            r.Date < endDate &&
+                            roomIds.Contains(r.RoomId))
+                .Select(r => new { r.RoomId, r.RoomPriceId, Date = r.Date.Date, r.Allotment, r.IsClosed })
+                .ToListAsync();
+
+            var rateLookup = rates
+                .GroupBy(r => r.RoomId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g
+                        .GroupBy(x => x.Date)
+                        .ToDictionary(
+                            dg => dg.Key,
+                            dg => dg.First()
+                        ));
+
+            var availability = new Dictionary<int, bool>();
+
+            foreach (var room in rooms)
+            {
+                var baseQuantity = Math.Max(room.Quantity, 0);
+                var available = baseQuantity > 0;
+
+                if (!available)
+                {
+                    availability[room.Id] = false;
+                    continue;
+                }
+
+                var cursor = startDate;
+                while (cursor < endDate)
+                {
+                    var allotment = baseQuantity;
+                    if (rateLookup.TryGetValue(room.Id, out var byDate) &&
+                        byDate.TryGetValue(cursor, out var rateForDate))
+                    {
+                        if (rateForDate.IsClosed)
+                        {
+                            available = false;
+                            break;
+                        }
+
+                        if (rateForDate.Allotment.HasValue)
+                        {
+                            allotment = Math.Min(rateForDate.Allotment.Value, baseQuantity);
+                        }
+                    }
+
+                    if (allotment <= 0)
+                    {
+                        available = false;
+                        break;
+                    }
+
+                    var bookedCount = bookingLookup.TryGetValue(room.Id, out var list)
+                        ? list.Count(b => b.CheckIn.Date <= cursor && b.CheckOut.Date > cursor)
+                        : 0;
+
+                    if (bookedCount >= allotment)
+                    {
+                        available = false;
+                        break;
+                    }
+
+                    cursor = cursor.AddDays(1);
+                }
+
+                availability[room.Id] = available;
+            }
+
+            return availability;
         }
 
         private string GetTimeAgo(DateTime dateTime)
@@ -234,6 +404,16 @@ namespace HotelBooking.Controllers
         [HttpGet]
         public async Task<IActionResult> Search(string? destination, DateOnly? checkin, DateOnly? checkout, string? filters, int adults = 2, int children = 0, int rooms = 1)
         {
+            var searchCheckInDate = (checkin?.ToDateTime(TimeOnly.MinValue) ?? DateTime.Today.AddDays(1)).Date;
+            var searchCheckOutDate = (checkout?.ToDateTime(TimeOnly.MinValue) ?? searchCheckInDate.AddDays(1)).Date;
+            if (searchCheckOutDate <= searchCheckInDate)
+            {
+                searchCheckOutDate = searchCheckInDate.AddDays(1);
+            }
+
+            var normalizedCheckin = checkin ?? DateOnly.FromDateTime(searchCheckInDate);
+            var normalizedCheckout = checkout ?? DateOnly.FromDateTime(searchCheckOutDate);
+
             var query = _db.Properties.AsQueryable();
             if (!string.IsNullOrWhiteSpace(destination))
             {
@@ -407,23 +587,31 @@ namespace HotelBooking.Controllers
 
             var starMap = pdList.ToDictionary(pd => pd.PropertyId, pd => pd.StarRating);
 
+            var propertyAvailability = new Dictionary<int, bool>();
+            foreach (var property in results)
+            {
+                var availability = await CalculateRoomAvailabilityAsync(property.Id, null, searchCheckInDate, searchCheckOutDate);
+                propertyAvailability[property.Id] = availability.Values.Any(v => v);
+            }
+
             var vm = new PublicSearchResultsViewModel
             {
                 Destination = destination ?? string.Empty,
-                Checkin = checkin,
-                Checkout = checkout,
+                Checkin = normalizedCheckin,
+                Checkout = normalizedCheckout,
                 Properties = results,
                 MainPhotoUrls = photoMap,
                 MinPriceByProperty = minPriceMap,
                 StarRatingByProperty = starMap,
                 BreakfastIncludedByProperty = breakfastMap,
-                FeaturedRoomByProperty = roomMap
+                FeaturedRoomByProperty = roomMap,
+                PropertyAvailability = propertyAvailability
             };
 
             // Pass search parameters to view
             ViewBag.SearchDestination = destination;
-            ViewBag.SearchCheckin = checkin;
-            ViewBag.SearchCheckout = checkout;
+            ViewBag.SearchCheckin = normalizedCheckin;
+            ViewBag.SearchCheckout = normalizedCheckout;
             ViewBag.SearchAdults = adults;
             ViewBag.SearchChildren = children;
             ViewBag.SearchRooms = rooms;

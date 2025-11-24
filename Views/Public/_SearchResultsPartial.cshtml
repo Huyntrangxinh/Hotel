@@ -9,6 +9,8 @@
     var minPrice = Model.MinPriceByProperty.ContainsKey(p.Id)
         ? Model.MinPriceByProperty[p.Id]
         : 0;
+    var hasAvailability = Model.PropertyAvailability != null &&
+                          Model.PropertyAvailability.TryGetValue(p.Id, out var available) ? available : true;
     var propertyLink = Url.Action("Hotel", "Public", new
     {
         id = p.Id,
@@ -72,7 +74,17 @@
             {
                 <div class="promotion" style="color:#d91e18">@Localizer["DoesNotIncludeBreakfast"]</div>
             }
-            <div class="limited-offer">@Localizer["LimitedRoomsMessage"]</div>
+            @if (hasAvailability)
+            {
+                <div class="limited-offer">@Localizer["LimitedRoomsMessage"]</div>
+            }
+            else
+            {
+                <div class="sold-out-badge">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span>Đã hết phòng cho ngày bạn chọn</span>
+                </div>
+            }
         </div>
         <div class="hotel-booking-info">
             <div class="rating-section">
@@ -85,11 +97,21 @@
             </div>
             <div>
                 <div class="guests-info">1 @Localizer["Night"], 2 @Localizer["Adults"]</div>
-                <div class="price">VND @String.Format("{0:N0}", Model.MinPriceByProperty.ContainsKey(p.Id) ?
-                                    Model.MinPriceByProperty[p.Id] : 0)</div>
-            <div class="price-includes">+VND 469.000 @Localizer["TaxAndFees"]</div>
-            <a class="book-btn" href="@propertyLink">@Localizer["ViewAvailability"]</a>
-        </div>
+                @if (hasAvailability)
+                {
+                    <div class="price">VND @String.Format("{0:N0}", Model.MinPriceByProperty.ContainsKey(p.Id) ?
+                                        Model.MinPriceByProperty[p.Id] : 0)</div>
+                    <div class="price-includes">+VND 469.000 @Localizer["TaxAndFees"]</div>
+                    <a class="book-btn" href="@propertyLink">@Localizer["ViewAvailability"]</a>
+                }
+                else
+                {
+                    <div class="sold-out-cta">
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span>Khách sạn đã hết phòng trong ngày bạn chọn</span>
+                    </div>
+                }
+            </div>
     </div>
 </div>
 }

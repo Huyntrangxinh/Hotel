@@ -25,6 +25,7 @@ namespace HotelBooking.Data
         public DbSet<PricePackage> PricePackages => Set<PricePackage>();
         public DbSet<RoomPrice> RoomPrices => Set<RoomPrice>();
         public DbSet<RoomDailyRate> RoomDailyRates => Set<RoomDailyRate>();
+        public DbSet<RoomRateAdjustment> RoomRateAdjustments => Set<RoomRateAdjustment>();
         public DbSet<Destination> Destinations => Set<Destination>();
         public DbSet<Discount> Discounts => Set<Discount>();
         public DbSet<Booking> Bookings => Set<Booking>();
@@ -165,7 +166,7 @@ namespace HotelBooking.Data
                    .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<RoomDailyRate>()
-                   .HasIndex(r => new { r.PropertyId, r.RoomId, r.Date })
+                   .HasIndex(r => new { r.PropertyId, r.RoomId, r.RoomPriceId, r.Date })
                    .IsUnique();
 
             // Review relations

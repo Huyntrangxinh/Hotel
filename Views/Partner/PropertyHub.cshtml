@@ -1,5 +1,6 @@
 @{
     var p = ViewBag.Property as HotelBooking.Models.Property;
+    var propertyOptions = ViewBag.PropertyOptions as IEnumerable<dynamic>;
     ViewData["Title"] = p?.Name + " • Trung tâm quản lý";
     Layout = null; // Ẩn navbar/global layout cho màn PropertyHub
 }
@@ -53,6 +54,28 @@
         .header-brand {
             font-weight: 700;
             font-size: 1.25rem;
+        }
+
+        .property-selector button {
+            background: transparent;
+            border: none;
+            color: white;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .property-selector .dropdown-menu {
+            max-height: 320px;
+            overflow-y: auto;
+            min-width: 260px;
+        }
+
+        .property-selector .dropdown-item.active,
+        .property-selector .dropdown-item:active {
+            background-color: var(--light-blue);
+            color: #fff;
         }
 
         .header-actions {
@@ -195,16 +218,40 @@
                 </a>
                 <div class="header-brand ms-1">Booking.com</div>
 
-                <!-- ĐOẠN CODE ĐÃ ĐƯỢC THAY ĐỔI -->
-                <div class="d-flex align-items-center text-white fw-semibold">
-                    <span>@p?.Name</span>
-                    <a href="@Url.Action("Hotel", "Public", new { id = p?.Id })" title="Xem trang hiển thị"
-                        class="text-decoration-none">
-                        <i class="bi bi-eye ms-2 extranet-eye-icon"></i>
-                    </a>
-                    <span class="badge bg-success ms-2">Mở / Có thể đặt phòng</span>
+                <div class="property-selector dropdown">
+                    <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span>@p?.Name</span>
+                    </button>
+                    <ul class="dropdown-menu shadow">
+                        @if (propertyOptions != null)
+                        {
+                            foreach (var option in propertyOptions)
+                            {
+                                var isActive = option.Id == p?.Id;
+                                <li>
+                                    <a class="dropdown-item @(isActive ? "active" : string.Empty)"
+                                       href="@Url.Action("PropertyHub", "Partner", new { propertyId = option.Id })">
+                                        @option.Name
+                                        @if (isActive)
+                                        {
+                                            <span class="badge bg-primary ms-2">Hiện tại</span>
+                                        }
+                                    </a>
+                                </li>
+                            }
+                        }
+                        else
+                        {
+                            <li><span class="dropdown-item-text text-muted">Chưa có cơ sở nào khác</span></li>
+                        }
+                    </ul>
                 </div>
-                <!-- KẾT THÚC THAY ĐỔI -->
+
+                <a href="@Url.Action("Hotel", "Public", new { id = p?.Id })" title="Xem trang hiển thị"
+                    class="text-decoration-none text-white">
+                    <i class="bi bi-eye ms-2 extranet-eye-icon"></i>
+                </a>
+                <span class="badge bg-success ms-2">Mở / Có thể đặt phòng</span>
 
             </div>
             <div class="header-actions">

@@ -12,6 +12,8 @@ namespace HotelBooking.Models
         [Required]
         public int RoomId { get; set; }
 
+        public int? RoomPriceId { get; set; }
+
         [Required]
         public DateTime Date { get; set; }
 
