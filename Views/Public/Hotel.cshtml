@@ -1876,21 +1876,21 @@
                                 else
                                 {
                                     <!-- Fallback nếu không có roomOptions -->
-                                    <div class="guest-info">
-                                        <i class="bi bi-people-fill"></i>
-                                        <span>&nbsp;@guests</span>
-                                    </div>
-                                    <div class="price-info">
-                                        @if(amount.HasValue)
-                                        {
-                                            <div class="old-price">@string.Format("{0:N0} VND", amount.Value * 1.25m)</div>
-                                            <div class="current-price">@string.Format("{0:N0} VND", amount.Value)</div>
-                                        }
+                                <div class="guest-info">
+                                    <i class="bi bi-people-fill"></i>
+                                    <span>&nbsp;@guests</span>
+                                </div>
+                                <div class="price-info">
+                                    @if(amount.HasValue)
+                                    {
+                                        <div class="old-price">@string.Format("{0:N0} VND", amount.Value * 1.25m)</div>
+                                        <div class="current-price">@string.Format("{0:N0} VND", amount.Value)</div>
+                                                                        }
                                         else
                                         {
-                                            <div class="current-price">Giá đang cập nhật</div>
+                                        <div class="current-price">Giá đang cập nhật</div>
                                         }
-                                        <div class="price-note">@Localizer["IncludesTaxAndFees"]</div>
+                                    <div class="price-note">@Localizer["IncludesTaxAndFees"]</div>
                                     </div>
                                     <a class="btn-choose"
                                        asp-controller="Booking"

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Text;
+using System.Globalization;
 using System.Text.Json;
 using HotelBooking.Data;
 using Microsoft.EntityFrameworkCore;
@@ -543,8 +544,12 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
                 var currentContext = request.Context ?? string.Empty;
                 
                 _logger.LogInformation("Using context from request: {Context}", currentContext);
+
+                var hasExplicitDestinationInMessage = !string.IsNullOrWhiteSpace(
+                    ExtractDestinationKeywords(request.Message ?? string.Empty, null));
                 
                 var isFollowUpQuestion = !string.IsNullOrEmpty(currentContext) && 
+                    !hasExplicitDestinationInMessage &&
                     (message.Contains("khách sạn") || message.Contains("hotel") || 
                      message.Contains("đặt phòng") || message.Contains("book") ||
                      message.Contains("rẻ hơn") || message.Contains("đắt") ||
@@ -744,8 +749,39 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
 
                 if (isBookingRequest)
                 {
-                    var mergedSearchText = string.Join(' ', new[] { request.Message, request.Context ?? string.Empty, request.CurrentUrl ?? string.Empty });
-                    var hotels = await GetHotelsFromDatabase(mergedSearchText, priceFilter);
+                    var searchCandidates = new List<string>();
+                    if (!string.IsNullOrWhiteSpace(request.Message)) 
+                    {
+                        searchCandidates.Add(request.Message);
+                    }
+                    
+                    if (!hasExplicitDestinationInMessage)
+                    {
+                        if (!string.IsNullOrWhiteSpace(request.Context)) searchCandidates.Add(request.Context);
+                        if (!string.IsNullOrWhiteSpace(request.CurrentUrl)) searchCandidates.Add(request.CurrentUrl);
+                    }
+
+                    List<HotelInfo> hotels = new();
+                    foreach (var candidate in searchCandidates)
+                    {
+                        hotels = await GetHotelsFromDatabase(candidate, priceFilter);
+                        if (hotels.Any())
+                        {
+                            _logger.LogInformation("Found {Count} hotels using candidate search text: {Candidate}", hotels.Count, candidate);
+                            break;
+                        }
+                        else
+                        {
+                            _logger.LogInformation("No hotels found using candidate search text: {Candidate}", candidate);
+                        }
+                    }
+                    
+                    // Nếu không tìm thấy với candidate nào, fallback tìm tất cả (top 5)
+                    if (!hotels.Any())
+                    {
+                        _logger.LogInformation("No hotels found from candidates. Fallback to generic search.");
+                        hotels = await GetHotelsFromDatabase(request.Message ?? string.Empty, priceFilter);
+                    }
                     
                     string newContextForFrontEnd = request.Context ?? string.Empty; 
 
@@ -794,14 +830,57 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
                     }
                     else
                     {
-                        // If no hotels found after price filtering, return a direct response instead of sending to AI
-                        var noHotelsMessage = "<p><strong>Rất tiếc, mình không tìm thấy khách sạn phù hợp với yêu cầu của bạn.</strong></p>" +
+                        var destinationName = ExtractDestinationKeywords(request.Message ?? string.Empty, request);
+                        var destinationLine = !string.IsNullOrWhiteSpace(destinationName)
+                            ? $"<p><strong>Rất tiếc!</strong> Hiện hệ thống của mình chưa có đối tác ở <strong>{destinationName}</strong>.</p>"
+                            : "<p><strong>Rất tiếc!</strong> Hiện mình chưa có đối tác phù hợp với yêu cầu bạn vừa gửi.</p>";
+
+                        var suggestionDestinations = await _context.Properties
+                            .Where(p => p.Status == PropertyStatus.Approved && !string.IsNullOrWhiteSpace(p.City))
+                            .Select(p => p.City!)
+                            .Distinct()
+                            .OrderBy(city => city)
+                            .Take(8)
+                            .ToListAsync();
+
+                        var suggestionHtml = string.Empty;
+                        if (suggestionDestinations.Any())
+                        {
+                            var suggestionItems = string.Join("", suggestionDestinations.Select(city =>
+                            {
+                                var sanitizedCity = city.Replace("'", "\\'");
+                                return $"<li style='margin-bottom:6px;'><button type='button' onclick=\"sendChatbotDestination('{sanitizedCity}')\" style='padding:6px 10px;border:1px solid #cfe0ff;border-radius:20px;background:#f0f6ff;color:#1e3a8a;font-size:13px;cursor:pointer;'>Khách sạn ở {city}</button></li>";
+                            }));
+
+                            suggestionHtml =
+                                "<p>Bạn có thể thử những điểm đến đang có đối tác:</p>" +
+                                "<ul style='list-style:none;padding-left:0;margin:0;display:flex;flex-wrap:wrap;gap:8px;'>" +
+                                suggestionItems +
+                                "</ul>" +
+                                "<script>" +
+                                "function sendChatbotDestination(city) {" +
+                                "  var input = document.querySelector('#chatbot-input-field');" +
+                                "  var send = document.querySelector('#chatbot-send');" +
+                                "  if (input) {" +
+                                "    input.value = 'khách sạn ở ' + city;" +
+                                "    input.dispatchEvent(new Event('input', { bubbles: true }));" +
+                                "    if (send) { send.click(); } else {" +
+                                "      var evt = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true });" +
+                                "      input.dispatchEvent(evt);" +
+                                "    }" +
+                                "  }" +
+                                "}" +
+                                "</script>";
+                        }
+
+                        var noHotelsMessage = destinationLine +
                                             "<p>Bạn có thể thử:</p>" +
                                             "<ul>" +
                                             "<li>Tăng ngân sách lên một chút</li>" +
                                             "<li>Tìm ở khu vực khác</li>" +
-                                            "<li>Yêu cầu khác (ví dụ: 'khách sạn 500k')</li>" +
+                                              "<li>Đưa thêm yêu cầu cụ thể (ví dụ: 'khách sạn 500k')</li>" +
                                             "</ul>" +
+                                              suggestionHtml +
                                             "<p>Mình luôn sẵn sàng giúp bạn tìm được nơi ở ưng ý nhất! 😊</p>";
                         
                         return Json(new { success = true, reply = noHotelsMessage, newContext = "Không tìm thấy khách sạn phù hợp với yêu cầu." });
@@ -901,6 +980,8 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
                 bool hasSpecificHotel = DoesContextImplySpecificHotel(searchText);
                 _logger.LogInformation("DoesContextImplySpecificHotel result: {Result} for search text: {SearchText}", hasSpecificHotel, searchText);
                 
+                string destinationKeywordsForLogging = string.Empty;
+                
                 if (hasSpecificHotel)
                 {
                     _logger.LogInformation("Found specific hotel in search text.");
@@ -920,63 +1001,90 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
                 }
                 else
                 {
-                    _logger.LogInformation("General search. Checking for locations.");
-                    // Check for specific provinces/cities
-                    if (searchText.Contains("quảng ninh") || searchText.Contains("quang ninh") || searchText.Contains("hạ long") || searchText.Contains("ha long"))
+                    _logger.LogInformation("General search. Searching in database by City or Name.");
+                    
+                    // Extract destination from search text using regex patterns
+                    var destinationKeywords = string.Empty;
+                    
+                    // Try to extract destination after common prepositions
+                    var patterns = new[]
                     {
-                        query = query.Where(p => p.City.ToLower().Contains("quảng ninh") ||
-                                               p.City.ToLower().Contains("hạ long") ||
-                                               p.AddressLine.ToLower().Contains("hạ long"));
-                        _logger.LogInformation("Searching for Quang Ninh properties. Query will return all matching properties.");
+                        @"(?:khách\s+sạn|hotel|resort)\s+(?:ở|tại|tìm|cho|giúp)\s+(.+)",
+                        @"(?:ở|tại)\s+(.+)",
+                        @"(?:khách\s+sạn|hotel|resort)\s+(.+)"
+                    };
+                    
+                    foreach (var pattern in patterns)
+                    {
+                        var match = System.Text.RegularExpressions.Regex.Match(searchText, pattern, 
+                            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                        if (match.Success && match.Groups.Count > 1)
+                        {
+                            destinationKeywords = match.Groups[1].Value.Trim();
+                            break;
+                        }
                     }
-                    else if (searchText.Contains("hà nội") || searchText.Contains("ha noi") || searchText.Contains("hanoi"))
+                    
+                    // If no pattern matched, try removing common words
+                    if (string.IsNullOrWhiteSpace(destinationKeywords))
                     {
-                        query = query.Where(p => p.City.ToLower().Contains("hà nội") ||
-                                               p.City.ToLower().Contains("ha noi") ||
-                                               p.City.ToLower().Contains("hanoi"));
-                        _logger.LogInformation("Searching for Ha Noi properties. Query will return all matching properties.");
+                        destinationKeywords = searchText
+                            .Replace("khách sạn", "", StringComparison.OrdinalIgnoreCase)
+                            .Replace("hotel", "", StringComparison.OrdinalIgnoreCase)
+                            .Replace("resort", "", StringComparison.OrdinalIgnoreCase)
+                            .Replace("ở", "", StringComparison.OrdinalIgnoreCase)
+                            .Replace("tại", "", StringComparison.OrdinalIgnoreCase)
+                            .Replace("tìm", "", StringComparison.OrdinalIgnoreCase)
+                            .Replace("cho tôi", "", StringComparison.OrdinalIgnoreCase)
+                            .Replace("giúp tôi", "", StringComparison.OrdinalIgnoreCase)
+                            .Trim();
                     }
-                    else if (searchText.Contains("thái nguyên") || searchText.Contains("thai nguyen"))
+                    
+                    // If still empty, use the whole searchText (might be just a city name)
+                    if (string.IsNullOrWhiteSpace(destinationKeywords))
                     {
-                        query = query.Where(p => p.City.ToLower().Contains("thái nguyên") ||
-                                               p.City.ToLower().Contains("thai nguyen"));
-                        _logger.LogInformation("Searching for Thai Nguyen properties. Query will return all matching properties.");
+                        destinationKeywords = searchText.Trim();
                     }
-                    else if (searchText.Contains("hải phòng") || searchText.Contains("hai phong"))
+                    
+                    // Clean punctuation and stop words (như "từ", "đến", "cho", ...)
+                    destinationKeywords = System.Text.RegularExpressions.Regex.Replace(destinationKeywords, @"[\.!,\?]+", " ");
+                    destinationKeywords = System.Text.RegularExpressions.Regex.Replace(destinationKeywords, @"\s+", " ").Trim();
+                    
+                    // Cắt bỏ phần sau các từ khóa như "từ", "đến", "cho", "ngày", ...
+                    var stopWordPattern = @"\b(tu|từ|den|đến|cho|nguoi|người|ngay|ngày|dem|đêm|gia|giá|khoang|khoảng|vao|vào|trong)\b";
+                    var stopMatch = System.Text.RegularExpressions.Regex.Match(destinationKeywords, stopWordPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                    if (stopMatch.Success)
                     {
-                        query = query.Where(p => p.City.ToLower().Contains("hải phòng") ||
-                                               p.City.ToLower().Contains("hai phong"));
-                        _logger.LogInformation("Searching for Hai Phong properties. Query will return all matching properties.");
+                        destinationKeywords = destinationKeywords.Substring(0, stopMatch.Index).Trim();
                     }
-                    else if (searchText.Contains("tp.hcm") || searchText.Contains("hồ chí minh") || searchText.Contains("ho chi minh") || searchText.Contains("sài gòn") || searchText.Contains("sai gon"))
+                    
+                    // Chỉ giữ lại chữ cái và khoảng trắng
+                    var letterMatch = System.Text.RegularExpressions.Regex.Match(destinationKeywords, @"[\p{L}\s]+", System.Text.RegularExpressions.RegexOptions.Multiline);
+                    if (letterMatch.Success)
                     {
-                        query = query.Where(p => p.City.ToLower().Contains("tp.hcm") ||
-                                               p.City.ToLower().Contains("hồ chí minh") ||
-                                               p.City.ToLower().Contains("ho chi minh") ||
-                                               p.City.ToLower().Contains("sài gòn") ||
-                                               p.City.ToLower().Contains("sai gon"));
-                        _logger.LogInformation("Searching for TP.HCM properties. Query will return all matching properties.");
+                        destinationKeywords = letterMatch.Value.Trim();
                     }
-                    else if (searchText.Contains("đà nẵng") || searchText.Contains("da nang"))
+                    
+                    _logger.LogInformation("Extracted destination keywords: '{DestinationKeywords}' from search text: '{SearchText}'", 
+                        destinationKeywords, searchText);
+                    
+                    if (!string.IsNullOrWhiteSpace(destinationKeywords))
                     {
-                        query = query.Where(p => p.City.ToLower().Contains("đà nẵng") ||
-                                               p.City.ToLower().Contains("da nang"));
-                        _logger.LogInformation("Searching for Da Nang properties. Query will return all matching properties.");
-                    }
-                    else if (searchText.Contains("nha trang"))
-                    {
-                        query = query.Where(p => p.City.ToLower().Contains("nha trang"));
-                        _logger.LogInformation("Searching for Nha Trang properties. Query will return all matching properties.");
-                    }
-                    else if (searchText.Contains("phú quốc") || searchText.Contains("phu quoc"))
-                    {
-                        query = query.Where(p => p.City.ToLower().Contains("phú quốc") ||
-                                               p.City.ToLower().Contains("phu quoc"));
-                        _logger.LogInformation("Searching for Phu Quoc properties. Query will return all matching properties.");
+                        // Search in City, Name, or AddressLine - similar to PublicController.Search
+                        // Use case-insensitive search
+                        var lowerDestination = destinationKeywords.ToLower();
+                        destinationKeywordsForLogging = lowerDestination;
+                        query = query.Where(p => 
+                            (p.City != null && p.City.ToLower().Contains(lowerDestination)) || 
+                            (p.Name != null && p.Name.ToLower().Contains(lowerDestination)) ||
+                            (p.AddressLine != null && p.AddressLine.ToLower().Contains(lowerDestination)));
+                        _logger.LogInformation("Searching for properties matching: '{Destination}' (case-insensitive) in City, Name, or AddressLine", lowerDestination);
                     }
                     else
                     {
+                        // If no destination found, return top 5 properties
                         query = query.Take(5); 
+                        _logger.LogInformation("No destination found in search text, returning top 5 properties.");
                     }
 
                     // Only filter by type if user specifically asks for resort or hotel
@@ -1004,19 +1112,45 @@ VÍ DỤ CÁC TRƯỜNG HỢP FALLBACK:
                     // If no specific type mentioned, include all types (Hotel, Resort, etc.)
                 }
 
-                // For specific province/city searches, get all properties; for others, limit to 10
-                var isSpecificLocationSearch = searchText.Contains("quảng ninh") || searchText.Contains("quang ninh") || searchText.Contains("hạ long") || searchText.Contains("ha long") ||
-                                               searchText.Contains("hà nội") || searchText.Contains("ha noi") || searchText.Contains("hanoi") ||
-                                               searchText.Contains("thái nguyên") || searchText.Contains("thai nguyen") ||
-                                               searchText.Contains("hải phòng") || searchText.Contains("hai phong") ||
-                                               searchText.Contains("tp.hcm") || searchText.Contains("hồ chí minh") || searchText.Contains("ho chi minh") || searchText.Contains("sài gòn") || searchText.Contains("sai gon") ||
-                                               searchText.Contains("đà nẵng") || searchText.Contains("da nang") ||
-                                               searchText.Contains("nha trang") ||
-                                               searchText.Contains("phú quốc") || searchText.Contains("phu quoc");
+                // Get all matching properties (no limit for location-based searches)
+                var properties = await query.Take(20).ToListAsync();
                 
-                var properties = isSpecificLocationSearch
-                    ? await query.ToListAsync()
-                    : await query.Take(10).ToListAsync();
+                _logger.LogInformation("Query executed. Found {Count} properties matching search criteria. Search text: '{SearchText}'", 
+                    properties.Count, searchText);
+                
+                if (properties.Count == 0)
+                {
+                    _logger.LogWarning("No properties found. Search text: '{SearchText}', Destination keywords: '{DestinationKeywords}'. Attempting diacritic-insensitive fallback.", 
+                        searchText, destinationKeywordsForLogging);
+                    
+                    if (!string.IsNullOrWhiteSpace(destinationKeywordsForLogging))
+                    {
+                        var normalizedSearch = RemoveDiacritics(destinationKeywordsForLogging);
+                        var fallbackProperties = await _context.Properties
+                            .Where(p => p.Status == PropertyStatus.Approved)
+                            .Take(200)
+                            .ToListAsync();
+                        
+                        properties = fallbackProperties
+                            .Where(p =>
+                            {
+                                var city = RemoveDiacritics(p.City ?? string.Empty);
+                                var name = RemoveDiacritics(p.Name ?? string.Empty);
+                                var address = RemoveDiacritics(p.AddressLine ?? string.Empty);
+                                return city.Contains(normalizedSearch) || name.Contains(normalizedSearch) || address.Contains(normalizedSearch);
+                            })
+                            .Take(20)
+                            .ToList();
+                        
+                        _logger.LogInformation("Fallback search found {Count} properties using normalized keyword '{Keyword}'", properties.Count, normalizedSearch);
+                    }
+                    
+                    if (properties.Count == 0)
+                    {
+                        var totalApproved = await _context.Properties.Where(p => p.Status == PropertyStatus.Approved).CountAsync();
+                        _logger.LogWarning("Fallback also failed. Total approved properties in database: {Count}", totalApproved);
+                    }
+                }
 
                 _logger.LogInformation("Found {Count} properties from database", properties.Count);
                 foreach (var prop in properties)
@@ -2748,6 +2882,124 @@ function editBookingInfo(formId) {
                 if (summary) summary.style.display = 'none';
             }}
             </script>";
+        }
+
+        private string ExtractDestinationKeywords(string rawSearchText, ChatRequest? request)
+        {
+            var searchText = (rawSearchText ?? string.Empty).ToLower().Trim();
+
+            if (string.IsNullOrWhiteSpace(searchText) && request != null)
+            {
+                searchText = (request.Context ?? string.Empty).ToLower().Trim();
+            }
+
+            if (string.IsNullOrWhiteSpace(searchText) && request != null)
+            {
+                searchText = (request.CurrentUrl ?? string.Empty).ToLower().Trim();
+            }
+
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                return string.Empty;
+            }
+
+            var destinationKeywords = string.Empty;
+            var patterns = new[]
+            {
+                @"(?:khách\s+sạn|hotel|resort)\s+(?:ở|tại|tìm|cho|giúp)\s+(.+)",
+                @"(?:ở|tại)\s+(.+)",
+                @"(?:khách\s+sạn|hotel|resort)\s+(.+)"
+            };
+
+            foreach (var pattern in patterns)
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(searchText, pattern,
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                if (match.Success && match.Groups.Count > 1)
+                {
+                    destinationKeywords = match.Groups[1].Value.Trim();
+                    break;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(destinationKeywords))
+            {
+                destinationKeywords = searchText
+                    .Replace("khách sạn", "", StringComparison.OrdinalIgnoreCase)
+                    .Replace("hotel", "", StringComparison.OrdinalIgnoreCase)
+                    .Replace("resort", "", StringComparison.OrdinalIgnoreCase)
+                    .Replace("ở", "", StringComparison.OrdinalIgnoreCase)
+                    .Replace("tại", "", StringComparison.OrdinalIgnoreCase)
+                    .Replace("tìm", "", StringComparison.OrdinalIgnoreCase)
+                    .Replace("cho tôi", "", StringComparison.OrdinalIgnoreCase)
+                    .Replace("giúp tôi", "", StringComparison.OrdinalIgnoreCase)
+                    .Trim();
+            }
+
+            if (string.IsNullOrWhiteSpace(destinationKeywords))
+            {
+                destinationKeywords = searchText;
+            }
+
+            destinationKeywords = System.Text.RegularExpressions.Regex.Replace(destinationKeywords, @"[\.!,\?]+", " ");
+            destinationKeywords = System.Text.RegularExpressions.Regex.Replace(destinationKeywords, @"\s+", " ").Trim();
+
+            var stopWordPattern = @"\b(tu|từ|den|đến|cho|nguoi|người|ngay|ngày|dem|đêm|gia|giá|khoang|khoảng|vao|vào|trong)\b";
+            var stopMatch = System.Text.RegularExpressions.Regex.Match(destinationKeywords, stopWordPattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (stopMatch.Success)
+            {
+                destinationKeywords = destinationKeywords.Substring(0, stopMatch.Index).Trim();
+            }
+
+            var letterMatch = System.Text.RegularExpressions.Regex.Match(destinationKeywords, @"[\p{L}\s]+", System.Text.RegularExpressions.RegexOptions.Multiline);
+            if (letterMatch.Success)
+            {
+                destinationKeywords = letterMatch.Value.Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(destinationKeywords))
+            {
+                return destinationKeywords;
+            }
+
+            if (request != null)
+            {
+                var contextFallback = ExtractDestinationKeywords(request.Context ?? string.Empty, null);
+                if (!string.IsNullOrWhiteSpace(contextFallback))
+                {
+                    return contextFallback;
+                }
+
+                var urlFallback = ExtractDestinationKeywords(request.CurrentUrl ?? string.Empty, null);
+                if (!string.IsNullOrWhiteSpace(urlFallback))
+                {
+                    return urlFallback;
+                }
+            }
+
+            return string.Empty;
+        }
+
+        private static string RemoveDiacritics(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return string.Empty;
+            }
+
+            var normalized = input.Normalize(NormalizationForm.FormD);
+            var builder = new StringBuilder(normalized.Length);
+
+            foreach (var ch in normalized)
+            {
+                var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(ch);
+                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                {
+                    builder.Append(char.ToLowerInvariant(ch));
+                }
+            }
+
+            return builder.ToString().Normalize(NormalizationForm.FormC);
         }
 
     }

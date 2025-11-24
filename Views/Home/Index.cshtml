@@ -541,6 +541,16 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderDestinationDropdown() {
         // This function builds and shows the dropdown for recent/trending destinations
         const items = getRecent();
+        // Remove duplicates from recent searches based on city
+        const uniqueItems = [];
+        const seenCities = new Set();
+        items.forEach(x => {
+            if (!seenCities.has(x.city)) {
+                seenCities.add(x.city);
+                uniqueItems.push(x);
+            }
+        });
+        
         const trending = [
             { city: 'Hà Nội', country: 'Việt Nam' }, { city: 'Ninh Bình', country: 'Việt Nam' },
             { city: 'Sa Pa', country: 'Việt Nam' }, { city: 'Đà Nẵng', country: 'Việt Nam' },
@@ -548,27 +558,33 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
 
         let html = '';
-        if (items.length > 0) {
+        if (uniqueItems.length > 0) {
             html += '<div class="p-3 border-bottom text-dark"><strong>@Localizer["RecentSearches"]</strong></div>';
-            items.forEach(x => {
+            uniqueItems.forEach(x => {
                 const checkinDate = x.checkin ? new Date(x.checkin) : null;
                 const checkoutDate = x.checkout ? new Date(x.checkout) : null;
                 const dateString = (checkinDate && checkoutDate) 
                     ? `${formatDisplayDate(checkinDate)} – ${formatDisplayDate(checkoutDate)}` : '';
-                html += `<div class="px-3 py-2 d-flex align-items-center gap-2 hover-bg" style="cursor:pointer" data-city="${x.city}">...</div>`;
+                html += `<div class="px-3 py-2 d-flex align-items-center gap-2 hover-bg" style="cursor:pointer" data-city="${x.city}">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                    <div>
+                        <div class="fw-semibold text-dark">${x.city}</div>
+                        ${dateString ? `<small class="text-muted">${dateString}</small>` : ''}
+                    </div>
+                </div>`;
             });
         }
         html += '<div class="p-3 text-dark"><strong>Các điểm đến thịnh hành</strong></div>';
         trending.forEach(t => {
-            html += `<div class="px-3 py-2 d-flex align-items-center gap-2 hover-bg" style="cursor:pointer" data-city="${t.city}">...</div>`;
+            html += `<div class="px-3 py-2 d-flex align-items-center gap-2 hover-bg" style="cursor:pointer" data-city="${t.city}">
+                <i class="bi bi-geo-alt"></i>
+                <div>
+                    <div class="fw-semibold text-dark">${t.city}</div>
+                    <small class="text-muted">${t.country}</small>
+                </div>
+            </div>`;
         });
-        destinationDropdown.innerHTML = html.replace(/\.\.\./g, (match, offset, string) => {
-            if (string.includes('data-city')) { // lazy way to differentiate between the two sections
-                 return `<i class="bi bi-arrow-counterclockwise"></i><div><div class="fw-semibold text-dark">${string.match(/data-city="([^"]+)"/)[1]}</div><small class="text-muted">${string.match(/<small[^>]*>([^<]+)<\/small>/) ? string.match(/<small[^>]*>([^<]+)<\/small>/)[1] : ''}</small></div>`;
-            } else {
-                 return `<i class="bi bi-geo-alt"></i><div><div class="fw-semibold text-dark">${string.match(/data-city="([^"]+)"/)[1]}</div><small class="text-muted">Việt Nam</small></div>`;
-            }
-        });
+        destinationDropdown.innerHTML = html;
     }
 
     // --- LOCALIZATION DATA ---
@@ -719,7 +735,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const items = getRecent();
         const key = `${destination}|${checkin}|${checkout}`;
-        const filtered = items.filter(x => `${x.city}|${x.checkin}|${x.checkout}` !== key);
+        // Remove duplicates - both exact matches and same city
+        const filtered = items.filter(x => {
+            const itemKey = `${x.city}|${x.checkin}|${x.checkout}`;
+            return itemKey !== key && x.city !== destination;
+        });
         filtered.unshift({ city: destination, checkin, checkout });
         setRecent(filtered);
     });
