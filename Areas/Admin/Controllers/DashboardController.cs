@@ -197,5 +197,59 @@ namespace HotelBooking.Areas.Admin.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        // GET: /Admin/Dashboard/FinancialStatistics
+        // Hiển thị thống kê tài chính
+        public async Task<IActionResult> FinancialStatistics()
+        {
+            // Lấy tất cả bookings đã xác nhận (không bao gồm cancelled)
+            var bookings = await _db.Bookings
+                .Where(b => b.Status != BookingStatus.Cancelled)
+                .OrderByDescending(b => b.CreatedAt)
+                .ToListAsync();
+
+            // Load properties
+            var propertyIds = bookings.Select(b => b.PropertyId).Distinct().ToList();
+            var properties = await _db.Properties
+                .Where(p => propertyIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id, p => p.Name);
+
+            // Tính tổng doanh thu
+            var totalRevenue = bookings.Sum(b => b.TotalPrice);
+
+            // Tính hoa hồng (20%)
+            var commissionRate = 0.2m;
+            var totalCommission = totalRevenue * commissionRate;
+
+            // Nhóm theo property để hiển thị doanh thu từng khách sạn
+            var revenueByProperty = bookings
+                .GroupBy(b => new { b.PropertyId, PropertyName = properties.ContainsKey(b.PropertyId) ? properties[b.PropertyId] : "Unknown" })
+                .Select(g => new
+                {
+                    PropertyId = g.Key.PropertyId,
+                    PropertyName = g.Key.PropertyName,
+                    BookingCount = g.Count(),
+                    Revenue = g.Sum(b => b.TotalPrice),
+                    Commission = g.Sum(b => b.TotalPrice) * commissionRate
+                })
+                .OrderByDescending(x => x.Revenue)
+                .ToList();
+
+            // Create view model with property names
+            var bookingsWithProperty = bookings.Select(b => new
+            {
+                Booking = b,
+                PropertyName = properties.ContainsKey(b.PropertyId) ? properties[b.PropertyId] : "Unknown"
+            }).ToList();
+
+            ViewBag.TotalRevenue = totalRevenue;
+            ViewBag.TotalCommission = totalCommission;
+            ViewBag.CommissionRate = commissionRate;
+            ViewBag.RevenueByProperty = revenueByProperty;
+            ViewBag.Bookings = bookings;
+            ViewBag.Properties = properties;
+
+            return View();
+        }
     }
 }

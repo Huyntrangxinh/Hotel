@@ -1,0 +1,201 @@
+@{
+    ViewData["Title"] = "Thống kê tài chính";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var totalRevenue = (decimal)ViewBag.TotalRevenue;
+    var totalCommission = (decimal)ViewBag.TotalCommission;
+    var commissionRate = (decimal)ViewBag.CommissionRate;
+    var revenueByProperty = ViewBag.RevenueByProperty as dynamic;
+    var bookings = ViewBag.Bookings as List<HotelBooking.Models.Booking>;
+    var properties = ViewBag.Properties as Dictionary<int, string> ?? new Dictionary<int, string>();
+}
+
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-3">
+                <i class="bi bi-graph-up-arrow"></i> Thống kê tài chính
+            </h2>
+        </div>
+    </div>
+
+    <!-- Tổng quan -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-primary">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">
+                        <i class="bi bi-cash-stack"></i> Tổng doanh thu
+                    </h5>
+                    <h3 class="text-primary">@totalRevenue.ToString("N0") VND</h3>
+                    <small class="text-muted">Từ tất cả các giao dịch</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-success">
+                <div class="card-body">
+                    <h5 class="card-title text-success">
+                        <i class="bi bi-percent"></i> Hoa hồng hệ thống (@((commissionRate * 100).ToString("F0"))%)
+                    </h5>
+                    <h3 class="text-success">@totalCommission.ToString("N0") VND</h3>
+                    <small class="text-muted">Số tiền hệ thống nhận được</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-info">
+                <div class="card-body">
+                    <h5 class="card-title text-info">
+                        <i class="bi bi-building"></i> Số khách sạn
+                    </h5>
+                    <h3 class="text-info">@(revenueByProperty?.Count ?? 0)</h3>
+                    <small class="text-muted">Tổng số cơ sở lưu trú</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Doanh thu theo khách sạn -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-building"></i> Doanh thu theo khách sạn
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Tên khách sạn</th>
+                                    <th>Số đặt phòng</th>
+                                    <th>Doanh thu</th>
+                                    <th>Hoa hồng (@((commissionRate * 100).ToString("F0"))%)</th>
+                                    <th>Tiền về khách sạn</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    int index = 1;
+                                    foreach (var item in revenueByProperty)
+                                    {
+                                        var payout = item.Revenue - item.Commission;
+                                        <tr>
+                                            <td>@index</td>
+                                            <td>
+                                                <a
+                                                    href="@Url.Action("Details", "Dashboard", new { id = item.PropertyId, area = "Admin" })">
+                                                    @item.PropertyName
+                                                </a>
+                                            </td>
+                                            <td>@item.BookingCount</td>
+                                            <td class="text-primary fw-bold">@item.Revenue.ToString("N0") VND</td>
+                                            <td class="text-success fw-bold">@item.Commission.ToString("N0") VND</td>
+                                            <td class="text-info">@payout.ToString("N0") VND</td>
+                                        </tr>
+                                        index++;
+                                    }
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-active">
+                                    <th colspan="3">Tổng cộng</th>
+                                    <th class="text-primary">@totalRevenue.ToString("N0") VND</th>
+                                    <th class="text-success">@totalCommission.ToString("N0") VND</th>
+                                    <th class="text-info">@((totalRevenue - totalCommission).ToString("N0")) VND</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chi tiết giao dịch -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-ul"></i> Chi tiết giao dịch
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Mã đặt phòng</th>
+                                    <th>Khách sạn</th>
+                                    <th>Ngày đặt</th>
+                                    <th>Check-in</th>
+                                    <th>Check-out</th>
+                                    <th>Giá/đêm</th>
+                                    <th>Số đêm</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Hoa hồng</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var booking in bookings)
+                                {
+                                    var commission = booking.TotalPrice * commissionRate;
+                                    var propertyName = properties.ContainsKey(booking.PropertyId) ?
+                                    properties[booking.PropertyId] : "N/A";
+                                    <tr>
+                                        <td><code>@booking.BookingCode</code></td>
+                                        <td>@propertyName</td>
+                                        <td>@booking.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>@booking.CheckIn.ToString("dd/MM/yyyy")</td>
+                                        <td>@booking.CheckOut.ToString("dd/MM/yyyy")</td>
+                                        <td>@booking.PricePerNight.ToString("N0") VND</td>
+                                        <td>@booking.TotalNights</td>
+                                        <td class="text-primary fw-bold">@booking.TotalPrice.ToString("N0") VND</td>
+                                        <td class="text-success">@commission.ToString("N0") VND</td>
+                                        <td>
+                                            @if (booking.Status == HotelBooking.Models.BookingStatus.Confirmed)
+                                            {
+                                                <span class="badge bg-success">Đã xác nhận</span>
+                                            }
+                                            else if (booking.Status == HotelBooking.Models.BookingStatus.Pending)
+                                            {
+                                                <span class="badge bg-warning">Chờ xác nhận</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">@booking.Status</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+    }
+
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+</style>
